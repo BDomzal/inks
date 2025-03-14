@@ -1,0 +1,5 @@
+treningowe_DANE_TOTAL.csv -> Training data. These are ICP-MS data including both measurements for indicators and for inks. Data collected for the documents from XVIII century.
+syntetyk.csv -> Data with indices of those data points from treningowe_DANE_TOTAL.csv that correspond to artificially made inks.
+Konstytucja_dane_icpms.csv -> ICP-MS data from Konstytucja, version without measurements split to 15 data points. These data include only measurements for indicators (no inks!).
+Konstytucja_dane_icpms_po_15.csv -> ICP-MS data from Konstytucja, version with measurements split to 15 data points. These data include only measurements for indicators (no inks!).
+Konstytucja_dane_xrf.csv -> XRF data from Konstytucja.
