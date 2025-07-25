@@ -1,0 +1,27 @@
+{
+"preprocessing_method" : "logarithm",
+
+"remove_outer" : true,
+
+"how_many_outer_to_remove" : 1,
+
+"elements_to_keep" : [
+                     "Al",
+                     "S",
+                     "Cr",
+                     "Mn",
+                     "Co",
+                     "Cu",
+                     "Zn",
+                     "Pb"
+                    ],
+
+"data_path" : "../data/TOTALnajnowszedosieci.csv",
+
+"results_path" : "../results/Documents_XVIII_century/",
+
+"figures_path" : "../results/visualisations/Documents_XVIII_century/",
+
+"models_path" : "../models/Documents_XVIII_century/"
+           
+}
