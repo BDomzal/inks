@@ -1,5 +1,5 @@
 {
-"which_dataset": "new",
+"which_dataset": "old",
 
 "preprocessing_method" : "logarithm",
 
@@ -31,6 +31,8 @@
 			"old": "../models/Documents_XVIII_century/model_regression_logarithm_outer_removed_1_Al_S_Cr_Mn_Co_Cu_Zn_Pb_2025_08_06_12_48_59"},
 
 "target_path" : {"new": "../data/wskazniki_dopredykcji.csv",
-		"old": "../data/Konstytucja_dane_icpms_po15.csv"}
+		"old": "../data/Konstytucja_dane_icpms_po15.csv"},
+		
+"classes_path" : "../data/opis.xlsx"
            
 }
