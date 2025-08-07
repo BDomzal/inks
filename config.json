@@ -1,5 +1,5 @@
 {
-"which_dataset": "new",
+"which_dataset": "old",
 
 "preprocessing_method" : "logarithm",
 
@@ -23,7 +23,7 @@
 
 "results_path" : "../results/Konstytucja/",
 
-"figures_path" : "../results/visualisations/Documents_XVIII_century/",
+"figures_path" : "../figures/",
 
 "models_path" : "../models/Documents_XVIII_century/",
 
