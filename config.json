@@ -15,7 +15,9 @@
                      "Co",
                      "Cu",
                      "Zn",
-                     "Pb"
+                     "Pb",
+                     "Fe",
+                     "Mg"
                     ],
 
 "data_path" : {"new": "../data/all_pairs_ai.csv",
