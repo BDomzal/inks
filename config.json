@@ -5,7 +5,7 @@
 
 "remove_outer" : false,
 
-"how_many_outer_to_remove" : 1,
+"how_many_outer_to_remove" : 0,
 
 "elements_to_keep" :{"new": [
 		             "Al",
