@@ -51,6 +51,8 @@
 
 "xrf_path" : "../data/dane_xrf_named.csv",
 
-"elements_to_keep_xrf" : ["S", "Cu", "Zn"]
+"elements_to_keep_xrf" : ["S", "Cu", "Zn"],
+
+"epochs": 5000
            
 }
