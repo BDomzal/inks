@@ -6,6 +6,9 @@ from data_utils import CustomLoss, get_device
 from model import InksNet
 import time
 import datetime
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+from seaborn import heatmap
 
 def train_one_epoch(model, loader, loss_fn, optimizer):
     running_loss = 0.
@@ -29,10 +32,9 @@ def train_one_epoch(model, loader, loss_fn, optimizer):
     return avg_loss
 
 
-def train_model(model, train_loader, val_loader, epochs, loss_fn=CustomLoss()):
+def train_model(model, train_loader, val_loader, epochs, loss_fn=CustomLoss(), optimizer = torch.optim.Adam(model.parameters(), lr=0.001)):
 
     #loss_fn = nn.L1Loss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     epoch_number = 0
 
@@ -89,21 +91,23 @@ def evaluate_on_test_set(model, test_loader, loss_fn=CustomLoss()):
     running_tloss = 0
 
     for i, tdata in enumerate(test_loader):
-        inputs, labels = tdata
-        outputs = model(inputs)
-        loss = loss_fn(outputs, labels)
-        if i==0:
-            out = outputs
-            lab = labels
-            res = abs(outputs-labels)
+        current_inputs, current_labels = tdata
+        current_outputs = model(current_inputs)
+        loss = loss_fn(current_outputs, current_labels)
+        if i == 0:
+            outputs = current_outputs
+            labels = current_labels
+            difference = abs(current_outputs-current_labels)
         else:
-            res = torch.concat((res, abs(outputs-labels)), axis=0)
-            lab = torch.concat((lab, labels), axis=0)
-            out = torch.concat((out, outputs), axis=0)
+            difference = torch.concat((difference, 
+                                       abs(current_outputs-current_labels)), 
+                                       axis=0)
+            labels = torch.concat((labels, current_labels), axis=0)
+            outputs = torch.concat((outputs, current_outputs), axis=0)
         running_tloss += loss.item()
         
     mean_loss = running_tloss/len(test_loader)
-    return lab, out, res, mean_loss
+    return labels, outputs, difference, mean_loss
 
 
 def save_model(model, models_path, remove_outer, how_many_outer_to_remove, 
@@ -130,8 +134,7 @@ def visualise_prediction_against_true(outputs, labels, dimension):
     plt.xlabel('True value')
     plt.ylabel('Predicted value')
 
-    
-# SPRAWDZIĆ TO PONIŻEJ
+
 def create_means_df(elements_to_keep, y_train, train_order, y_val, val_order):
 
     columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
@@ -143,7 +146,7 @@ def create_means_df(elements_to_keep, y_train, train_order, y_val, val_order):
     train_val_df.insert(0, 'Sample_id', pd.concat([train_order, val_order]))
     train_val_df.reset_index(drop=True, inplace=True)
 
-    mean_df = train_val_df[['Sample_id']]
+    mean_df = train_val_df[['Sample_id']].copy()
 
     for name in elements_to_keep:
         mean_df[name] = train_val_df.groupby('Sample_id')[name].transform('mean')
@@ -153,4 +156,231 @@ def create_means_df(elements_to_keep, y_train, train_order, y_val, val_order):
     mean_df.sort_values(by='Sample_id', inplace=True)
     mean_df.reset_index(drop=True, inplace=True)
     return mean_df
+
+def find_and_compare_closest_class(y_test, test_order, elements_to_keep, mean_df):
+
+    y_test_df = pd.DataFrame(y_test)
+    y_test_df.columns = elements_to_keep
+    y_test_df.insert(0, 'Real sample_id', test_order)
+    y_test_df.reset_index(drop=True, inplace=True)
+
+    closest = []
+    for i in range(y_test_df.shape[0]):
+        which_row = (abs(y_test_df.iloc[i, 1:] - mean_df.iloc[:,1:])).sum(1).idxmin()
+        closest.append(mean_df.iloc[which_row]['Sample_id'])
+
+    y_test_df['Closest sample id'] = closest
+    return y_test_df, y_test_df[y_test_df['Real sample_id'] == y_test_df['Closest sample id']].shape[0] / y_test_df.shape[0]
+
+
+def compute_accuracy(outputs_df):
+    acc = outputs_df[outputs_df['Real sample_id'] == outputs_df['Closest']].shape[0] / outputs_df.shape[0]
+    print('Accuracy: '+str(np.round(100*acc, 1))+'%.')
+    return acc
+
+def compute_precision_and_recall(outputs_df)
+    normalization_in_conf_mat = None
+
+    conf_mat = confusion_matrix(outputs_df['Real sample_id'], outputs_df['Closest'], 
+                                normalize=normalization_in_conf_mat)
+
+    tp_and_fn = conf_mat.sum(1)
+    tp_and_fp = conf_mat.sum(0)
+    tp = conf_mat.diagonal()
+
+    precision = tp / tp_and_fp
+    recall = tp / tp_and_fn
+
+    print('Precision: ' + str(np.nanmean(precision)))
+    print('Recall: ' + str(np.nanmean(recall)))
+
+    return precision, recall
+
+def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, path_to_save = None)
+
+    scores = {
+                'pred': 'Precision',
+                'true': 'Recall',
+                None: 'Confusion matrix'
+                }
+
+    conf_mat = confusion_matrix(true_labels, closest_labels, 
+                                normalize=normalization_in_conf_mat)
+
+    heatmap(conf_mat, cmap=sns.cm.rocket_r, xticklabels=False, yticklabels=False)
+    plt.ylabel('True class to which an ink belongs', size=18)
+    plt.xlabel("Prediction's closest class", size=18)
+    plt.rcParams['figure.figsize'] = [15, 10]
+    plt.title(scores[normalization_in_conf_mat] + ' of classification based on the closest center of class.', 
+              size=20, 
+              wrap=True)
+
+    plt.tight_layout()
+
+    if path_to_save is not None:
+        plt.savefig(path_to_save + '_' + scores[normalization_in_conf_mat] + '.png')
+
+
+def create_min_max_df(y_train, train_order, y_val, val_order, elements_to_keep):
+
+    all_data_df = pd.DataFrame(y_train)
+    all_data_df = pd.concat([all_data_df, 
+                            pd.DataFrame(y_val)])
+    all_data_df.columns = elements_to_keep
+    all_data_df.insert(0, 'Sample_id', pd.concat([train_order, val_order]))
+    all_data_df.reset_index(drop=True, inplace=True)
+
+    min_max_df = all_data_df[['Sample_id']].copy()
+
+    for name in elements_to_keep:
+        min_max_df[name + '_max'] = all_data_df.groupby('Sample_id')[name].transform('max')
+        
+    for name in elements_to_keep:
+        min_max_df[name + '_min'] = all_data_df.groupby('Sample_id')[name].transform('min')
+        
+    min_max_df.drop_duplicates('Sample_id', inplace=True)
+    min_max_df.sort_values(by='Sample_id', inplace=True)
+    min_max_df.reset_index(drop=True, inplace=True)
+
+    max_df = min_max_df.iloc[:,1:(1+len(elements_to_keep))]
+    max_df['Sample_id'] = min_max_df['Sample_id']
+    min_df = min_max_df.iloc[:,1+len(elements_to_keep):]
+    min_df['Sample_id'] = min_max_df['Sample_id']
+    return min_df, max_df
+
+def create_mean_plus_sd_df(y_train, train_order, y_val, val_order, elements_to_keep, how_many_sd=2):
+
+    all_data_df = pd.DataFrame(y_train)
+    all_data_df = pd.concat([all_data_df, 
+                            pd.DataFrame(y_val)])
+    all_data_df.columns = elements_to_keep
+    all_data_df.insert(0, 'Sample_id', pd.concat([train_order, val_order]))
+    all_data_df.reset_index(drop=True, inplace=True)
+    mean_sd_df = all_data_df[['Sample_id']].copy()
+
+    for name in elements_to_keep:
+        mean_sd_df[name + '_mean'] = all_data_df.groupby('Sample_id')[name].transform('mean')
+        
+    for name in elements_to_keep:
+        mean_sd_df[name + '_sd'] = all_data_df.groupby('Sample_id')[name].transform(np.std)
+
+    mean_sd_df.drop_duplicates('Sample_id', inplace=True)   
+    mean_sd_df.sort_values(by='Sample_id', inplace=True)
+    mean_sd_df.reset_index(drop=True, inplace=True)
+
+    upper_bound_df = mean_sd_df.iloc[:,1:(1+len(elements_to_keep))].values + \
+                    how_many_sd*mean_sd_df.iloc[:,1+len(elements_to_keep):].values
+    upper_bound_df = pd.DataFrame(upper_bound_df, columns=elements_to_keep)
+    upper_bound_df['Sample_id'] = mean_sd_df[['Sample_id']]
+
+    lower_bound_df = mean_sd_df.iloc[:,1:(1+len(elements_to_keep))].values - \
+                    how_many_sd*mean_sd_df.iloc[:,1+len(elements_to_keep):].values
+    lower_bound_df = pd.DataFrame(lower_bound_df, columns=elements_to_keep)
+    lower_bound_df['Sample_id'] = mean_sd_df[['Sample_id']]
+
+    return lower_bound_df, upper_bound_df
+
+def is_inside_min_max_interval(outputs, test_order, min_df, max_df):
+
+    min_max_res_list = []
+
+    for test_example, sample_id in zip(outputs, test_order):
+        
+        greater_than_min = test_example.cpu().detach().numpy() > \
+                        np.array(min_df.loc[min_df['Sample_id'] == sample_id, min_df.columns != 'Sample_id'])
+        
+        less_than_max = test_example.cpu().detach().numpy() < \
+                        np.array(max_df.loc[max_df['Sample_id'] == sample_id, max_df.columns != 'Sample_id'])
+        
+        res = np.logical_and(greater_than_min, less_than_max)
+        
+        min_max_res_list.append(res)
+
+    return np.array(min_max_res_list), np.array(min_max_res_list).mean()
+
+
+def is_inside_mean_plus_minus_sd_interval(outputs, test_order, lower_bound_df, upper_bound_df):
+
+    sd_res_list = []
+
+    for test_example, sample_id in zip(outputs, test_order):
+        
+        greater = test_example.cpu().detach().numpy() > \
+        np.array(lower_bound_df.loc[lower_bound_df['Sample_id'] == sample_id, lower_bound_df.columns != 'Sample_id'])
+        
+        less = test_example.cpu().detach().numpy() < \
+        np.array(upper_bound_df.loc[upper_bound_df['Sample_id'] == sample_id, upper_bound_df.columns != 'Sample_id'])
+        
+        res = np.logical_and(greater, less)
+        
+        sd_res_list.append(res)
+
+    return np.array(sd_res_list), np.array(sd_res_list).mean()
+
+def visualise_min_max_intervals(outputs, test_order, elements_to_keep, min_max_df, min_max_res_list, element_nr, path_to_save=None):
+
+    outputs_df = pd.DataFrame(outputs.cpu().detach().numpy())
+    outputs_df.columns = elements_to_keep
+    outputs_df.insert(0, 'Real sample_id', test_order)
+    outputs_df['Real sample_id'] = outputs_df['Real sample_id'].astype(str)
+    outputs_df.reset_index(drop=True, inplace=True)
+
+    percentage_correct = np.round(100*(np.array(min_max_res_list).mean(0))[0,element_nr], 1)
+
+    sorted_min_max_df = min_max_df.sort_values(min_max_df.columns[element_nr+1])
+    sorted_min_max_df.reset_index(drop=True, inplace=True)
+
+    for sample_id in range(sorted_min_max_df.shape[0]):
+        plt.vlines(x=sample_id, ymin=sorted_min_max_df.iloc[sample_id, element_nr+len(elements_to_keep)+1], 
+                      ymax=sorted_min_max_df.iloc[sample_id, element_nr+1], 
+                      color="blue", linewidth=1)
+
+    for row in range(outputs_df.shape[0]):
+        new_index = sorted_min_max_df[sorted_min_max_df['Sample_id']==outputs_df['Real sample_id'][row]].index
+        plt.plot(new_index, outputs_df.iloc[row,element_nr+1], 'ro', markersize=5)
+            
+    plt.xticks([], [])
+    plt.xlabel('Groups',size=15)
+    plt.ylabel('Value',size=15)
+    plt.title(str(outputs_df.columns[element_nr+1]) + ': '+str(percentage_correct) +'% inside min-max interval', size=25)
+    plt.rcParams['figure.figsize'] = [20, 20]
+    plt.tight_layout()
+
+    if path_to_save is not None:
+        plt.savefig(path_to_save + '_min_max_intervals_' + str(outputs_df.columns[element_nr+1]))
+
+
+def visualise_mean_plus_minus_sd_intervals(outputs, test_order, elements_to_keep, lower_bound_df, upper_bound_df, sd_res_list, element_nr, path_to_save=None):
+
+    outputs_df = pd.DataFrame(outputs.cpu().detach().numpy())
+    outputs_df.columns = elements_to_keep
+    outputs_df.insert(0, 'Real sample_id', test_order)
+    outputs_df['Real sample_id'] = outputs_df['Real sample_id'].astype(str)
+    outputs_df.reset_index(drop=True, inplace=True)
+    percentage_correct = np.round(100*(np.array(sd_res_list).mean(0))[0,element_nr], 1)
+
+    sorted_upper_bound_df = upper_bound_df.sort_values(upper_bound_df.columns[element_nr])
+    sorted_upper_bound_df.reset_index(drop=True, inplace=True)
+    sorted_lower_bound_df = lower_bound_df.iloc[upper_bound_df.sort_values(upper_bound_df.columns[element_nr]).index,:]
+    sorted_lower_bound_df.reset_index(drop=True, inplace=True)
+
+    for sample_id in range(sorted_lower_bound_df.shape[0]):
+        plt.vlines(x=sample_id, ymin=sorted_lower_bound_df.iloc[sample_id, element_nr], 
+                      ymax=sorted_upper_bound_df.iloc[sample_id, element_nr], 
+                      color="blue", linewidth=1)
+        
+    for row in range(outputs_df.shape[0]):
+        new_index = sorted_upper_bound_df[sorted_upper_bound_df['Sample_id']==outputs_df['Real sample_id'][row]].index
+        plt.plot(new_index, outputs_df.iloc[row,element_nr+1], 'ro', markersize=5)
+            
+    plt.xlabel('Number of group',size=15)
+    plt.ylabel('Value',size=15)
+    plt.title(str(outputs_df.columns[element_nr+1]) + ': '+str(percentage_correct) +'% inside +-2 sd confidence interval', size=25)
+    plt.rcParams['figure.figsize'] = [20, 20]
+    
+    if path_to_save is not None:
+        plt.savefig(path_to_save + '_mean_plus_minus_sd_intervals_' + str(outputs_df.columns[element_nr+1]))
+
+
+
     

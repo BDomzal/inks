@@ -5,6 +5,18 @@ from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import Dataset
 
+class InksDataset(Dataset):
+    def __init__(self, X, y):
+        self.X = X
+        self.y = y
+        
+    def __getitem__(self, index):
+        return self.X[index, :], self.y[index, :]
+    
+    def __len__(self):
+        assert self.X.shape[0] == self.y.shape[0]
+        return self.X.shape[0]  
+
 def load_training_data(data_path):
 
     df = pd.read_csv(data_path)
@@ -15,6 +27,8 @@ def load_training_data(data_path):
     return inks_df, inds_df
 
 def create_sample_id(inDKs_df):
+    
+    inDKs_df = inDKs_df.copy()
 
     def extract_base_name(name):
         return name.split('_')[0].split('.')[0]
@@ -53,6 +67,7 @@ def remove_missing_data(inDKs_df):
     return inDKs_df
 
 def set_negative_to_zero(inDKs_df, elements_to_keep):
+    inDKs_df = inDKs_df.copy()
     columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
     columns_to_keep_inks = [el + '_a' for el in elements_to_keep]
     any_negative = (inDKs_df[columns_to_keep_inks + columns_to_keep_inds] < 0).sum().sum() == 0
@@ -62,6 +77,7 @@ def set_negative_to_zero(inDKs_df, elements_to_keep):
 
 def multiply_by_weights(inDKs_df, elements_to_keep, 
                         weights=[1, 1, 1, 10, 19, 20, 17, 9, 20, 1]):
+    inDKs_df = inDKs_df.copy()
     columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
     columns_to_keep_inks = [el + '_a' for el in elements_to_keep]
     for i, col in enumerate(columns_to_keep_inds):
@@ -71,6 +87,7 @@ def multiply_by_weights(inDKs_df, elements_to_keep,
     return inDKs_df
 
 def normalize_to_Fe(inDKs_df, elements_to_keep):
+    inDKs_df = inDKs_df.copy()
     columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
     columns_to_keep_inks = [el + '_a' for el in elements_to_keep]
     for i, col in enumerate(columns_to_keep_inds):
@@ -155,16 +172,5 @@ def data_to_device(X, y, device):
     X = torch.Tensor(X).to(device)
     y = torch.Tensor(y).to(device)
     return X, y
-
-class InksDataset(Dataset):
-    def __init__(self, X, y):
-        self.X = X
-        self.y = y
-        
-    def __getitem__(self, index):
-        return self.X[index, :], self.y[index, :]
-    
-    def __len__(self):
-        assert self.X.shape[0] == self.y.shape[0]
-        return self.X.shape[0]    
+  
     
