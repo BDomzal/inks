@@ -2,13 +2,20 @@ import torch
 from torch import nn
 import pandas as pd
 import matplotlib.pyplot as plt
-from data_utils import CustomLoss, get_device
+from data_utils import get_device
+from model import CustomLoss
 from model import InksNet
 import time
 import datetime
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
 from seaborn import heatmap
+import json
+
+with open('../config.json', 'r') as f:
+    config = json.load(f)
+
+INPUT_SIZE = len(config["elements_to_keep"])
 
 def train_one_epoch(model, loader, loss_fn, optimizer):
     running_loss = 0.
@@ -32,9 +39,10 @@ def train_one_epoch(model, loader, loss_fn, optimizer):
     return avg_loss
 
 
-def train_model(model, train_loader, val_loader, epochs, loss_fn=CustomLoss(), optimizer = torch.optim.Adam(model.parameters(), lr=0.001)):
+def train_model(model, train_loader, val_loader, epochs, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
 
     #loss_fn = nn.L1Loss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     epoch_number = 0
 
@@ -85,7 +93,7 @@ def load_saved_model(models_path):
     return model
 
 
-def evaluate_on_test_set(model, test_loader, loss_fn=CustomLoss()):
+def evaluate_on_test_set(model, test_loader, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
     
     model.eval()
     running_tloss = 0
@@ -178,7 +186,7 @@ def compute_accuracy(outputs_df):
     print('Accuracy: '+str(np.round(100*acc, 1))+'%.')
     return acc
 
-def compute_precision_and_recall(outputs_df)
+def compute_precision_and_recall(outputs_df):
     normalization_in_conf_mat = None
 
     conf_mat = confusion_matrix(outputs_df['Real sample_id'], outputs_df['Closest'], 
@@ -196,7 +204,7 @@ def compute_precision_and_recall(outputs_df)
 
     return precision, recall
 
-def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, path_to_save = None)
+def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, path_to_save = None):
 
     scores = {
                 'pred': 'Precision',

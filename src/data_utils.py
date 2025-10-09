@@ -19,12 +19,12 @@ class InksDataset(Dataset):
 
 def load_training_data(data_path):
 
-    df = pd.read_csv(data_path)
-    inks_df = df[[col for col in df.columns if col.endswith('_a')]]
+    inDKs_df = pd.read_csv(data_path)
+    inks_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith('_a')]]
     inks_df.columns = [col.split('_')[0] for col in inks_df.columns]
-    inds_df = df[[col for col in df.columns if col.endswith('_i')]]
+    inds_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith('_i')]]
     inds_df.columns = [col.split('_')[0] for col in inds_df.columns]
-    return inks_df, inds_df
+    return inDKs_df, inks_df, inds_df
 
 def create_sample_id(inDKs_df):
     
@@ -45,14 +45,17 @@ def create_sample_id(inDKs_df):
     )
     return inDKs_df
 
-def remove_outer_samples(inDKs_df, nr_of_samples):
+def remove_outer_samples(inDKs_df, how_many_outer_to_remove):
     
     def remove_outer(group, n):
-        return group.iloc[n:-n] if len(group) > 2*n else pd.DataFrame(columns=group.columns)
+        if n == 0:
+            return group
+        else:
+            return group.iloc[n:-n] if len(group) > 2*n else pd.DataFrame(columns=group.columns)
 
-    inDKs_df = inDKs_df.groupby('Sample_id', group_keys=False).apply(remove_outer, n=nr_of_samples)
+    inDKs_df = inDKs_df.groupby('Sample_id', group_keys=False).apply(remove_outer, n=how_many_outer_to_remove)
     inDKs_df = inDKs_df.reset_index(drop=True)
-    return inDKs_df	
+    return inDKs_df
 
 def delete_elements(inDKs_df, elements_to_keep):
     columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
