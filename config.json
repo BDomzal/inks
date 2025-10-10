@@ -4,6 +4,8 @@
 
 "how_many_outer_to_remove" : 0,
 
+"dropout_prob" : 0.1,
+
 "elements_to_keep" :[
 	             "Al",
 	             "S",
@@ -16,8 +18,8 @@
 	             "Fe",
 	             "Mg"
 			],
-			
-"weights" : [1, 1, 1, 10, 19, 20, 17, 9, 20, 1],
+
+"multiplication_weights" : [1, 1, 1, 10, 19, 20, 17, 9, 20, 1],
 
 "data_path" : "../data/all_pairs_ai_firstdespike_0sd.csv",
 

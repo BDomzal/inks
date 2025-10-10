@@ -3,7 +3,7 @@ import pandas as pd
 import sklearn
 from sklearn.model_selection import train_test_split
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 
 class InksDataset(Dataset):
     def __init__(self, X, y):
@@ -81,6 +81,7 @@ def set_negative_to_zero(inDKs_df, elements_to_keep):
 def multiply_by_weights(inDKs_df, elements_to_keep, 
                         weights=[1, 1, 1, 10, 19, 20, 17, 9, 20, 1]):
     inDKs_df = inDKs_df.copy()
+    weights = [el/sum(weights) for el in weights]
     columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
     columns_to_keep_inks = [el + '_a' for el in elements_to_keep]
     for i, col in enumerate(columns_to_keep_inds):
@@ -170,6 +171,7 @@ def get_device():
         else "cpu"
     )
     print(f"Using {device} device")
+    return device
 
 def data_to_device(X, y, device):
     X = torch.Tensor(X).to(device)
