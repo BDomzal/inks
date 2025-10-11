@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 from data_utils import get_device
 from model import CustomLoss
@@ -118,10 +119,10 @@ def evaluate_on_test_set(model, test_loader, loss_fn=CustomLoss(torch.tensor([1/
     return labels, outputs, difference, mean_loss
 
 
-def save_model(model, models_path, remove_outer, how_many_outer_to_remove, 
+def save_model(model, models_path, how_many_outer_to_remove, 
                 elements_to_keep, preprocessing_method):
 
-    outer_removed = 'outer_removed' if remove_outer else 'outer_not_removed'
+    outer_removed = 'outer_removed' if how_many_outer_to_remove>0 else 'outer_not_removed'
 
     elements = '_'.join(elements_to_keep)
     settings_str = '_' + preprocessing_method + '_' + \
@@ -133,12 +134,12 @@ def save_model(model, models_path, remove_outer, how_many_outer_to_remove,
 
     torch.save(model.state_dict(), '/'.join(models_path.split('/')[:-1]) + '/model_regression' + settings_str + now)
 
-def visualise_prediction_against_true(outputs, labels, dimension):
+def visualise_prediction_against_true(outputs, labels, dimension, lower=-10, upper=10):
 
     selected_outputs = outputs[:, dimension].cpu().detach().numpy()
     selected_labels = labels[:, dimension].cpu().detach().numpy()
     plt.plot(selected_labels, selected_outputs, '.')
-    plt.plot( [-10, 10],[-10, 10], 'r' )
+    plt.plot( [lower, upper],[lower, upper], 'r' )
     plt.xlabel('True value')
     plt.ylabel('Predicted value')
 
@@ -182,14 +183,14 @@ def find_and_compare_closest_class(y_test, test_order, elements_to_keep, mean_df
 
 
 def compute_accuracy(outputs_df):
-    acc = outputs_df[outputs_df['Real sample_id'] == outputs_df['Closest']].shape[0] / outputs_df.shape[0]
+    acc = outputs_df[outputs_df['Real sample_id'] == outputs_df['Closest sample id']].shape[0] / outputs_df.shape[0]
     print('Accuracy: '+str(np.round(100*acc, 1))+'%.')
     return acc
 
 def compute_precision_and_recall(outputs_df):
     normalization_in_conf_mat = None
 
-    conf_mat = confusion_matrix(outputs_df['Real sample_id'], outputs_df['Closest'], 
+    conf_mat = confusion_matrix(outputs_df['Real sample_id'], outputs_df['Closest sample id'], 
                                 normalize=normalization_in_conf_mat)
 
     tp_and_fn = conf_mat.sum(1)
@@ -202,7 +203,7 @@ def compute_precision_and_recall(outputs_df):
     print('Precision: ' + str(np.nanmean(precision)))
     print('Recall: ' + str(np.nanmean(recall)))
 
-    return precision, recall
+    return np.nanmean(precision), np.nanmean(recall)
 
 def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, path_to_save = None):
 
@@ -216,8 +217,8 @@ def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat
                                 normalize=normalization_in_conf_mat)
 
     heatmap(conf_mat, cmap=sns.cm.rocket_r, xticklabels=False, yticklabels=False)
-    plt.ylabel('True class to which an ink belongs', size=18)
-    plt.xlabel("Prediction's closest class", size=18)
+    plt.ylabel('True class to which an ink belongs', size=15)
+    plt.xlabel("Prediction's closest class", size=15)
     plt.rcParams['figure.figsize'] = [15, 10]
     plt.title(scores[normalization_in_conf_mat] + ' of classification based on the closest center of class.', 
               size=20, 
@@ -254,7 +255,7 @@ def create_min_max_df(y_train, train_order, y_val, val_order, elements_to_keep):
     max_df['Sample_id'] = min_max_df['Sample_id']
     min_df = min_max_df.iloc[:,1+len(elements_to_keep):]
     min_df['Sample_id'] = min_max_df['Sample_id']
-    return min_df, max_df
+    return min_df, max_df, min_max_df
 
 def create_mean_plus_sd_df(y_train, train_order, y_val, val_order, elements_to_keep, how_many_sd=2):
 
@@ -270,7 +271,7 @@ def create_mean_plus_sd_df(y_train, train_order, y_val, val_order, elements_to_k
         mean_sd_df[name + '_mean'] = all_data_df.groupby('Sample_id')[name].transform('mean')
         
     for name in elements_to_keep:
-        mean_sd_df[name + '_sd'] = all_data_df.groupby('Sample_id')[name].transform(np.std)
+        mean_sd_df[name + '_sd'] = all_data_df.groupby('Sample_id')[name].transform('std')
 
     mean_sd_df.drop_duplicates('Sample_id', inplace=True)   
     mean_sd_df.sort_values(by='Sample_id', inplace=True)
@@ -338,6 +339,8 @@ def visualise_min_max_intervals(outputs, test_order, elements_to_keep, min_max_d
     sorted_min_max_df = min_max_df.sort_values(min_max_df.columns[element_nr+1])
     sorted_min_max_df.reset_index(drop=True, inplace=True)
 
+    plt.rcParams['figure.figsize'] = [8, 8]
+
     for sample_id in range(sorted_min_max_df.shape[0]):
         plt.vlines(x=sample_id, ymin=sorted_min_max_df.iloc[sample_id, element_nr+len(elements_to_keep)+1], 
                       ymax=sorted_min_max_df.iloc[sample_id, element_nr+1], 
@@ -345,20 +348,27 @@ def visualise_min_max_intervals(outputs, test_order, elements_to_keep, min_max_d
 
     for row in range(outputs_df.shape[0]):
         new_index = sorted_min_max_df[sorted_min_max_df['Sample_id']==outputs_df['Real sample_id'][row]].index
-        plt.plot(new_index, outputs_df.iloc[row,element_nr+1], 'ro', markersize=5)
+        plt.plot(new_index, outputs_df.iloc[row,element_nr+1], 'ro', markersize=3)
             
     plt.xticks([], [])
     plt.xlabel('Groups',size=15)
     plt.ylabel('Value',size=15)
     plt.title(str(outputs_df.columns[element_nr+1]) + ': '+str(percentage_correct) +'% inside min-max interval', size=25)
-    plt.rcParams['figure.figsize'] = [20, 20]
     plt.tight_layout()
 
     if path_to_save is not None:
         plt.savefig(path_to_save + '_min_max_intervals_' + str(outputs_df.columns[element_nr+1]))
 
 
-def visualise_mean_plus_minus_sd_intervals(outputs, test_order, elements_to_keep, lower_bound_df, upper_bound_df, sd_res_list, element_nr, path_to_save=None):
+def visualise_mean_plus_minus_sd_intervals(outputs, 
+                                            test_order, 
+                                            elements_to_keep, 
+                                            lower_bound_df, 
+                                            upper_bound_df, 
+                                            how_many_sd,
+                                            sd_res_list, 
+                                            element_nr, 
+                                            path_to_save=None):
 
     outputs_df = pd.DataFrame(outputs.cpu().detach().numpy())
     outputs_df.columns = elements_to_keep
@@ -372,6 +382,8 @@ def visualise_mean_plus_minus_sd_intervals(outputs, test_order, elements_to_keep
     sorted_lower_bound_df = lower_bound_df.iloc[upper_bound_df.sort_values(upper_bound_df.columns[element_nr]).index,:]
     sorted_lower_bound_df.reset_index(drop=True, inplace=True)
 
+    plt.rcParams['figure.figsize'] = [8, 8]
+
     for sample_id in range(sorted_lower_bound_df.shape[0]):
         plt.vlines(x=sample_id, ymin=sorted_lower_bound_df.iloc[sample_id, element_nr], 
                       ymax=sorted_upper_bound_df.iloc[sample_id, element_nr], 
@@ -379,12 +391,11 @@ def visualise_mean_plus_minus_sd_intervals(outputs, test_order, elements_to_keep
         
     for row in range(outputs_df.shape[0]):
         new_index = sorted_upper_bound_df[sorted_upper_bound_df['Sample_id']==outputs_df['Real sample_id'][row]].index
-        plt.plot(new_index, outputs_df.iloc[row,element_nr+1], 'ro', markersize=5)
+        plt.plot(new_index, outputs_df.iloc[row,element_nr+1], 'ro', markersize=3)
             
     plt.xlabel('Number of group',size=15)
     plt.ylabel('Value',size=15)
-    plt.title(str(outputs_df.columns[element_nr+1]) + ': '+str(percentage_correct) +'% inside +-2 sd confidence interval', size=25)
-    plt.rcParams['figure.figsize'] = [20, 20]
+    plt.title(str(outputs_df.columns[element_nr+1]) + ': '+str(percentage_correct) +'% inside +-' + str(how_many_sd) + ' sd confidence interval', size=25)
     
     if path_to_save is not None:
         plt.savefig(path_to_save + '_mean_plus_minus_sd_intervals_' + str(outputs_df.columns[element_nr+1]))
