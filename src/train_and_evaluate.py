@@ -146,8 +146,6 @@ def visualise_prediction_against_true(outputs, labels, dimension, lower=-10, upp
 
 def create_means_df(elements_to_keep, y_train, train_order, y_val, val_order):
 
-    columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
-
     train_val_df = pd.DataFrame(y_train.cpu())
     train_val_df = pd.concat([train_val_df, 
                                         pd.DataFrame(y_val.cpu())])
