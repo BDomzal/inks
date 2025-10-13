@@ -178,4 +178,14 @@ def data_to_device(X, y, device):
     y = torch.Tensor(y).to(device)
     return X, y
   
+def split_inDKs_df(inDKs_df):
+    inds_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith('_i')]].copy()
+    inks_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith('_a')]].copy()
+    return inds_df, inks_df
+
+def join_to_inDKs_df(inks_df, inds_df, identifiers):
+    inDKs_df = pd.concat([inks_df, inds_df, identifiers], axis=1)
+    return inDKs_df
+
+
     
