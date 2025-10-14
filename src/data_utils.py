@@ -4,6 +4,7 @@ import sklearn
 from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import Dataset, DataLoader
+import matplotlib.pyplot as plt
 
 class InksDataset(Dataset):
     def __init__(self, X, y):
@@ -187,5 +188,54 @@ def join_to_inDKs_df(inks_df, inds_df, identifiers):
     inDKs_df = pd.concat([inks_df, inds_df, identifiers], axis=1)
     return inDKs_df
 
+def visualise_pca_and_class_means(X_pca, X_sample_ids, 
+                                    means_pca, means_sample_ids,
+                                    x_lower=None, x_upper=None,
+                                    y_lower=None, y_upper=None,
+                                    cmap = plt.get_cmap('hsv'),
+                                    seed=42, path_to_save=None):
 
-    
+    n_colors = X_sample_ids.nunique()
+    colors = [cmap(i / n_colors) for i in range(n_colors)]
+
+    np.random.seed(seed)
+    color_dict = dict(zip(np.random.permutation(X_sample_ids.unique()), colors))
+
+    fig, ax = plt.subplots(figsize=(7,7))
+    for i, name in enumerate(X_sample_ids):
+        ax.plot(X_pca[i, 0], X_pca[i, 1], marker='o', linestyle='', ms=3, color=color_dict[name])
+        
+    for j, name in enumerate(means_sample_ids):
+        ax.plot(means_pca[j, 0], means_pca[j, 1], marker='X', linestyle='', ms=9, color=color_dict[name])
+    ax.legend()
+
+    if x_lower is not None and x_upper is not None:
+        ax.set_xlim(x_lower, x_upper)
+    if y_lower is not None and y_upper is not None:
+        ax.set_ylim(y_lower, y_upper)
+        
+    if path_to_save is not None:
+        plt.savefig(path_to_save)
+
+def visualise_train_val_test_distributions(train_data, 
+                                            val_data, 
+                                            test_data,
+                                            elements_to_keep,
+                                            title='',
+                                            path_to_save=None):
+
+    fig, axes = plt.subplots(len(elements_to_keep)//2, 2, figsize=(7, 7), sharey=False) 
+
+    axes = axes.flatten()
+
+    for i in range(len(elements_to_keep)):
+
+        axes[i].hist(train_data[:,i], bins=100, label='training')
+        axes[i].hist(val_data[:,i], bins=100, label='validation')
+        axes[i].hist(test_data[:,i], bins=100, label='test')
+        axes[i].set_title(title + elements_to_keep[i], x=0.5, y=0.75)
+
+    plt.legend(bbox_to_anchor=(1.6,2.5))
+
+    if path_to_save is not None:
+        plt.savefig(path_to_save, bbox_inches='tight')
