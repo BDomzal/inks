@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 import re
+from scipy.spatial.distance import directed_hausdorff
 
 class InksDataset(Dataset):
     def __init__(self, X, y):
@@ -160,7 +161,7 @@ def prepare_data_for_training(X_y_train, X_y_val, X_y_test, elements_to_keep):
     y_test = np.array(X_y_test[columns_to_keep_inks].values)
     return X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order
 
-def transform_data(X, y, preprocessing_method):
+def transform_data(X, preprocessing_method):
     
     def adjusted_log_transform(input_array):
         res = np.where(input_array>0, np.log(input_array), 0.)
@@ -169,24 +170,20 @@ def transform_data(X, y, preprocessing_method):
     if preprocessing_method == 'normalization':
 
         X = (X - np.min(X, axis=0))/np.std(X, axis=0)
-        y = (y - np.min(y, axis=0))/np.std(y, axis=0)
     
     elif preprocessing_method == 'logarithm':
         
         X = adjusted_log_transform(X)
-        y = adjusted_log_transform(y)
 
     elif preprocessing_method == 'logarithm_and_normalization':
         
         #logarithm
         X = adjusted_log_transform(X)
-        y = adjusted_log_transform(y)
         
         #normalization
         X = (X - np.min(X, axis=0))/np.std(X, axis=0)
-        y = (y - np.min(y, axis=0))/np.std(y, axis=0)
 
-    return X, y
+    return X
 
 def get_device():
     device = (
@@ -336,4 +333,65 @@ def select_book(df, ground_truth_df, book_name):
 
     return df
 
+def create_class_df(ground_truth_df, book_name):
 
+    if book_name == 'app':
+        class_df = ground_truth_df[ground_truth_df['short'].apply(lambda x: x.startswith('APP'))][['Sample_id','OPIS']].copy()
+    elif book_name == 'asc':
+        class_df = ground_truth_df[ground_truth_df['short'].apply(lambda x: x.startswith('ASC'))][['Sample_id', 'OPIS']].copy()
+    elif book_name == 'ml':
+        class_df = ground_truth_df[ground_truth_df['short'].apply(lambda x: x.startswith('ML'))][['Sample_id', 'OPIS']].copy()
+    elif book_name == 'all':
+        class_df = ground_truth_df[['Sample_id', 'OPIS']].copy()
+
+    class_df.columns = ['Code', 'Class name']
+
+    class_df.reset_index(inplace=True, drop=True)
+
+    return class_df
+
+def create_closest_sets(df, class_df, distance_name='Hausdorff distance', distance_function=directed_hausdorff):
+
+    closest_sets = pd.DataFrame(columns = ['Class', 'Closest class', distance_name])
+
+    for chosen_class in class_df['Code'].unique():
+        
+        chosen_class_distances = pd.DataFrame(columns=['Class', distance_name])
+        
+        for code in class_df['Code'].unique():
+            
+            set1 = df[class_df['Code'] == chosen_class].values.copy()
+            set2 = df[class_df['Code'] == code].values.copy()
+            chosen_class_distances = pd.concat([chosen_class_distances, 
+                                                pd.DataFrame([[code, distance_function(set1, set2)[0]]],
+                                                            columns=['Class', distance_name])])
+            chosen_class_distances.reset_index(inplace=True, drop=True)
+            
+        which_row = chosen_class_distances.nsmallest(2, distance_name).index[1]
+        closest_sets = pd.concat([closest_sets, 
+                                 pd.DataFrame([[chosen_class, 
+                                                chosen_class_distances.iloc[which_row]['Class'], 
+                                                chosen_class_distances.iloc[which_row][distance_name]]],
+                                                 columns = ['Class', 'Closest class', distance_name]
+                                             )])
+    closest_sets = closest_sets.merge(class_df.drop_duplicates(), 
+                                      how='left', 
+                                      left_on = 'Class', 
+                                      right_on='Code')
+
+    closest_sets.drop(columns='Code', inplace=True)
+    closest_sets.reset_index(inplace=True, drop=True)
+
+    closest_sets = closest_sets.merge(class_df.drop_duplicates(), 
+                                      how='left', 
+                                      left_on = 'Closest class', 
+                                      right_on='Code')
+    closest_sets.rename(columns = {'Class name_x': 'Class name', 'Class name_y': 'Closest class name'},
+                        inplace=True)
+    closest_sets.drop(columns='Code', inplace=True)
+
+    closest_sets.sort_values(by=distance_name, inplace=True)
+    closest_sets.reset_index(inplace=True, drop=True)
+    closest_sets.sort_values(by=['Class'], inplace=True)
+
+    return closest_sets
