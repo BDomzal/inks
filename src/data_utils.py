@@ -401,6 +401,32 @@ def create_closest_sets(df, class_df, distance_name='Hausdorff distance', distan
     return closest_sets
 
 
+def load_dataset_for_closest_class_assignment(dataset, target_path, Konstytucja_results_path, xrf_path, elements_to_keep, elements_to_keep_xrf):
+
+    if dataset == 'Konstytucja_indicators':
+        
+        input_data = np.loadtxt(target_path, delimiter=',', skiprows=1, usecols=range(19))
+        colnames = pd.read_csv(target_path, nrows=1, header=None)
+        df = pd.DataFrame(data=input_data, columns=colnames.iloc[0,:-1])
+        df = df[elements_to_keep]
+        
+    elif dataset == 'Konstytucja_prediction':
+        
+        input_data = np.loadtxt(Konstytucja_results_path, delimiter=',')
+        df = pd.DataFrame(data=input_data, columns=elements_to_keep)
+        
+    elif dataset == 'XRF':
+        
+        input_data = np.loadtxt(xrf_path, delimiter=',', skiprows=1, usecols=(2,3,4))
+        df = pd.DataFrame(data=input_data, columns=elements_to_keep_xrf)
+
+    else: 
+        print('No such dataset!')
+
+    df.reset_index(drop=True, inplace=True)
+    return df
+
+
 def load_target_data(target_path, elements_to_keep):
     columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
     inds_df = pd.read_csv(target_path, usecols = elements_to_keep + ['name'])
