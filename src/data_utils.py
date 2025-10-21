@@ -200,6 +200,10 @@ def data_to_device(X, y, device):
     X = torch.Tensor(X).to(device)
     y = torch.Tensor(y).to(device)
     return X, y
+
+def data_to_device(X, device):
+    X = torch.Tensor(X).to(device)
+    return X
   
 def split_inDKs_df(inDKs_df):
     inds_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith('_i')]].copy()
@@ -395,3 +399,16 @@ def create_closest_sets(df, class_df, distance_name='Hausdorff distance', distan
     closest_sets.sort_values(by=['Class'], inplace=True)
 
     return closest_sets
+
+
+def load_target_data(target_path, elements_to_keep):
+    columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
+    inds_df = pd.read_csv(target_path, usecols = elements_to_keep + ['name'])
+    inds_df['Sample_id'] = inds_df['name'].apply(lambda x: x.split('_')[0] if len(x.split('_'))==2 else x.split('_')[0] + x.split('_')[1])
+    inds_df.drop(columns=['name'], inplace=True)
+    inds_df.reset_index(drop=True, inplace=True)
+    return inds_df
+
+def save_prediction(prediction, results_path, model_name):
+    outputs_to_save = prediction.cpu().detach().numpy()
+    np.savetxt(results_path + 'prediction_for_new_dataset_from_' + model_name, outputs_to_save, delimiter=',')
