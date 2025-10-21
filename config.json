@@ -27,7 +27,7 @@
 
 "figures_path" : "../figures/",
 
-"models_path" : "../models/Documents_XVIII_century/model_regression_logarithm_outer_removed_1_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2025_08_26_15_55_18",
+"models_path" : "../models/model_regression_logarithm_outer_removed_1_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2025_08_26_15_55_18",
 
 "target_path" : "../data/konstytucja_nowe_firstdespike_0sd.csv",
 		
