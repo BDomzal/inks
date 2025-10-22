@@ -196,11 +196,6 @@ def get_device():
     print(f"Using {device} device")
     return device
 
-def data_to_device(X, y, device):
-    X = torch.Tensor(X).to(device)
-    y = torch.Tensor(y).to(device)
-    return X, y
-
 def data_to_device(X, device):
     X = torch.Tensor(X).to(device)
     return X
