@@ -321,7 +321,7 @@ def visualise_min_max_intervals(outputs, test_order, elements_to_keep, min_max_d
     outputs_df['Real sample_id'] = outputs_df['Real sample_id'].astype(str)
     outputs_df.reset_index(drop=True, inplace=True)
 
-    percentage_correct = np.round(100*(np.array(min_max_res_list).mean(0))[0,element_nr], 1)
+    percentage_correct = np.round(100*(np.array(min_max_res_list).mean(0))[0, element_nr], 1)
 
     sorted_min_max_df = min_max_df.sort_values(min_max_df.columns[element_nr+1])
     sorted_min_max_df.reset_index(drop=True, inplace=True)
@@ -334,11 +334,11 @@ def visualise_min_max_intervals(outputs, test_order, elements_to_keep, min_max_d
                       color="blue", linewidth=1)
 
     for row in range(outputs_df.shape[0]):
-        new_index = sorted_min_max_df[sorted_min_max_df['Sample_id']==outputs_df['Real sample_id'][row]].index
-        plt.plot(new_index, outputs_df.iloc[row,element_nr+1], 'ro', markersize=3)
+        new_index = sorted_min_max_df[sorted_min_max_df['Sample_id'] == outputs_df['Real sample_id'][row]].index
+        plt.plot(new_index, outputs_df.iloc[row, element_nr+1], 'ro', markersize=3)
             
     plt.xticks([], [])
-    plt.xlabel('Groups',size=15)
+    plt.xlabel('Groups IDs',size=15)
     plt.ylabel('Value',size=15)
     plt.title(str(outputs_df.columns[element_nr+1]) + ': '+str(percentage_correct) +'% inside min-max interval', size=25)
     plt.tight_layout()
@@ -362,7 +362,8 @@ def visualise_mean_plus_minus_sd_intervals(outputs,
     outputs_df.insert(0, 'Real sample_id', test_order)
     outputs_df['Real sample_id'] = outputs_df['Real sample_id'].astype(str)
     outputs_df.reset_index(drop=True, inplace=True)
-    percentage_correct = np.round(100*(np.array(sd_res_list).mean(0))[0,element_nr], 1)
+
+    percentage_correct = np.round(100*(np.array(sd_res_list).mean(0))[0, element_nr], 1)
 
     sorted_upper_bound_df = upper_bound_df.sort_values(upper_bound_df.columns[element_nr])
     sorted_upper_bound_df.reset_index(drop=True, inplace=True)
@@ -377,10 +378,11 @@ def visualise_mean_plus_minus_sd_intervals(outputs,
                       color="blue", linewidth=1)
         
     for row in range(outputs_df.shape[0]):
-        new_index = sorted_upper_bound_df[sorted_upper_bound_df['Sample_id']==outputs_df['Real sample_id'][row]].index
-        plt.plot(new_index, outputs_df.iloc[row,element_nr+1], 'ro', markersize=3)
+        new_index = sorted_upper_bound_df[sorted_upper_bound_df['Sample_id'] == outputs_df['Real sample_id'][row]].index
+        plt.plot(new_index, outputs_df.iloc[row, element_nr+1], 'ro', markersize=3)
             
-    plt.xlabel('Number of group',size=15)
+    plt.xticks([], [])
+    plt.xlabel('Groups IDs',size=15)
     plt.ylabel('Value',size=15)
     plt.title(str(outputs_df.columns[element_nr+1]) + ': '+str(percentage_correct) +'% inside +-' + str(how_many_sd) + ' sd confidence interval', size=25)
     
