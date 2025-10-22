@@ -220,7 +220,7 @@ def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat
 def create_min_max_df(y_train, train_order, y_val, val_order, elements_to_keep):
 
     all_data_df = pd.DataFrame(y_train)
-    all_data_df = pd.concat([all_data_df, 
+    all_data_df = pd.concat([all_data_df,
                             pd.DataFrame(y_val)])
     all_data_df.columns = elements_to_keep
     all_data_df.insert(0, 'Sample_id', pd.concat([train_order, val_order]))
