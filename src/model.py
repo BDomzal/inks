@@ -46,7 +46,7 @@ class CustomLoss(nn.Module):
     def forward(self, outputs, targets):
         res = self.inner_loss(outputs, targets)
         res = torch.mm(res, self.weights)
-        res = res[0]
+        res = res.mean(axis=0)
 #         inner_loss_to_compare = nn.L1Loss(reduction='mean')
 #         assert torch.isclose(inner_loss_to_compare(outputs, targets), res)
         return res
