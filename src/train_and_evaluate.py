@@ -182,10 +182,9 @@ def compute_accuracy(outputs_df):
     return acc
 
 def compute_precision_and_recall(outputs_df):
-    normalization_in_conf_mat = None
 
     conf_mat = confusion_matrix(outputs_df['Real sample_id'], outputs_df['Closest sample id'], 
-                                normalize=normalization_in_conf_mat)
+                                normalize=None)
 
     tp_and_fn = conf_mat.sum(1)
     tp_and_fp = conf_mat.sum(0)
@@ -201,12 +200,6 @@ def compute_precision_and_recall(outputs_df):
 
 def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, path_to_save = None):
 
-    scores = {
-                'pred': 'Precision',
-                'true': 'Recall',
-                None: 'Confusion matrix'
-                }
-
     conf_mat = confusion_matrix(true_labels, closest_labels, 
                                 normalize=normalization_in_conf_mat)
 
@@ -214,14 +207,14 @@ def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat
     plt.ylabel('True class to which an ink belongs', size=15)
     plt.xlabel("Prediction's closest class", size=15)
     plt.rcParams['figure.figsize'] = [15, 10]
-    plt.title(scores[normalization_in_conf_mat] + ' of classification based on the closest center of class.', 
+    plt.title('Confusion matrix of classification based on the closest center of class.', 
               size=20, 
               wrap=True)
 
     plt.tight_layout()
 
     if path_to_save is not None:
-        plt.savefig(path_to_save + '_' + scores[normalization_in_conf_mat] + '.png')
+        plt.savefig(path_to_save + '_Confusion_matrix.png')
 
 
 def create_min_max_df(y_train, train_order, y_val, val_order, elements_to_keep):
