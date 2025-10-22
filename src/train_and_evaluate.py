@@ -90,12 +90,6 @@ def visualise_losses(train_losses, val_losses):
     plt.plot(val_losses)
 
 
-def load_saved_model(models_path):
-    model = InksNet().to(get_device())
-    model.load_state_dict(torch.load(models_path))
-    return model
-
-
 def evaluate_on_test_set(model, test_loader, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
     
     model.eval()
