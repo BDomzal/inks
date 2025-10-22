@@ -67,7 +67,7 @@ def delete_elements(inDKs_df, elements_to_keep):
     return inDKs_df
 
 def remove_missing_data(inDKs_df):
-    how_many_nans = (inDKs_df.shape[0] - inDKs_df.dropna().shape[0]) / inDKs_df.shape[0]
+    how_many_nans = inDKs_df.shape[0] - inDKs_df.dropna().shape[0]
     if how_many_nans > 0:
         inDKs_df = inDKs_df.dropna()
     return inDKs_df
