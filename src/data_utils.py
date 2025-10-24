@@ -227,8 +227,13 @@ def visualise_pca_and_class_means(X_pca, X_sample_ids,
         ax.plot(X_pca[i, 0], X_pca[i, 1], marker='o', linestyle='', ms=3, color=color_dict[name])
         
     for j, name in enumerate(means_sample_ids):
-        ax.plot(means_pca[j, 0], means_pca[j, 1], marker='X', linestyle='', ms=9, color=color_dict[name])
+        ax.plot(means_pca[j, 0], means_pca[j, 1], marker='X', linestyle='', ms=9, color=color_dict[name]) #marker's colorful filling
+        ax.plot(means_pca[j, 0], means_pca[j, 1], marker='X', linestyle='', ms=9, color='black', fillstyle='none') #marker's black frame
+
     ax.legend()
+
+    plt.xlabel('PC1')
+    plt.ylabel('PC2')
 
     if x_lower is not None and x_upper is not None:
         ax.set_xlim(x_lower, x_upper)
