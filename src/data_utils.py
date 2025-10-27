@@ -224,47 +224,56 @@ def visualise_pca_and_class_means(X_pca, X_sample_ids,
 
     fig, ax = plt.subplots(figsize=(7,7))
     for i, name in enumerate(X_sample_ids):
-        ax.plot(X_pca[i, 0], X_pca[i, 1], marker='o', linestyle='', ms=3, color=color_dict[name])
+        ax.plot(X_pca[i, 0], X_pca[i, 1], marker='o', linestyle='', ms=4, color=color_dict[name])
         
     for j, name in enumerate(means_sample_ids):
-        ax.plot(means_pca[j, 0], means_pca[j, 1], marker='X', linestyle='', ms=9, color=color_dict[name]) #marker's colorful filling
-        ax.plot(means_pca[j, 0], means_pca[j, 1], marker='X', linestyle='', ms=9, color='black', fillstyle='none') #marker's black frame
+        ax.plot(means_pca[j, 0], means_pca[j, 1], marker='X', linestyle='', ms=13, color=color_dict[name]) #marker's colorful filling
+        ax.plot(means_pca[j, 0], means_pca[j, 1], marker='X', linestyle='', ms=13, color='black', fillstyle='none') #marker's black frame
 
     ax.legend()
 
-    plt.xlabel('PC1')
-    plt.ylabel('PC2')
+    plt.xlabel('PC1', fontsize=15)
+    plt.ylabel('PC2', fontsize=15)
 
     if x_lower is not None and x_upper is not None:
         ax.set_xlim(x_lower, x_upper)
     if y_lower is not None and y_upper is not None:
         ax.set_ylim(y_lower, y_upper)
+
+    plt.tight_layout()
         
     if path_to_save is not None:
-        plt.savefig(path_to_save)
+        plt.savefig(path_to_save, dpi=300)
 
 def visualise_train_val_test_distributions(train_data, 
                                             val_data, 
                                             test_data,
                                             elements_to_keep,
                                             title='',
+                                            lower_x_lim=-5,
+                                            upper_x_lim=15,
+                                            lower_y_lim=0,
+                                            upper_y_lim=100,
                                             path_to_save=None):
 
-    fig, axes = plt.subplots(len(elements_to_keep)//2, 2, figsize=(7, 7), sharey=False) 
+    fig, axes = plt.subplots(len(elements_to_keep)//2, 2, figsize=(7, 7), sharey=True, sharex=True) 
 
     axes = axes.flatten()
 
     for i in range(len(elements_to_keep)):
 
-        axes[i].hist(train_data[:,i], bins=100, label='training')
-        axes[i].hist(val_data[:,i], bins=100, label='validation')
-        axes[i].hist(test_data[:,i], bins=100, label='test')
+        axes[i].hist(train_data[:,i], bins=80, label='training', color='#007C91')
+        axes[i].hist(val_data[:,i], bins=80, label='validation', color='#E66100')
+        axes[i].hist(test_data[:,i], bins=80, label='test', color='#4B4B4B')
         axes[i].set_title(title + elements_to_keep[i], x=0.5, y=0.75)
+        axes[i].set_xlim([lower_x_lim, upper_x_lim])
+        axes[i].set_ylim([lower_y_lim, upper_y_lim])
 
+    fig.subxlabel('Logarithm of relative quantity')
     plt.legend(bbox_to_anchor=(1.6,2.5))
 
     if path_to_save is not None:
-        plt.savefig(path_to_save, bbox_inches='tight')
+        plt.savefig(path_to_save, bbox_inches='tight', dpi=300)
 
 def load_classes_description_df(classes_description_path):
 
