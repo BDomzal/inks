@@ -428,10 +428,10 @@ def visualise_in_lower_dimension(X_low_dim,
             ann = class_df['Code'][i]
             plt.annotate(ann, (X_low_dim[i, 0], X_low_dim[i,1]), size=20)
     if book_name == 'all':
-        plt.legend(handles=legend_elements)
+        plt.legend(handles=legend_elements, prop={'size': 24})
         plt.title('ASC: ' + '\u25BC' + ', APP: ' + '\u29EB' + ', ML: ' + '\u2605', fontsize=30)
     else:
-        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 24})
 
     plt.gcf().set_size_inches((20, 20))
     plt.tight_layout()
