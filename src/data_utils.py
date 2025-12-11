@@ -436,11 +436,11 @@ def load_dataset_for_closest_class_assignment(dataset, target_path, Konstytucja_
     return df
 
 
-def load_target_data(target_path, elements_to_keep):
-    columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
-    inds_df = pd.read_csv(target_path, usecols = elements_to_keep + ['name'])
-    inds_df['Sample_id'] = inds_df['name'].apply(lambda x: x.split('_')[0] if len(x.split('_'))==2 else x.split('_')[0] + x.split('_')[1])
-    inds_df.drop(columns=['name'], inplace=True)
+def load_target_data(target_path, elements_to_keep, header=0):
+    inds_df = pd.read_csv(target_path, usecols = elements_to_keep, header=header)
+    if 'name' in inds_df.columns:
+        inds_df['Sample_id'] = inds_df['name'].apply(lambda x: x.split('_')[0] if len(x.split('_'))==2 else x.split('_')[0] + x.split('_')[1])
+        inds_df.drop(columns=['name'], inplace=True)
     inds_df.reset_index(drop=True, inplace=True)
     return inds_df
 

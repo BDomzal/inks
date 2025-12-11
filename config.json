@@ -54,6 +54,19 @@
 
 "elements_to_keep_xrf" : ["S", "Cu", "Zn"],
 
-"epochs": 5000
+"epochs": 5000,
+
+"chemical_elements_translator" : {
+		                    "Al27" : "Al",
+		                    "S34" : "S",
+		                    "Cr53" : "Cr",
+		                    "Mn55" : "Mn",
+		                    "Co59" : "Co",
+		                    "Cu65" : "Cu",
+		                    "Zn66" : "Zn",
+		                    "Pb208" : "Pb",
+		                    "Fe57" : "Fe",
+		                    "Mg26" : "Mg"
+		                  }
            
 }
