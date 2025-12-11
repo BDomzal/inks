@@ -269,7 +269,7 @@ def visualise_train_val_test_distributions(train_data,
         axes[i].set_xlim([lower_x_lim, upper_x_lim])
         axes[i].set_ylim([lower_y_lim, upper_y_lim])
 
-    fig.subxlabel('Logarithm of relative quantity')
+    fig.supxlabel('Logarithm of relative quantity')
     plt.legend(bbox_to_anchor=(1.6,2.5))
 
     if path_to_save is not None:
