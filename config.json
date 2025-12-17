@@ -92,7 +92,15 @@
 			 "Pb208": 52.4
 			},
 			
-"raw_data_path" : "../data/Merkuriusz/BUWo1.xl",
+"raw_data_path" : {
+		"Konstytucja": "",
+		"Merkuriusz" : "../data/Merkuriusz/raw_data/"
+		  },
+		  
+"preprocessed_data_path" : {
+		"Konstytucja": "",
+		"Merkuriusz" : "../data/Merkuriusz/preprocessed_data/"
+		  },
 
 "n_std" : 1, 
 

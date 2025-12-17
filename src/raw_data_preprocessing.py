@@ -1,9 +1,12 @@
+
+### ORIGINAL PREPROCESSING METHOD BY ALEKSANDRA TOWAREK, BARBARA WAGNER
+
 import re
 from pandas.errors import ParserError
 import pandas as pd
 import numpy as np
 from typing import Iterable, Optional
-
+import os
 
 def read_raw_file(path: str) -> pd.DataFrame:
     """
@@ -278,3 +281,40 @@ def machine(path: str, elements_dict: dict, n_std: int = 1, row_nr: int = 31, n_
     # add names column and return
     bunched = add_names_column(bunched, path)
     return bunched
+
+def preprocess_all_from_directory(
+                                    raw_data_path: str, 
+                                    elements_dict: dict, 
+                                    preprocessed_data_path: str = "",
+                                    n_std: int = 1, 
+                                    row_nr: int = 31, 
+                                    n_des: int = 1, 
+                                    n : int = 10, 
+                                    bunch_no: int = 10, 
+                                    to_fe: bool = False, 
+                                    keep_fe: bool = True
+                                ):
+    res_dict = {}
+
+    for raw_data_file in os.listdir(raw_data_path):
+
+        filename = raw_data_file.split('.')[0]
+
+        res = machine(
+                     path = raw_data_path + raw_data_file,
+                     elements_dict = elements_dict, 
+                     n_std = n_std, 
+                     row_nr = row_nr, 
+                     n_des = n_des, 
+                     n = n, 
+                     bunch_no = bunch_no, 
+                     to_fe = to_fe, 
+                     keep_fe = keep_fe
+                     )
+        res_dict[filename] = res
+
+        if preprocessed_data_path:
+
+            res.to_csv(preprocessed_data_path + filename + '.csv')
+
+    return res
