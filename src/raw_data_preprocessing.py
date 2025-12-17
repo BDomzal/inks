@@ -148,6 +148,7 @@ def apply_multiple_despike(df: pd.DataFrame, n_des: int = 1):
     for _ in range(n_des):
         res = np.apply_along_axis(despike, 0, res)
     despike_df = pd.DataFrame(data=res, columns=df.columns)
+    despike_df.dropna(inplace=True)
     return despike_df
 
 
