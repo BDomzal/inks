@@ -96,12 +96,16 @@
 
 "n_std" : 1, 
 
+"row_nr" : 31,
+
 "n_des" : 1,
+
+"n" : 10,
 
 "bunch_no" : 10,
 
-"keep_fe" : true,
+"to_fe" : false,
 
-"to_fe" : false
+"keep_fe" : true
            
 }

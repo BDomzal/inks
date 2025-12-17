@@ -106,14 +106,14 @@ def normalize_by_elements_dict(df: pd.DataFrame, elements_dict: dict) -> pd.Data
     """
     # insert mapping row at the end and normalize
     df.loc[-1] = df.columns.map(elements_dict)
-    file_normalized = df.apply(lambda x: x / x.iloc[-1])
-    file_normalized = file_normalized.iloc[:-1, :]
-    file_normalized.columns = [re.sub(r"\d+", "", x) for x in file_normalized.columns]
-    file_normalized = file_normalized.round(0)
-    return file_normalized
+    df_normalized = df.apply(lambda x: x / x.iloc[-1])
+    df_normalized = df_normalized.iloc[:-1, :]
+    df_normalized.columns = [re.sub(r"\d+", "", x) for x in df_normalized.columns]
+    df_normalized = df_normalized.round(0)
+    return df_normalized
 
 
-def subtract_blank_and_clip(arr: np.ndarray, n_std: float = 1.0, row_nr = 31) -> np.ndarray:
+def subtract_blank_and_clip(df: pd.DataFrame, n_std: float = 1.0, row_nr = 31) -> np.ndarray:
     """
     Compute an instrument blank from rows 1:row_nr and subtract (mean + n_std*std),
     then clip values (preserves original behavior: clip lower bound 1).
@@ -124,38 +124,44 @@ def subtract_blank_and_clip(arr: np.ndarray, n_std: float = 1.0, row_nr = 31) ->
         2D numpy array of values.
     n_std :
         Number of standard deviations to add to the mean when computing blank.
+    row_nr :
+        At which row the instrument blank ends.
 
     Returns
     -------
     np.ndarray
     """
+    arr = df.values
     means = np.mean(arr[1:row_nr, :], axis=0) + n_std * np.std(arr[1:row_nr, :], axis=0)
-    normalized_blank = (arr - means).clip(1)
+    res = (arr - means).clip(1)
+    normalized_blank = pd.DataFrame(data = res, columns=df.columns)
     return normalized_blank
 
 
-def apply_multiple_despike(arr: np.ndarray, n_des: int = 1):
+def apply_multiple_despike(df: pd.DataFrame, n_des: int = 1):
     """
     Apply despike (per-column) n_des times to a numpy array.
 
     Requires despike available in module scope.
     """
-    if "despike" not in globals():
-        raise RuntimeError("despike function not found in module scope")
+    res = df.values
     for _ in range(n_des):
-        arr = np.apply_along_axis(despike, 0, arr)
-    return arr
+        res = np.apply_along_axis(despike, 0, res)
+    despike_df = pd.DataFrame(data=res, columns=df.columns)
+    return despike_df
 
 
-def sort_and_bunch(df: pd.DataFrame, bunch_no: int = 10) -> pd.DataFrame:
+def sort_and_bunch(df: pd.DataFrame, n: int = 10, bunch_no: int = 10) -> pd.DataFrame:
     """
-    Sort by 'Fe' descending, remove first 9 rows (outlier bunch) and compute means
-    for successive groups of 9 rows (bunching).
+    Sort by 'Fe' descending, remove first n rows (outlier bunch) and compute means
+    for successive groups of n rows (bunching).
 
     Parameters
     ----------
     df :
         Input DataFrame with column 'Fe'.
+    n :
+        Bunch size.
     bunch_no :
         Number of bunches to keep (groups of 9 rows each) after dropping first bunch.
 
@@ -164,8 +170,8 @@ def sort_and_bunch(df: pd.DataFrame, bunch_no: int = 10) -> pd.DataFrame:
     pd.DataFrame
     """
     file_sorted = df.sort_values(by="Fe", ascending=False).reset_index(drop=True)
-    to_bunch = file_sorted.iloc[9: ((1 + bunch_no) * 9), :]
-    bunched = to_bunch.groupby(to_bunch.index // 9).mean().round(5)
+    to_bunch = file_sorted.iloc[n: ((1 + bunch_no) * n), :]
+    bunched = to_bunch.groupby(to_bunch.index // n).mean().round(5)
     return bunched
 
 
@@ -204,7 +210,7 @@ def add_names_column(bunched: pd.DataFrame, path: str) -> pd.DataFrame:
     return bunched
 
 
-def machine(data: str, elements_dict: dict, n_std: int = 1, n_des: int = 1, to_fe: bool = False, bunch_no: int = 10):
+def machine(path: str, elements_dict: dict, n_std: int = 1, row_nr: int = 31, n_des: int = 1, n : int = 10, bunch_no: int = 10, to_fe: bool = False, keep_fe: bool = True):
     """
     High-level preprocessing pipeline for a raw spectrometer file.
 
@@ -215,7 +221,7 @@ def machine(data: str, elements_dict: dict, n_std: int = 1, n_des: int = 1, to_f
     4. Normalize by isotope values (elements_dict).
     5. Subtract instrument blank (mean + n_std*std) and clip.
     6. Optionally apply additional despike passes.
-    7. Sort by Fe and compute bunched means (groups of 9 rows), dropping the first bunch.
+    7. Sort by Fe and compute bunched means (groups of n rows), dropping the first bunch.
     8. Optionally normalize to Fe.
     9. Add indexed sample names and return the bunched DataFrame.
 
@@ -244,10 +250,10 @@ def machine(data: str, elements_dict: dict, n_std: int = 1, n_des: int = 1, to_f
     - despike : function that accepts a 1D array/Series and returns a despiked 1D array/Series
     """
     # load raw
-    raw_df = read_raw_file(data)
+    raw_df = read_raw_file(path)
 
     # ensure expected columns selected (elements_dict should be defined in module or imported)
-    selected = select_expected_columns(raw_df, elements_dict.keys())
+    selected = select_expected_columns(raw_df, elements_dict)
 
     # initial rounding and despike
     cleaned = round_and_despike_df(selected)
@@ -256,23 +262,18 @@ def machine(data: str, elements_dict: dict, n_std: int = 1, n_des: int = 1, to_f
     normalized = normalize_by_elements_dict(cleaned, elements_dict)
 
     # subtract blank and clip
-    arr = normalized.values
-    normalized_blank = subtract_blank_and_clip(arr, n_std=n_std)
+    normalized_blank = subtract_blank_and_clip(normalized, n_std=n_std, row_nr=row_nr)
 
     # optional additional despike passes
-    normalized_blank = apply_multiple_despike(normalized_blank, n_des=n_des)
-
-    # final dataframe after despike
-    despike_df = pd.DataFrame(normalized_blank, columns=normalized.columns).dropna()
+    despike_df = apply_multiple_despike(normalized_blank, n_des=n_des)
 
     # sort and create bunches
-    bunched = sort_and_bunch(despike_df, bunch_no=bunch_no)
+    bunched = sort_and_bunch(despike_df, n=n, bunch_no=bunch_no)
 
     # optional normalize to Fe
     if to_fe:
-        bunched = normalize_to_fe(bunched, keep_fe=True)
+        bunched = normalize_to_fe(bunched, keep_fe=keep_fe)
 
     # add names column and return
-    bunched = add_names_column(bunched, data)
+    bunched = add_names_column(bunched, path)
     return bunched
-# ...existing code...
