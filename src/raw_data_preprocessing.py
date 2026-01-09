@@ -210,7 +210,7 @@ def add_names_column(bunched: pd.DataFrame, path: str) -> pd.DataFrame:
         Original file path used to derive filename part.
     """
     filename = path[path.rfind("/") + 1 : -3]
-    bunched["names"] = [f"{filename}_{i}" for i in range(len(bunched))]
+    bunched["name"] = [f"{filename}_{i}" for i in range(len(bunched))]
     return bunched
 
 
@@ -263,10 +263,10 @@ def machine(path: str, elements_dict: dict, n_std: int = 1, row_nr: int = 31, n_
     cleaned = round_and_despike_df(selected)
 
     # subtract blank and clip
-    normalized_blank = subtract_blank_and_clip(normalized, n_std=n_std, row_nr=row_nr)
+    blank = subtract_blank_and_clip(cleaned, n_std=n_std, row_nr=row_nr)
 
     # normalize by elements_dict mapping
-    normalized = normalize_by_elements_dict(cleaned, elements_dict)
+    normalized_blank = normalize_by_elements_dict(blank, elements_dict)
 
     # optional additional despike passes
     despike_df = apply_multiple_despike(normalized_blank, n_des=n_des)
