@@ -315,6 +315,6 @@ def preprocess_all_from_directory(
 
         if preprocessed_data_path:
 
-            res.to_csv(preprocessed_data_path + filename + '.csv')
+            res.to_csv(preprocessed_data_path + filename + '.csv', index=False)
 
     return res
