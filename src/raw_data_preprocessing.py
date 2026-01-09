@@ -262,11 +262,11 @@ def machine(path: str, elements_dict: dict, n_std: int = 1, row_nr: int = 31, n_
     # initial rounding and despike
     cleaned = round_and_despike_df(selected)
 
-    # normalize by elements_dict mapping
-    normalized = normalize_by_elements_dict(cleaned, elements_dict)
-
     # subtract blank and clip
     normalized_blank = subtract_blank_and_clip(normalized, n_std=n_std, row_nr=row_nr)
+
+    # normalize by elements_dict mapping
+    normalized = normalize_by_elements_dict(cleaned, elements_dict)
 
     # optional additional despike passes
     despike_df = apply_multiple_despike(normalized_blank, n_des=n_des)
