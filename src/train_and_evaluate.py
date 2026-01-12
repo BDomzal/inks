@@ -440,5 +440,27 @@ def visualise_in_lower_dimension(X_low_dim,
         plt.savefig(figures_path + dataset + '_' + method_name + '_' + book_name + '_annotate_' + str(annotate) + '.png')
 
 
+def visualise_pca(X_low_dim, y,
+                    method_name = 'pca',
+                    annotate = False, 
+                    figures_path=None):
 
+    colors = cm.tab20(np.linspace(0, 0.99, y.nunique()))
+
+    sorted_labels = sorted(y.unique())
+    color_dict = dict((key, value) for key, value in zip(sorted_labels, colors))
+    legend_elements = [Line2D([0], [0], color='w', marker='o', markerfacecolor=color_dict[label],
+                                                  label=label, markersize=15) for label in sorted_labels]
+    
+    x_pca_0 = [X_low_dim[i, 0] for i in range(X_low_dim.shape[0])]
+    x_pca_1 = [X_low_dim[i, 1] for i in range(X_low_dim.shape[0])]
+    y_colors = np.array([color_dict[el] for el in y])
+
+    plt.xlabel('PC1')
+    plt.ylabel('PC2')
+
+    plt.scatter(x_pca_0, x_pca_1, marker='o', s=100, color=y_colors)
+    plt.legend(handles=legend_elements, prop={'size': 8})
+        
+    plt.savefig(figures_path + '_' + method_name + '.png')
     
