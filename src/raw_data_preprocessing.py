@@ -313,8 +313,11 @@ def preprocess_all_from_directory(
                      )
         res_dict[filename] = res
 
-        if preprocessed_data_path:
+    res_all = pd.concat(res_dict.values())
+    res_all.reset_index(inplace=True, drop=True)
 
-            res.to_csv(preprocessed_data_path + filename + '.csv', index=False)
+    if preprocessed_data_path:
 
-    return res
+        res_all.to_csv(preprocessed_data_path +  'preprocessed.csv', index=False)
+
+    return res_all
