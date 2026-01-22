@@ -18,7 +18,7 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-INPUT_SIZE = len(config["elements_to_keep"])
+INPUT_SIZE = len(config["elements_to_keep_no_Fe"])
 
 def train_one_epoch(model, loader, loss_fn, optimizer):
     running_loss = 0.

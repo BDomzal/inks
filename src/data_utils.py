@@ -88,29 +88,25 @@ def set_negative_to_zero_v2(inDKs_df, elements_to_keep):
         inDKs_df[elements_to_keep] = inDKs_df[elements_to_keep].clip(lower=0)
     return inDKs_df
 
-def multiply_by_weights(inDKs_df, elements_to_keep, 
+def multiply_by_weights(inDKs_df, elements_to_keep, suffix='',
                         weights=[1, 1, 1, 10, 19, 20, 17, 9, 20, 1]):
     inDKs_df = inDKs_df.copy()
     weights = [el/sum(weights) for el in weights]
-    columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
-    columns_to_keep_inks = [el + '_a' for el in elements_to_keep]
-    for i, col in enumerate(columns_to_keep_inds):
-        inDKs_df[col] = weights[i]*inDKs_df[col]
-    for i, col in enumerate(columns_to_keep_inks):
+    columns_to_transform = [el + suffix for el in elements_to_keep]
+    for i, col in enumerate(columns_to_transform):
         inDKs_df[col] = weights[i]*inDKs_df[col]
     return inDKs_df
 
-def multiply_by_weights_v2(inDKs_df, elements_to_keep, 
+def divide_by_weights(inDKs_df, elements_to_keep, suffix='',
                         weights=[1, 1, 1, 10, 19, 20, 17, 9, 20, 1]):
     inDKs_df = inDKs_df.copy()
     weights = [el/sum(weights) for el in weights]
-
-    for i, col in enumerate(elements_to_keep):
-        inDKs_df[col] = weights[i]*inDKs_df[col]
-
+    columns_to_transform = [el + suffix for el in elements_to_keep]
+    for i, col in enumerate(columns_to_transform):
+        inDKs_df[col] = inDKs_df[col]/weights[i]
     return inDKs_df
 
-def normalize_to_Fe(inDKs_df, elements_to_keep):
+def normalize_to_Fe(inDKs_df, elements_to_keep, remove_Fe=False):
     inDKs_df = inDKs_df.copy()
     columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
     columns_to_keep_inks = [el + '_a' for el in elements_to_keep]
@@ -118,14 +114,16 @@ def normalize_to_Fe(inDKs_df, elements_to_keep):
         inDKs_df[col] = inDKs_df[col] / inDKs_df['Fe_i']
     for i, col in enumerate(columns_to_keep_inks):
         inDKs_df[col] = inDKs_df[col] / inDKs_df['Fe_a']
-    inDKs_df = inDKs_df.drop(columns=['Fe_a', 'Fe_i'])
+    if remove_Fe:
+        inDKs_df = inDKs_df.drop(columns=['Fe_a', 'Fe_i'])
     return inDKs_df
 
-def normalize_to_Fe_v2(inDKs_df, elements_to_keep):
+def normalize_to_Fe_v2(inDKs_df, elements_to_keep, remove_Fe=False):
     inDKs_df = inDKs_df.copy()
     for i, col in enumerate(elements_to_keep):
         inDKs_df[col] = inDKs_df[col] / inDKs_df['Fe']
-    inDKs_df = inDKs_df.drop(columns=['Fe'])
+    if remove_Fe:
+        inDKs_df = inDKs_df.drop(columns=['Fe'])
     return inDKs_df
 
 def create_partition(inDKs_df, random_state=1):
