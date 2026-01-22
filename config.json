@@ -4,7 +4,7 @@
 
 "how_many_outer_to_remove" : 0,
 
-"dropout_prob" : 0.1,
+"dropout_prob" : 0.07,
 
 "elements_to_keep" :[
 	             "Al",
