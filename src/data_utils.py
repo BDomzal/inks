@@ -66,6 +66,10 @@ def delete_elements(inDKs_df, elements_to_keep):
     inDKs_df = inDKs_df[columns_to_keep_inks + columns_to_keep_inds + ['Sample_id', 'name']]
     return inDKs_df
 
+def delete_elements_v2(inDKs_df, elements_to_keep):
+    inDKs_df = inDKs_df[elements_to_keep + ['Sample_id']]
+    return inDKs_df
+
 def remove_missing_data(inDKs_df):
     how_many_nans = inDKs_df.shape[0] - inDKs_df.dropna().shape[0]
     if how_many_nans > 0:
