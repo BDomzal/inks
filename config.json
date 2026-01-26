@@ -111,7 +111,7 @@
 "preprocessed_data_path" : {
 		"Konstytucja": "../data/Konstytucja/konstytucja_nowe_firstdespike_0sd.csv",
 		"Merkuriusz" : "../data/Merkuriusz/preprocessed_data/preprocessed.csv",
-		"Kopernik" : "../data/Kopernik/preprocessed_data"
+		"Kopernik" : "../data/Kopernik/preprocessed_data/preprocessed.csv"
 		  },
 
 "n_std" : 1, 
