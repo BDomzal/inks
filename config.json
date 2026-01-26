@@ -37,18 +37,21 @@
 	
 
 "results_path" : {"Konstytucja" : "../results/Konstytucja/",
-		"Merkuriusz" : "../results/Merkuriusz/"
+		"Merkuriusz" : "../results/Merkuriusz/",
+		"Kopernik" : "../results/Kopernik/"
 		},
 
 "figures_path" : {"training": "../figures/training/",
 		"Konstytucja" : "../figures/Konstytucja/",
-		"Merkuriusz" : "../figures/Merkuriusz/"
+		"Merkuriusz" : "../figures/Merkuriusz/",
+		"Kopernik" : "../figures/Kopernik/"
 		},
 
 "models_path" : "../models/model_regression_logarithm_outer_not_removed_0_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2026_01_26_13_03_51",
 		
 "ready_results_path" : {"Konstytucja" : "../results/Konstytucja/prediction_for_new_dataset_from_model_regression_logarithm_outer_removed_1_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2025_08_26_15_55_18",
-			"Merkuriusz" : "../results/Merkuriusz/prediction_for_new_dataset_from_model_regression_logarithm_outer_removed_1_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2025_08_26_15_55_18"
+			"Merkuriusz" : "../results/Merkuriusz/prediction_for_new_dataset_from_model_regression_logarithm_outer_removed_1_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2025_08_26_15_55_18",
+			"Kopernik" : ""
 			},
 
 		
@@ -56,8 +59,7 @@
 				"Merkuriusz" : ""
 				},
 
-"xrf_path" : {"Konstytucja" : "../data/Konstytucja/dane_xrf_named.csv",
-		"Merkuriusz" : ""
+"xrf_path" : {"Konstytucja" : "../data/Konstytucja/dane_xrf_named.csv"
 		},
 
 "elements_to_keep_xrf" : ["S", "Cu", "Zn"],
@@ -102,12 +104,14 @@
 			
 "raw_data_path" : {
 		"Konstytucja": "",
-		"Merkuriusz" : "../data/Merkuriusz/raw_data/"
+		"Merkuriusz" : "../data/Merkuriusz/raw_data/",
+		"Kopernik" : "../data/Kopernik/raw_data/"
 		  },
 		  
 "preprocessed_data_path" : {
 		"Konstytucja": "../data/Konstytucja/konstytucja_nowe_firstdespike_0sd.csv",
-		"Merkuriusz" : "../data/Merkuriusz/preprocessed_data/preprocessed.csv"
+		"Merkuriusz" : "../data/Merkuriusz/preprocessed_data/preprocessed.csv",
+		"Kopernik" : "../data/Kopernik/preprocessed_data"
 		  },
 
 "n_std" : 1, 

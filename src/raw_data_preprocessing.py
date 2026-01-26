@@ -318,6 +318,6 @@ def preprocess_all_from_directory(
 
     if preprocessed_data_path:
 
-        res_all.to_csv(preprocessed_data_path +  'preprocessed.csv', index=False)
+        res_all.to_csv(preprocessed_data_path, index=False)
 
     return res_all
