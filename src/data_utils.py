@@ -126,7 +126,7 @@ def normalize_to_Fe_v2(inDKs_df, elements_to_keep, remove_Fe=False):
         inDKs_df = inDKs_df.drop(columns=['Fe'])
     return inDKs_df
 
-def create_partition(inDKs_df, random_state=1):
+def create_partition(inDKs_df, random_state=3):
     indices = list(range(int(inDKs_df.shape[0])))
     ind_train_all, ind_test_all = train_test_split(indices, test_size=0.2, random_state=random_state)
     ind_train_all, ind_val_all = train_test_split(ind_train_all, test_size=0.25, random_state=random_state)
