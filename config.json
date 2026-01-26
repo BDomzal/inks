@@ -51,7 +51,7 @@
 		
 "ready_results_path" : {"Konstytucja" : "../results/Konstytucja/prediction_for_new_dataset_from_model_regression_logarithm_outer_removed_1_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2025_08_26_15_55_18",
 			"Merkuriusz" : "../results/Merkuriusz/prediction_for_new_dataset_from_model_regression_logarithm_outer_not_removed_0_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2026_01_26_13_03_51",
-			"Kopernik" : ""
+			"Kopernik" : "../results/Kopernik/prediction_for_new_dataset_from_model_regression_logarithm_outer_not_removed_0_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2026_01_26_13_03_51"
 			},
 
 		
