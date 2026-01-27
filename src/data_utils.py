@@ -453,3 +453,6 @@ def load_target_data(target_path, elements_to_keep, header=0):
 def save_prediction(prediction, results_path, model_name):
     outputs_to_save = prediction.cpu().detach().numpy()
     np.savetxt(results_path + 'prediction_for_new_dataset_from_' + model_name, outputs_to_save, delimiter=',')
+
+def to_numpy(pytorch_tensor):
+    return(pytorch_tensor.cpu().detach().numpy())

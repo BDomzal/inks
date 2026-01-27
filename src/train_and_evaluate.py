@@ -198,7 +198,7 @@ def compute_precision_and_recall(outputs_df):
 
     return np.nanmean(precision), np.nanmean(recall)
 
-def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, path_to_save = None):
+def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, figsize=[15,10], path_to_save = None):
 
     conf_mat = confusion_matrix(true_labels, closest_labels, 
                                 normalize=normalization_in_conf_mat)
@@ -206,7 +206,7 @@ def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat
     heatmap(conf_mat, cmap=sns.cm.rocket_r, xticklabels=False, yticklabels=False)
     plt.ylabel('True class to which an ink belongs', size=15)
     plt.xlabel("Prediction's closest class", size=15)
-    plt.rcParams['figure.figsize'] = [15, 10]
+    plt.rcParams['figure.figsize'] = figsize
     plt.title('Confusion matrix of classification based on the closest center of class.', 
               size=20, 
               wrap=True)
@@ -214,7 +214,7 @@ def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat
     plt.tight_layout()
 
     if path_to_save is not None:
-        plt.savefig(path_to_save + '_Confusion_matrix.png')
+        plt.savefig(path_to_save + 'Confusion_matrix.png')
 
 
 def create_min_max_df(y_train, train_order, y_val, val_order, elements_to_keep):
@@ -474,4 +474,67 @@ def visualise_means_pca(X, y, elements_to_keep,
     df['Sample_id'] = y
     df = df.groupby('Sample_id').mean()
     visualise_pca(df.values, df.index, method_name=method_name, annotate=annotate, figures_path=figures_path)
+
+def visulise_clustering_on_heatmap(X, y, elements_to_keep, figures_path=None, show_classes_names=False):
+
+    y_true = pd.Series(y)
+    y_true = y_true.rename('ID')
+
+    heatmap_df = pd.DataFrame(
+        data=X,
+        columns=elements_to_keep,
+        index=np.arange(len(y_true))
+    )
+
+    colors = cm.tab20(np.linspace(0, 0.99, y_true.nunique()))
+    sorted_labels = sorted(y_true.unique())
+    color_dict = dict((key, value) for key, value in zip(sorted_labels, colors))
+
+    row_colors = y_true.map(color_dict)
+    row_colors.index = heatmap_df.index
+
+    cg = sns.clustermap(
+        heatmap_df,
+        row_cluster=True,
+        col_cluster=True,
+        row_colors=row_colors,
+        dendrogram_ratio=0.1,
+        colors_ratio=0.05,
+        figsize=(7, 7),
+        cbar_pos=None
+    )
+
+    #cg.ax_row_dendrogram.set_visible(False)
+    cg.ax_col_dendrogram.set_visible(False)
+
+    ax = cg.ax_heatmap
+    ax.yaxis.set_ticks([])
+
+    # Row order after clustering
+    row_order = cg.dendrogram_row.reordered_ind
+    labels = y_true.iloc[row_order].values
+
+    # Find boundaries where label changes
+    change_idx = np.where(labels[:-1] != labels[1:])[0] + 1
+
+    # Start + end indices of each block
+    block_starts = np.r_[0, change_idx]
+    block_ends = np.r_[change_idx, len(labels)]
+
+    # Tick positions = center of each block
+    tick_pos = (block_starts + block_ends) / 2
+    tick_labels = labels[block_starts]
+
+
+    ax = cg.ax_row_colors
+
+    if show_classes_names:
+        ax.set_yticks(tick_pos)
+        ax.set_yticklabels(tick_labels)
+    else:
+        ax.set_yticks([])
+        ax.set_yticklabels([])
+
+    plt.savefig(figures_path + 'clustering_heatmap.png', dpi=400)
+
     
