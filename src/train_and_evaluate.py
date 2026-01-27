@@ -464,3 +464,14 @@ def visualise_pca(X_low_dim, y,
         
     plt.savefig(figures_path + '_' + method_name + '.png')
     
+
+def visualise_means_pca(X, y, elements_to_keep,
+                        method_name = 'pca_means',
+                        annotate = False, 
+                        figures_path=None):
+
+    df = pd.DataFrame(X, columns=elements_to_keep)
+    df['Sample_id'] = y
+    df = df.groupby('Sample_id').mean()
+    visualise_pca(df.values, df.index, method_name=method_name, annotate=annotate, figures_path=figures_path)
+    
