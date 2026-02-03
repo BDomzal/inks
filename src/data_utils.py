@@ -223,7 +223,12 @@ def visualise_pca_and_class_means(X_pca, X_sample_ids,
                                     seed=42, path_to_save=None):
 
     n_colors = X_sample_ids.nunique()
+
+    #continuous cmap
     colors = [cmap(i / n_colors) for i in range(n_colors)]
+
+    #discrete cmap with 20 colors
+    #colors = [cmap(i%20) for i in range(n_colors)] 
 
     np.random.seed(seed)
     color_dict = dict(zip(np.random.permutation(X_sample_ids.unique()), colors))
