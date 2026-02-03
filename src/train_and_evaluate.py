@@ -447,7 +447,9 @@ def visualise_pca(X_low_dim, y,
 
     colors = cm.tab20(np.linspace(0, 0.99, y.nunique()))
 
-    sorted_labels = sorted(y.unique())
+    #sorted_labels = sorted(y.unique())
+    sorted_labels = y.unique()
+
     color_dict = dict((key, value) for key, value in zip(sorted_labels, colors))
     legend_elements = [Line2D([0], [0], color='w', marker='o', markerfacecolor=color_dict[label],
                                                   label=label, markersize=15) for label in sorted_labels]
