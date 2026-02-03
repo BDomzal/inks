@@ -20,6 +20,8 @@ inDKs_df, inks_df, inds_df = load_training_data(PREPROCESSED_DATA_PATH)
 def sample_in_list(sample, list_of_names):
     return any([sample.startswith(el) for el in list_of_names])
 
-corroded_df = inks_df[inks_df['name'].apply(lambda x: sample_in_list(x, corroded))][ELEMENTS_TO_KEEP_NO_FE]
+corroded_inds_df = inds_df[inds_df['name'].apply(lambda x: sample_in_list(x, corroded))]
+corroded_inks_df = inks_df[inks_df['name'].apply(lambda x: sample_in_list(x, corroded))][ELEMENTS_TO_KEEP_NO_FE]
 
-corroded_df.to_csv('../results/corroded/corroded_inks.csv', index=False, header=False)
+corroded_inds_df.to_csv('../data/corroded/preprocessed_data/corroded_inks.csv', index=False)
+corroded_inks_df.to_csv('../results/corroded/corroded_inks.csv', index=False, header=False)

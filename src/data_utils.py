@@ -463,3 +463,11 @@ def save_prediction(prediction, results_path, model_name):
 
 def to_numpy(pytorch_tensor):
     return(pytorch_tensor.cpu().detach().numpy())
+
+
+def load_prediction(prediction_path, elements_to_keep):
+        
+    input_data = np.loadtxt(prediction_path, delimiter=',')
+    df = pd.DataFrame(data=input_data, columns=elements_to_keep)
+    
+    return df
