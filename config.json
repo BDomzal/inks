@@ -33,7 +33,7 @@
 
 "multiplication_weights" : [1, 1, 1, 10, 19, 20, 17, 9, 20, 1],
 
-"training_data_path" : "../data/training/all_pairs_ai_firstdespike_0sd.csv",
+"training_data_path" : "../data/training/preprocessed_data/all_pairs_ai_firstdespike_0sd.csv",
 	
 
 "results_path" : {"Konstytucja" : "../results/Konstytucja/",
@@ -49,17 +49,17 @@
 
 "models_path" : "../models/model_regression_logarithm_outer_not_removed_0_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2026_01_26_13_03_51",
 		
-"ready_results_path" : {"Konstytucja" : "../results/Konstytucja/prediction_for_new_dataset_from_model_regression_logarithm_outer_removed_1_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2025_08_26_15_55_18",
+"prediction_path" : {"Konstytucja" : "../results/Konstytucja/prediction_for_new_dataset_from_model_regression_logarithm_outer_removed_1_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2025_08_26_15_55_18",
 			"Merkuriusz" : "../results/Merkuriusz/prediction_for_new_dataset_from_model_regression_logarithm_outer_not_removed_0_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2026_01_26_13_03_51",
-			"Kopernik" : "../results/Kopernik/prediction_for_new_dataset_from_model_regression_logarithm_outer_not_removed_0_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2026_01_26_13_03_51"
+			"Kopernik" : "../results/Kopernik/prediction_for_new_dataset_from_model_regression_logarithm_outer_not_removed_0_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2026_01_26_13_03_51",
+			"corroded samples" : ""
 			},
 
 		
-"classes_description_path" : {"Konstytucja" : "../data/Konstytucja/opis_uzupelniony.xlsx",
-				"Merkuriusz" : ""
+"classes_description_path" : {"Konstytucja" : "../data/Konstytucja/raw_data/opis_uzupelniony.xlsx"
 				},
 
-"xrf_path" : {"Konstytucja" : "../data/Konstytucja/dane_xrf_named.csv"
+"xrf_path" : {"Konstytucja" : "../data/Konstytucja/raw_data/dane_xrf_named.csv"
 		},
 
 "elements_to_keep_xrf" : ["S", "Cu", "Zn"],
@@ -103,15 +103,17 @@
 			},
 			
 "raw_data_path" : {
-		"Konstytucja": "",
+		"Konstytucja": "../data/Konstytucja/raw_data/",
 		"Merkuriusz" : "../data/Merkuriusz/raw_data/",
-		"Kopernik" : "../data/Kopernik/raw_data/"
+		"Kopernik" : "../data/Kopernik/raw_data/",
+		"training" : "../data/training/raw_data/"
 		  },
 		  
 "preprocessed_data_path" : {
-		"Konstytucja": "../data/Konstytucja/konstytucja_nowe_firstdespike_0sd.csv",
+		"Konstytucja": "../data/Konstytucja/preprocessed_data/konstytucja_nowe_firstdespike_0sd.csv",
 		"Merkuriusz" : "../data/Merkuriusz/preprocessed_data/preprocessed.csv",
-		"Kopernik" : "../data/Kopernik/preprocessed_data/preprocessed.csv"
+		"Kopernik" : "../data/Kopernik/preprocessed_data/preprocessed.csv",
+		"training" : "../data/preprocessed_data/all_pairs_ai_firstdespike_0sd.csv"
 		  },
 
 "n_std" : 1, 
