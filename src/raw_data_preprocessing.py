@@ -66,22 +66,41 @@ def select_expected_columns(df: pd.DataFrame, expected_keys: Iterable) -> pd.Dat
         available = [k for k in keys if k in df.columns]
         return df[available]
 
-def despike(data):
+def despike(data: Iterable[float]) -> np.ndarray:
+    """Remove single-point spikes from a 1D sequence.
 
-    data_despike = np.zeros(len(data)-2)
-    for i in range(1, len(data)-2):
-        if data[i] > np.mean([data[i-1], data[i+1]]): 
-            data_despike[i] = np.mean([data[i-1], data[i+1]])
+    This uses a tiny 3-point window: for each interior point (indexes
+    1..len(data)-3) the value is replaced by the mean of its neighbours if it
+    is larger than that mean. The returned array intentionally omits the first
+    and last element so its length is ``len(data) - 2`` (matching the original
+    behaviour in the repository).
+
+    Parameters
+    ----------
+    data:
+        1D iterable (numpy array or pandas Series) of numeric values.
+
+    Returns
+    -------
+    np.ndarray
+        Despiked 1D array with length ``len(data) - 2``.
+    """
+
+    data_despike = np.zeros(len(data) - 2)
+    for i in range(1, len(data) - 2):
+        if data[i] > np.mean([data[i - 1], data[i + 1]]):
+            data_despike[i] = np.mean([data[i - 1], data[i + 1]])
         else:
             data_despike[i] = data[i]
     return data_despike
 
 
-def round_and_despike_df(df: pd.DataFrame):
-    """
-    Round values to integers, apply despike per-column, drop NA and reset index.
+def round_and_despike_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Round values and apply per-column despike, then drop rows with NA.
 
-    Note: this function assumes a despike function is available in the module scope.
+    The function first rounds values to 0 decimal places, then applies the
+    module-level ``despike`` function column-wise. Any rows that become NA are
+    removed and the index is reset.
     """
     df = df.round(0)
     df = df.apply(despike, axis=0)
@@ -116,36 +135,49 @@ def normalize_by_elements_dict(df: pd.DataFrame, elements_dict: dict) -> pd.Data
     return df_normalized
 
 
-def subtract_blank_and_clip(df: pd.DataFrame, n_std: float = 1.0, row_nr = 31) -> np.ndarray:
-    """
-    Compute an instrument blank from rows 1:row_nr and subtract (mean + n_std*std),
-    then clip values (preserves original behavior: clip lower bound 1).
+def subtract_blank_and_clip(df: pd.DataFrame, n_std: float = 1.0, row_nr: int = 31) -> pd.DataFrame:
+    """Estimate an instrument blank and subtract it from the DataFrame.
+
+    The blank is estimated per-column from rows ``1:row_nr`` as
+    mean + n_std * std. The computed blank is subtracted from every row,
+    and the result is clipped to a minimum value of 1 to preserve original
+    behaviour.
 
     Parameters
     ----------
-    arr :
-        2D numpy array of values.
-    n_std :
-        Number of standard deviations to add to the mean when computing blank.
-    row_nr :
-        At which row the instrument blank ends.
+    df:
+        Input DataFrame with numeric values.
+    n_std:
+        Number of standard deviations used when forming the blank.
+    row_nr:
+        End index (exclusive) of the rows used to estimate the blank.
 
     Returns
     -------
-    np.ndarray
+    pd.DataFrame
+        DataFrame with the blank subtracted and clipped values (same columns as input).
     """
     arr = df.values
     means = np.mean(arr[1:row_nr, :], axis=0) + n_std * np.std(arr[1:row_nr, :], axis=0)
     res = (arr - means).clip(1)
-    normalized_blank = pd.DataFrame(data = res, columns=df.columns)
+    normalized_blank = pd.DataFrame(data=res, columns=df.columns)
     return normalized_blank
 
 
-def apply_multiple_despike(df: pd.DataFrame, n_des: int = 1):
-    """
-    Apply despike (per-column) n_des times to a numpy array.
+def apply_multiple_despike(df: pd.DataFrame, n_des: int = 1) -> pd.DataFrame:
+    """Apply the module-level ``despike`` function multiple times column-wise.
 
-    Requires despike available in module scope.
+    Parameters
+    ----------
+    df:
+        DataFrame to despike.
+    n_des:
+        Number of despike passes to run.
+
+    Returns
+    -------
+    pd.DataFrame
+        Despiked DataFrame; any rows containing NA are dropped.
     """
     res = df.values
     for _ in range(n_des):
@@ -199,22 +231,30 @@ def normalize_to_fe(bunched: pd.DataFrame, keep_fe: bool = True) -> pd.DataFrame
 
 
 def add_names_column(bunched: pd.DataFrame, path: str) -> pd.DataFrame:
-    """
-    Add a 'names' column formed from the filename (path) and the row index.
+    """Add a 'name' column derived from the source filename and the row index.
+
+    The filename is extracted by taking the substring after the last '/'
+    character and removing the last three characters (mirrors the original
+    behaviour which removed a three-character extension).
 
     Parameters
     ----------
-    bunched :
-        Bunched DataFrame.
-    path :
-        Original file path used to derive filename part.
+    bunched:
+        DataFrame of bunched measurements.
+    path:
+        Source file path used to extract the filename.
+
+    Returns
+    -------
+    pd.DataFrame
+        Input DataFrame with an added 'name' column.
     """
     filename = path[path.rfind("/") + 1 : -3]
     bunched["name"] = [f"{filename}_{i}" for i in range(len(bunched))]
     return bunched
 
 
-def machine(path: str, elements_dict: dict, n_std: int = 1, row_nr: int = 31, n_des: int = 1, n : int = 10, bunch_no: int = 10, to_fe: bool = False, keep_fe: bool = True):
+def machine(path: str, elements_dict: dict, n_std: int = 1, row_nr: int = 31, n_des: int = 1, n: int = 10, bunch_no: int = 10, to_fe: bool = False, keep_fe: bool = True) -> pd.DataFrame:
     """
     High-level preprocessing pipeline for a raw spectrometer file.
 
@@ -231,7 +271,7 @@ def machine(path: str, elements_dict: dict, n_std: int = 1, row_nr: int = 31, n_
 
     Parameters
     ----------
-    data :
+    path :
         Path to the raw input file.
     n_std :
         Number of standard deviations when computing the blank.
@@ -283,17 +323,42 @@ def machine(path: str, elements_dict: dict, n_std: int = 1, row_nr: int = 31, n_
     return bunched
 
 def preprocess_all_from_directory(
-                                    raw_data_path: str, 
-                                    elements_dict: dict, 
-                                    preprocessed_data_path: str = "",
-                                    n_std: int = 1, 
-                                    row_nr: int = 31, 
-                                    n_des: int = 1, 
-                                    n : int = 10, 
-                                    bunch_no: int = 10, 
-                                    to_fe: bool = False, 
-                                    keep_fe: bool = True
-                                ):
+    raw_data_path: str,
+    elements_dict: dict,
+    preprocessed_data_path: str = "",
+    n_std: int = 1,
+    row_nr: int = 31,
+    n_des: int = 1,
+    n: int = 10,
+    bunch_no: int = 10,
+    to_fe: bool = False,
+    keep_fe: bool = True,
+) -> pd.DataFrame:
+    """Preprocess all raw files in a directory using the ``machine`` pipeline.
+
+    Iterates over files in ``raw_data_path``, runs the ``machine`` pipeline for
+    each file and concatenates the resulting bunched DataFrames. Optionally
+    writes the combined preprocessed CSV to ``preprocessed_data_path``.
+
+    Parameters
+    ----------
+    raw_data_path:
+        Path to a directory containing raw CSV files. Files are iterated using
+        ``os.listdir`` and each name is passed to ``machine`` (the path is
+        joined by simple concatenation, so ensure ``raw_data_path`` ends with '/').
+    elements_dict:
+        Mapping of expected column names to isotope values for normalization.
+    preprocessed_data_path:
+        If provided, the combined DataFrame will be written to this CSV path.
+    n_std, row_nr, n_des, n, bunch_no, to_fe, keep_fe:
+        Parameters forwarded to ``machine`` unchanged.
+
+    Returns
+    -------
+    pd.DataFrame
+        Concatenated DataFrame of preprocessed results from all files.
+    """
+
     res_dict = {}
 
     for raw_data_file in os.listdir(raw_data_path):
