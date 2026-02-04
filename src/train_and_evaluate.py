@@ -441,30 +441,90 @@ def visualise_in_lower_dimension(X_low_dim,
 
 
 def visualise_pca(X_low_dim, y,
-                    method_name = 'pca',
+                    dimensions = [0,1],
+                    figures_name = 'pca',
                     annotate = False, 
+                    whether_sort = True,
                     figures_path=None):
 
     colors = cm.tab20(np.linspace(0, 0.99, y.nunique()))
 
-    #sorted_labels = sorted(y.unique())
-    sorted_labels = y.unique()
+    if whether_sort:
+        sorted_labels = sorted(y.unique())
+    else:
+        sorted_labels = y.unique()
 
     color_dict = dict((key, value) for key, value in zip(sorted_labels, colors))
     legend_elements = [Line2D([0], [0], color='w', marker='o', markerfacecolor=color_dict[label],
                                                   label=label, markersize=15) for label in sorted_labels]
     
-    x_pca_0 = [X_low_dim[i, 0] for i in range(X_low_dim.shape[0])]
-    x_pca_1 = [X_low_dim[i, 1] for i in range(X_low_dim.shape[0])]
+    x_pca_0 = [X_low_dim[i, dimensions[0]] for i in range(X_low_dim.shape[0])]
+    x_pca_1 = [X_low_dim[i, dimensions[1]] for i in range(X_low_dim.shape[0])]
     y_colors = np.array([color_dict[el] for el in y])
 
-    plt.xlabel('PC1')
-    plt.ylabel('PC2')
+    plt.xlabel('PC' + str(dimensions[0]+1))
+    plt.ylabel('PC' + str(dimensions[1]+1))
 
     plt.scatter(x_pca_0, x_pca_1, marker='o', s=100, color=y_colors)
     plt.legend(handles=legend_elements, prop={'size': 8})
-        
-    plt.savefig(figures_path + '_' + method_name + '.png')
+            
+    if figures_path is not None:
+        plt.savefig(figures_path + figures_name + '_' + 'PC' + str(dimensions[0]+1) + '_' + 'PC' + str(dimensions[1]+1) + '.png')
+
+# def visualise_pca_with_split_labels(X_low_dim, y,
+#                                     dimensions = [0, 1],
+#                                     method_name = 'pca',
+#                                     fixed_color = 'red',
+#                                     colormaps = [cm.Greens, cm.Blues, cm.RdPu, cm.Purples, cm.Greys, cm.Oranges],
+#                                     annotate = False,
+#                                     whether_sort = True,
+#                                     figures_path=None):
+
+#     group = y.apply(lambda x: x.split('_')[0])
+#     detailed_label = y.apply(lambda x: '_'.join(x.split('_')[1:]))
+
+#     n_groups = group.nunique()
+#     colormaps = [fixed_color] + colormaps
+#     colormaps = colormaps[:n_groups]
+
+#     color_dicts = []
+
+
+#     for group_nr, group_name in enumerate(group.unique()):
+
+#         detailed_label_in_group = detailed_label[group == group_name]
+#         n_dlig = detailed_label_in_group.nunique()
+
+#         if whether_sort:
+#             sorted_labels = sorted(detailed_label_in_group.unique())
+#         else:
+#             sorted_labels = detailed_label_in_group.unique()
+
+#         if group_nr == 0:
+#             color_dict = dict((group_name + '_' + key, fixed_color) for key in sorted_labels)
+#         else:
+#             cm = colormaps[group_nr]
+#             colors = cm(np.linspace(0, 0.99, n_dlig))
+#             color_dict = dict((group_name + '_' + key, value) for key, value in zip(sorted_labels, colors))
+#         color_dicts.append(color_dict)
+
+#     color_dict = {key: value for d in color_dicts for key, value in d.items()}
+
+#     legend_elements = [Line2D([0], [0], color='w', marker='o', markerfacecolor=color_dict[label],
+#                                                   label=label, markersize=15) for label in y]
+    
+#     x_pca_0 = [X_low_dim[i, dimensions[0]] for i in range(X_low_dim.shape[0])]
+#     x_pca_1 = [X_low_dim[i, dimensions[1]] for i in range(X_low_dim.shape[0])]
+#     y_colors = np.array([color_dict[el] for el in y])
+
+#     plt.xlabel('PC1')
+#     plt.ylabel('PC2')
+
+#     plt.scatter(x_pca_0, x_pca_1, marker='o', s=100, color=y_colors)
+#     plt.legend(handles=legend_elements, prop={'size': 8})
+
+#     if figures_path is not None:
+#         plt.savefig(figures_path + '_' + method_name + '.png')
     
 
 def visualise_means_pca(X, y, elements_to_keep,
