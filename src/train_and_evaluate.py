@@ -3,8 +3,6 @@ from torch import nn
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import cm
-from matplotlib.lines import Line2D
 from data_utils import get_device
 from model import CustomLoss
 from model import InksNet
@@ -14,6 +12,8 @@ from sklearn.metrics import confusion_matrix
 import seaborn as sns
 from seaborn import heatmap
 import json
+from matplotlib.pyplot import cm
+from matplotlib.lines import Line2D
 
 with open('../config.json', 'r') as f:
     config = json.load(f)

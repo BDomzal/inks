@@ -20,12 +20,12 @@ class InksDataset(Dataset):
         assert self.X.shape[0] == self.y.shape[0]
         return self.X.shape[0]  
 
-def load_training_data(data_path):
+def load_training_data(data_path, indicators_suffix='_i', inks_suffix='_a'):
 
     inDKs_df = pd.read_csv(data_path)
-    inks_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith('_a')]]
+    inks_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith(inks_suffix)]]
     inks_df.columns = [col.split('_')[0] for col in inks_df.columns]
-    inds_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith('_i')]]
+    inds_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith(indicators_suffix)]]
     inds_df.columns = [col.split('_')[0] for col in inds_df.columns]
     return inDKs_df, inks_df, inds_df
 
@@ -288,165 +288,7 @@ def visualise_train_val_test_distributions(train_data,
     if path_to_save is not None:
         plt.savefig(path_to_save, bbox_inches='tight', dpi=300)
 
-def load_classes_description_df(classes_description_path):
 
-    classes_df = pd.read_excel(classes_description_path, header=1, usecols=['NAZWA', 'OPIS'])
-    classes_df['NAZWA_short'] = classes_df['NAZWA'].apply(lambda x: 
-                                                        re.split(r'(\d+)', x)[0] + re.split(r'(\d+)', x)[1] if len(re.split(r'(\d+)', x))>1 else re.split(r'(\d+)', x)[0]
-                                                       )                                            
-    classes_df.drop_duplicates(['NAZWA', 'OPIS'], inplace=True)
-    classes_df_supp = classes_df.drop_duplicates(['NAZWA_short']).copy()
-    classes_df_supp['NAZWA'] = classes_df['NAZWA_short']
-    classes_df = pd.concat([classes_df, classes_df_supp])
-    classes_df.drop_duplicates(inplace=True)
-    classes_df.reset_index(inplace=True, drop=True)
-    return classes_df
-
-
-def create_ground_truth_df_for_target_data(which_dataset, 
-                                            target_path, 
-                                            xrf_path, 
-                                            classes_description_df, 
-                                            how_many_outer_to_remove=0):
-
-    assert (which_dataset == 'Konstytucja_indicators' or which_dataset == 'Konstytucja_prediction' or which_dataset == 'XRF'), 'Invalid dataset name.'
-
-    def remove_outer(group, n):
-        if n == 0:
-            return group
-        else:
-            return group.iloc[n:-n] if len(group) > 2*n else pd.DataFrame(columns=group.columns)
-
-    if which_dataset == 'Konstytucja_indicators' or which_dataset == 'Konstytucja_prediction':
-    
-        ground_truth_df = pd.read_csv(target_path, usecols=['name'])
-        ground_truth_df['Sample_id'] = ground_truth_df['name'].apply(lambda x: x.split('_')[0] if len(x.split('_'))==2 else x.split('_')[0] + x.split('_')[1])
-        ground_truth_df['Sample_id'] = ground_truth_df['Sample_id'].apply(lambda x: x.replace('.', ''))
-        ground_truth_df['short'] = ground_truth_df['Sample_id'].apply(lambda x: re.split(r'\d+', x)[0])
-        ground_truth_df.drop(columns=['name'], inplace=True) 
-        ground_truth_df.reset_index(drop=True, inplace=True)
-        
-        if how_many_outer_to_remove>0:
-            ground_truth_df = ground_truth_df.groupby('Sample_id', group_keys=False).apply(remove_outer, n=how_many_outer_to_remove)
-
-    elif which_dataset == 'XRF':
-
-        ground_truth_df = pd.read_csv(xrf_path, usecols=['name'])
-        ground_truth_df.rename(columns={'name': 'Sample_id'}, inplace=True)
-        ground_truth_df['short'] = ground_truth_df['Sample_id'].apply(lambda x: re.split(r'\d+', x)[0])
-
-    ground_truth_df = pd.merge(left=ground_truth_df, right=classes_description_df, how='left', left_on='Sample_id', right_on='NAZWA')
-    
-    ground_truth_df['OPIS'] = ground_truth_df['OPIS'].apply(lambda x: str(x).strip())
-    ground_truth_df.drop(columns=['NAZWA', 'NAZWA_short'], inplace=True)
-    ground_truth_df.reset_index(drop=True, inplace=True)
-
-    return ground_truth_df
-
-
-def select_book(df, ground_truth_df, book_name):
-
-    assert df.shape[0] == ground_truth_df.shape[0], 'df and ground_truth_df have different lengths!'
-
-    if book_name == 'app':
-        df = df[ground_truth_df['short'].apply(lambda x: x.startswith('APP'))].copy()
-    elif book_name == 'asc':
-        df = df[ground_truth_df['short'].apply(lambda x: x.startswith('ASC'))].copy()
-    elif book_name == 'ml':
-        df = df[ground_truth_df['short'].apply(lambda x: x.startswith('ML'))].copy()
-    elif book_name == 'all':
-        pass
-
-    return df
-
-def create_class_df(ground_truth_df, book_name):
-
-    if book_name == 'app':
-        class_df = ground_truth_df[ground_truth_df['short'].apply(lambda x: x.startswith('APP'))][['Sample_id','OPIS']].copy()
-    elif book_name == 'asc':
-        class_df = ground_truth_df[ground_truth_df['short'].apply(lambda x: x.startswith('ASC'))][['Sample_id', 'OPIS']].copy()
-    elif book_name == 'ml':
-        class_df = ground_truth_df[ground_truth_df['short'].apply(lambda x: x.startswith('ML'))][['Sample_id', 'OPIS']].copy()
-    elif book_name == 'all':
-        class_df = ground_truth_df[['Sample_id', 'OPIS']].copy()
-
-    class_df.columns = ['Code', 'Class name']
-
-    class_df.reset_index(inplace=True, drop=True)
-
-    return class_df
-
-def create_closest_sets(df, class_df, distance_name='Hausdorff distance', distance_function=directed_hausdorff):
-
-    closest_sets = pd.DataFrame(columns = ['Class', 'Closest class', distance_name])
-
-    for chosen_class in class_df['Code'].unique():
-        
-        chosen_class_distances = pd.DataFrame(columns=['Class', distance_name])
-        
-        for code in class_df['Code'].unique():
-            
-            set1 = df[class_df['Code'] == chosen_class].values.copy()
-            set2 = df[class_df['Code'] == code].values.copy()
-            chosen_class_distances = pd.concat([chosen_class_distances, 
-                                                pd.DataFrame([[code, distance_function(set1, set2)[0]]],
-                                                            columns=['Class', distance_name])])
-            chosen_class_distances.reset_index(inplace=True, drop=True)
-            
-        which_row = chosen_class_distances.nsmallest(2, distance_name).index[1]
-        closest_sets = pd.concat([closest_sets, 
-                                 pd.DataFrame([[chosen_class, 
-                                                chosen_class_distances.iloc[which_row]['Class'], 
-                                                chosen_class_distances.iloc[which_row][distance_name]]],
-                                                 columns = ['Class', 'Closest class', distance_name]
-                                             )])
-    closest_sets = closest_sets.merge(class_df.drop_duplicates(), 
-                                      how='left', 
-                                      left_on = 'Class', 
-                                      right_on='Code')
-
-    closest_sets.drop(columns='Code', inplace=True)
-    closest_sets.reset_index(inplace=True, drop=True)
-
-    closest_sets = closest_sets.merge(class_df.drop_duplicates(), 
-                                      how='left', 
-                                      left_on = 'Closest class', 
-                                      right_on='Code')
-    closest_sets.rename(columns = {'Class name_x': 'Class name', 'Class name_y': 'Closest class name'},
-                        inplace=True)
-    closest_sets.drop(columns='Code', inplace=True)
-
-    closest_sets.sort_values(by=distance_name, inplace=True)
-    closest_sets.reset_index(inplace=True, drop=True)
-    closest_sets.sort_values(by=['Class'], inplace=True)
-
-    return closest_sets
-
-
-def load_dataset_for_closest_class_assignment(dataset, target_path, Konstytucja_results_path, xrf_path, elements_to_keep, elements_to_keep_xrf):
-
-    if dataset == 'Konstytucja_indicators':
-        
-        input_data = np.loadtxt(target_path, delimiter=',', skiprows=1, usecols=range(19))
-        colnames = pd.read_csv(target_path, nrows=1, header=None)
-        df = pd.DataFrame(data=input_data, columns=colnames.iloc[0,:-1])
-        df = df[elements_to_keep]
-        
-    elif dataset == 'Konstytucja_prediction':
-        
-        input_data = np.loadtxt(Konstytucja_results_path, delimiter=',')
-        df = pd.DataFrame(data=input_data, columns=elements_to_keep)
-        
-    elif dataset == 'XRF':
-        
-        input_data = np.loadtxt(xrf_path, delimiter=',', skiprows=1, usecols=(2,3,4))
-        df = pd.DataFrame(data=input_data, columns=elements_to_keep_xrf)
-
-    else: 
-        print('No such dataset!')
-
-    df.reset_index(drop=True, inplace=True)
-    return df
 
 
 def load_target_data(target_path, elements_to_keep, header=0):
@@ -471,3 +313,162 @@ def load_prediction(prediction_path, elements_to_keep):
     df = pd.DataFrame(data=input_data, columns=elements_to_keep)
     
     return df
+
+def visualise_pca(X_low_dim, y,
+                    dimensions = [0,1],
+                    figures_name = 'pca',
+                    annotate = False, 
+                    whether_sort = True,
+                    figures_path=None):
+
+    colors = cm.tab20(np.linspace(0, 0.99, y.nunique()))
+
+    if whether_sort:
+        sorted_labels = sorted(y.unique())
+    else:
+        sorted_labels = y.unique()
+
+    color_dict = dict((key, value) for key, value in zip(sorted_labels, colors))
+    legend_elements = [Line2D([0], [0], color='w', marker='o', markerfacecolor=color_dict[label],
+                                                  label=label, markersize=15) for label in sorted_labels]
+    
+    x_pca_0 = [X_low_dim[i, dimensions[0]] for i in range(X_low_dim.shape[0])]
+    x_pca_1 = [X_low_dim[i, dimensions[1]] for i in range(X_low_dim.shape[0])]
+    y_colors = np.array([color_dict[el] for el in y])
+
+    plt.xlabel('PC' + str(dimensions[0]+1))
+    plt.ylabel('PC' + str(dimensions[1]+1))
+
+    plt.scatter(x_pca_0, x_pca_1, marker='o', s=100, color=y_colors)
+    plt.legend(handles=legend_elements, prop={'size': 8})
+            
+    if figures_path is not None:
+        plt.savefig(figures_path + figures_name + '_' + 'PC' + str(dimensions[0]+1) + '_' + 'PC' + str(dimensions[1]+1) + '.png')
+
+# def visualise_pca_with_split_labels(X_low_dim, y,
+#                                     dimensions = [0, 1],
+#                                     method_name = 'pca',
+#                                     fixed_color = 'red',
+#                                     colormaps = [cm.Greens, cm.Blues, cm.RdPu, cm.Purples, cm.Greys, cm.Oranges],
+#                                     annotate = False,
+#                                     whether_sort = True,
+#                                     figures_path=None):
+
+#     group = y.apply(lambda x: x.split('_')[0])
+#     detailed_label = y.apply(lambda x: '_'.join(x.split('_')[1:]))
+
+#     n_groups = group.nunique()
+#     colormaps = [fixed_color] + colormaps
+#     colormaps = colormaps[:n_groups]
+
+#     color_dicts = []
+
+
+#     for group_nr, group_name in enumerate(group.unique()):
+
+#         detailed_label_in_group = detailed_label[group == group_name]
+#         n_dlig = detailed_label_in_group.nunique()
+
+#         if whether_sort:
+#             sorted_labels = sorted(detailed_label_in_group.unique())
+#         else:
+#             sorted_labels = detailed_label_in_group.unique()
+
+#         if group_nr == 0:
+#             color_dict = dict((group_name + '_' + key, fixed_color) for key in sorted_labels)
+#         else:
+#             cm = colormaps[group_nr]
+#             colors = cm(np.linspace(0, 0.99, n_dlig))
+#             color_dict = dict((group_name + '_' + key, value) for key, value in zip(sorted_labels, colors))
+#         color_dicts.append(color_dict)
+
+#     color_dict = {key: value for d in color_dicts for key, value in d.items()}
+
+#     legend_elements = [Line2D([0], [0], color='w', marker='o', markerfacecolor=color_dict[label],
+#                                                   label=label, markersize=15) for label in y]
+    
+#     x_pca_0 = [X_low_dim[i, dimensions[0]] for i in range(X_low_dim.shape[0])]
+#     x_pca_1 = [X_low_dim[i, dimensions[1]] for i in range(X_low_dim.shape[0])]
+#     y_colors = np.array([color_dict[el] for el in y])
+
+#     plt.xlabel('PC1')
+#     plt.ylabel('PC2')
+
+#     plt.scatter(x_pca_0, x_pca_1, marker='o', s=100, color=y_colors)
+#     plt.legend(handles=legend_elements, prop={'size': 8})
+
+#     if figures_path is not None:
+#         plt.savefig(figures_path + '_' + method_name + '.png')
+    
+
+def visualise_means_pca(X, y, elements_to_keep,
+                        method_name = 'pca_means',
+                        annotate = False, 
+                        figures_path=None):
+
+    df = pd.DataFrame(X, columns=elements_to_keep)
+    df['Sample_id'] = y
+    df = df.groupby('Sample_id').mean()
+    visualise_pca(df.values, df.index, method_name=method_name, annotate=annotate, figures_path=figures_path)
+
+def visulise_clustering_on_heatmap(X, y, elements_to_keep, figures_path=None, show_classes_names=False):
+
+    y_true = pd.Series(y)
+    y_true = y_true.rename('ID')
+
+    heatmap_df = pd.DataFrame(
+        data=X,
+        columns=elements_to_keep,
+        index=np.arange(len(y_true))
+    )
+
+    colors = cm.tab20(np.linspace(0, 0.99, y_true.nunique()))
+    sorted_labels = sorted(y_true.unique())
+    color_dict = dict((key, value) for key, value in zip(sorted_labels, colors))
+
+    row_colors = y_true.map(color_dict)
+    row_colors.index = heatmap_df.index
+
+    cg = sns.clustermap(
+        heatmap_df,
+        row_cluster=True,
+        col_cluster=True,
+        row_colors=row_colors,
+        dendrogram_ratio=0.1,
+        colors_ratio=0.05,
+        figsize=(7, 7),
+        cbar_pos=None
+    )
+
+    #cg.ax_row_dendrogram.set_visible(False)
+    cg.ax_col_dendrogram.set_visible(False)
+
+    ax = cg.ax_heatmap
+    ax.yaxis.set_ticks([])
+
+    # Row order after clustering
+    row_order = cg.dendrogram_row.reordered_ind
+    labels = y_true.iloc[row_order].values
+
+    # Find boundaries where label changes
+    change_idx = np.where(labels[:-1] != labels[1:])[0] + 1
+
+    # Start + end indices of each block
+    block_starts = np.r_[0, change_idx]
+    block_ends = np.r_[change_idx, len(labels)]
+
+    # Tick positions = center of each block
+    tick_pos = (block_starts + block_ends) / 2
+    tick_labels = labels[block_starts]
+
+
+    ax = cg.ax_row_colors
+
+    if show_classes_names:
+        ax.set_yticks(tick_pos)
+        ax.set_yticklabels(tick_labels)
+    else:
+        ax.set_yticks([])
+        ax.set_yticklabels([])
+
+    plt.savefig(figures_path + 'clustering_heatmap.png', dpi=400)
