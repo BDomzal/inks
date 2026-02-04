@@ -14,10 +14,9 @@ HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
 ELEMENTS_TO_KEEP_NO_FE = config["elements_to_keep_no_Fe"]
 MULTIPLICATION_WEIGHTS = config["multiplication_weights"]
+CORRODED = config["corroded"]
 
 PREPROCESSED_DATA_PATH = config["preprocessed_data_path"][DATASET.split('_')[0]]
-
-corroded = ['192', '193', '194', '197', '221', '222', '223', '224', '225']
 
 inDKs_df, inks_df, inds_df = load_training_data(PREPROCESSED_DATA_PATH)
 
