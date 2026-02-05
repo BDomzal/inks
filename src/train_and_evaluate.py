@@ -276,26 +276,8 @@ def create_mean_plus_sd_df(y_train, train_order, y_val, val_order, elements_to_k
 
     return lower_bound_df, upper_bound_df
 
-def is_inside_min_max_interval(outputs, test_order, min_df, max_df):
 
-    min_max_res_list = []
-
-    for test_example, sample_id in zip(outputs, test_order):
-        
-        greater_than_min = test_example.cpu().detach().numpy() > \
-                        np.array(min_df.loc[min_df['Sample_id'] == sample_id, min_df.columns != 'Sample_id'])
-        
-        less_than_max = test_example.cpu().detach().numpy() < \
-                        np.array(max_df.loc[max_df['Sample_id'] == sample_id, max_df.columns != 'Sample_id'])
-        
-        res = np.logical_and(greater_than_min, less_than_max)
-        
-        min_max_res_list.append(res)
-
-    return np.array(min_max_res_list), np.array(min_max_res_list).mean()
-
-
-def is_inside_mean_plus_minus_sd_interval(outputs, test_order, lower_bound_df, upper_bound_df):
+def is_inside_interval(outputs, test_order, lower_bound_df, upper_bound_df):
 
     sd_res_list = []
 
@@ -388,56 +370,6 @@ def visualise_mean_plus_minus_sd_intervals(outputs,
     
     if path_to_save is not None:
         plt.savefig(path_to_save + '_mean_plus_minus_sd_intervals_' + str(outputs_df.columns[element_nr+1]))
-
-
-def visualise_in_lower_dimension(X_low_dim, 
-                                y, 
-                                class_df, 
-                                dataset,
-                                book_name, 
-                                marker_shapes = {'AS' : 'v', 'AP': 'd', 'ML': '*'}, 
-                                method_name = 'pca',
-                                annotate = False, 
-                                figures_path=None):
-
-    signatures = [word for word in sorted(list(set(y))) if 'podpis' in word]
-    other = sorted(list(set(y).difference(set(signatures))))
-
-    color = cm.gist_ncar(np.linspace(0, 1, len(signatures)))
-    grays = np.concatenate([np.array([0.5, 0.5, 0.5, 1]).reshape(1,-1) for _ in range(len(other))], axis=0)
-    color = np.concatenate([color, grays])
-
-    legend_elements = []
-        
-    for label_nr, label in enumerate(signatures + other):
-        x_pca_0 = [X_low_dim[i, 0] for i in range(X_low_dim.shape[0]) if y[i] == label]
-        x_pca_1 = [X_low_dim[i, 1] for i in range(X_low_dim.shape[0]) if y[i] == label]
-        current_codes = [class_df['Code'][i] for i in range(X_low_dim.shape[0]) if y[i] == label]
-        if book_name == 'all':
-            for nr in range(len(x_pca_0)):
-                if nr == 0:
-                    legend_elements.append(Line2D([0], [0], color='w', marker='o', markerfacecolor=color[label_nr],
-                                                  label=label, markersize=15))
-                plt.plot(x_pca_0[nr], x_pca_1[nr], marker=[marker_shapes[cc[:2]] for cc in current_codes][nr], 
-                             color=color[label_nr], markersize=15, linestyle='none')
-        else:
-            plt.plot(x_pca_0, x_pca_1, marker='o', label = label, color=color[label_nr], markersize=15, linestyle='none')
-        
-    for i in range(X_low_dim.shape[0]):
-        if annotate:
-            ann = class_df['Code'][i]
-            plt.annotate(ann, (X_low_dim[i, 0], X_low_dim[i,1]), size=20)
-    if book_name == 'all':
-        plt.legend(handles=legend_elements, prop={'size': 24})
-        plt.title('ASC: ' + '\u25BC' + ', APP: ' + '\u29EB' + ', ML: ' + '\u2605', fontsize=30)
-    else:
-        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 24})
-
-    plt.gcf().set_size_inches((20, 20))
-    plt.tight_layout()
-
-    if figures_path is not None:
-        plt.savefig(figures_path + dataset + '_' + method_name + '_' + book_name + '_annotate_' + str(annotate) + '.png')
 
 
 def visualise_pca(X_low_dim, y,

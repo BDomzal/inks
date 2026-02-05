@@ -5,7 +5,7 @@ import re
 from pandas.errors import ParserError
 import pandas as pd
 import numpy as np
-from typing import Iterable, Optional
+from typing import Iterable
 import os
 
 def read_raw_file(path: str) -> pd.DataFrame:

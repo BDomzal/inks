@@ -1,12 +1,13 @@
 import numpy as np
 import pandas as pd
-import sklearn
 from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
-import re
 from scipy.spatial.distance import directed_hausdorff
+from matplotlib.pyplot import cm
+from matplotlib.lines import Line2D
+import seaborn as sns
 
 class InksDataset(Dataset):
     def __init__(self, X, y):
@@ -20,16 +21,19 @@ class InksDataset(Dataset):
         assert self.X.shape[0] == self.y.shape[0]
         return self.X.shape[0]  
 
-def load_training_data(data_path, indicators_suffix='_i', inks_suffix='_a'):
+def load_training_data(data_path, indicators_suffix='_i', inks_suffix='_a', standardise_names=True):
 
     inDKs_df = pd.read_csv(data_path)
     inks_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith(inks_suffix)]]
-    inks_df.columns = [col.split('_')[0] for col in inks_df.columns]
     inds_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith(indicators_suffix)]]
-    inds_df.columns = [col.split('_')[0] for col in inds_df.columns]
+
+    if standardise_names:
+        inks_df.columns = [col.split('_')[0] for col in inks_df.columns]
+        inds_df.columns = [col.split('_')[0] for col in inds_df.columns]
+
     return inDKs_df, inks_df, inds_df
 
-def create_sample_id(inDKs_df):
+def create_sample_id_in_training_data(inDKs_df, name_indicators='name_i', name_inks='name_a'):
     
     inDKs_df = inDKs_df.copy()
 
@@ -37,18 +41,19 @@ def create_sample_id(inDKs_df):
         return name.split('_')[0].split('.')[0]
 
     assert all(
-        inDKs_df['name_i'].apply(extract_base_name) ==
-        inDKs_df['name_a'].apply(extract_base_name)
+        inDKs_df[name_indicators].apply(extract_base_name) ==
+        inDKs_df[name_inks].apply(extract_base_name)
     )
     
-    inDKs_df['Sample_id'] = inDKs_df['name_i'].apply(extract_base_name)
+    inDKs_df['Sample_id'] = inDKs_df[name_indicators].apply(extract_base_name)
     inDKs_df['name'] = (
         inDKs_df['Sample_id'] + '_' +
-        inDKs_df['name_i'].apply(lambda x: x.split('_')[-1])
+        inDKs_df[name_indicators].apply(lambda x: x.split('_')[-1])
     )
+
     return inDKs_df
 
-def remove_outer_samples(inDKs_df, how_many_outer_to_remove):
+def remove_outer_samples(any_df, how_many_outer_to_remove, sample_id_column='Sample_id'):
     
     def remove_outer(group, n):
         if n == 0:
@@ -56,83 +61,74 @@ def remove_outer_samples(inDKs_df, how_many_outer_to_remove):
         else:
             return group.iloc[n:-n] if len(group) > 2*n else pd.DataFrame(columns=group.columns)
 
-    inDKs_df = inDKs_df.groupby('Sample_id', group_keys=False).apply(remove_outer, n=how_many_outer_to_remove)
-    inDKs_df = inDKs_df.reset_index(drop=True)
-    return inDKs_df
+    any_df = any_df.groupby(sample_id_column, group_keys=False).apply(remove_outer, n=how_many_outer_to_remove)
+    any_df = any_df.reset_index(drop=True)
 
-def delete_elements(inDKs_df, elements_to_keep):
-    columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
-    columns_to_keep_inks = [el + '_a' for el in elements_to_keep]
-    inDKs_df = inDKs_df[columns_to_keep_inks + columns_to_keep_inds + ['Sample_id', 'name']]
-    return inDKs_df
+    return any_df
 
-def delete_elements_v2(inDKs_df, elements_to_keep):
-    inDKs_df = inDKs_df[elements_to_keep + ['Sample_id']]
-    return inDKs_df
+def delete_elements(any_df, elements_to_keep, indicators_suffix='_i', inks_suffix='_a', keep_sample_id=True, keep_name=True):
 
-def delete_elements_v3(inDKs_df, elements_to_keep):
-    inDKs_df = inDKs_df[elements_to_keep]
-    return inDKs_df
+    columns_to_keep_inds = [el + indicators_suffix for el in elements_to_keep]
+    columns_to_keep_inks = [el + inks_suffix for el in elements_to_keep]
 
-def remove_missing_data(inDKs_df):
-    how_many_nans = inDKs_df.shape[0] - inDKs_df.dropna().shape[0]
+    if keep_sample_id:
+        elements_to_keep = elements_to_keep + ['Sample_id']
+    if keep_name:
+        elements_to_keep = elements_to_keep + ['name']
+
+    return any_df[[col for col in any_df.columns if col in elements_to_keep + columns_to_keep_inds + columns_to_keep_inds]]
+
+def remove_missing_data(any_df):
+
+    how_many_nans = any_df.shape[0] - any_df.dropna().shape[0]
     if how_many_nans > 0:
-        inDKs_df = inDKs_df.dropna()
-    return inDKs_df
+        any_df = any_df.dropna()
 
-def set_negative_to_zero(inDKs_df, elements_to_keep):
-    inDKs_df = inDKs_df.copy()
-    columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
-    columns_to_keep_inks = [el + '_a' for el in elements_to_keep]
-    any_negative = (inDKs_df[columns_to_keep_inks + columns_to_keep_inds] < 0).sum().sum() == 0
-    if any_negative:
-        inDKs_df[columns_to_keep_inks + columns_to_keep_inds] = inDKs_df[columns_to_keep_inks + columns_to_keep_inds].clip(lower=0)
-    return inDKs_df
+    return any_df
 
-def set_negative_to_zero_v2(inDKs_df, elements_to_keep):
-    inDKs_df = inDKs_df.copy()
-    any_negative = (inDKs_df[elements_to_keep] < 0).sum().sum() == 0
-    if any_negative:
-        inDKs_df[elements_to_keep] = inDKs_df[elements_to_keep].clip(lower=0)
-    return inDKs_df
+def set_negative_to_zero(any_df):
 
-def multiply_by_weights(inDKs_df, elements_to_keep, suffix='',
+    cols = any_df.select_dtypes(np.number).columns
+    any_df[cols] = any_df[cols].clip(lower=0)
+
+    return any_df
+
+def multiply_by_weights(any_df, columns_to_transform, column_suffix='',
                         weights=[1, 1, 1, 10, 19, 20, 17, 9, 20, 1]):
-    inDKs_df = inDKs_df.copy()
-    weights = [el/sum(weights) for el in weights]
-    columns_to_transform = [el + suffix for el in elements_to_keep]
-    for i, col in enumerate(columns_to_transform):
-        inDKs_df[col] = weights[i]*inDKs_df[col]
-    return inDKs_df
 
-def divide_by_weights(inDKs_df, elements_to_keep, suffix='',
+    any_df = any_df.copy()
+    weights = [el/sum(weights) for el in weights]
+    columns_to_transform = [el + column_suffix for el in columns_to_transform]
+    for i, col in enumerate(columns_to_transform):
+        any_df[col] = weights[i]*any_df[col]
+
+    return any_df
+
+def divide_by_weights(any_df, columns_to_transform, suffix='',
                         weights=[1, 1, 1, 10, 19, 20, 17, 9, 20, 1]):
-    inDKs_df = inDKs_df.copy()
+
+    any_df = any_df.copy()
     weights = [el/sum(weights) for el in weights]
-    columns_to_transform = [el + suffix for el in elements_to_keep]
+    columns_to_transform = [el + suffix for el in columns_to_transform]
     for i, col in enumerate(columns_to_transform):
-        inDKs_df[col] = inDKs_df[col]/weights[i]
-    return inDKs_df
+        any_df[col] = any_df[col]/weights[i]
 
-def normalize_to_Fe(inDKs_df, elements_to_keep, remove_Fe=False):
-    inDKs_df = inDKs_df.copy()
-    columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
-    columns_to_keep_inks = [el + '_a' for el in elements_to_keep]
-    for i, col in enumerate(columns_to_keep_inds):
-        inDKs_df[col] = inDKs_df[col] / inDKs_df['Fe_i']
-    for i, col in enumerate(columns_to_keep_inks):
-        inDKs_df[col] = inDKs_df[col] / inDKs_df['Fe_a']
-    if remove_Fe:
-        inDKs_df = inDKs_df.drop(columns=['Fe_a', 'Fe_i'])
-    return inDKs_df
+    return any_df
 
-def normalize_to_Fe_v2(inDKs_df, elements_to_keep, remove_Fe=False):
-    inDKs_df = inDKs_df.copy()
-    for i, col in enumerate(elements_to_keep):
-        inDKs_df[col] = inDKs_df[col] / inDKs_df['Fe']
+def normalize_to_Fe(any_df, elements_to_keep, remove_Fe=False, suffixes=['', '_i', '_a']):
+
+    any_df = any_df.copy()
+
+    for suffix in suffixes:
+        columns_to_keep = [el + suffix for el in elements_to_keep]
+        for col in columns_to_keep:
+            any_df[col] = any_df[col] / any_df['Fe' + suffix]
+
     if remove_Fe:
-        inDKs_df = inDKs_df.drop(columns=['Fe'])
-    return inDKs_df
+        any_df = any_df.drop(columns=['Fe' + suffix for suffix in suffixes])
+
+    return any_df
+
 
 def create_partition(inDKs_df, random_state=3):
     indices = list(range(int(inDKs_df.shape[0])))
@@ -152,9 +148,9 @@ def create_partition(inDKs_df, random_state=3):
     X_y_test.reset_index(drop=True, inplace=True)
     return X_y_train, X_y_val, X_y_test
 
-def prepare_data_for_training(X_y_train, X_y_val, X_y_test, elements_to_keep):
-    columns_to_keep_inds = [el + '_i' for el in elements_to_keep]
-    columns_to_keep_inks = [el + '_a' for el in elements_to_keep]
+def prepare_data_for_training(X_y_train, X_y_val, X_y_test, elements_to_keep, indicators_suffix='_i', inks_suffix='_a'):
+    columns_to_keep_inds = [el + indicators_suffix for el in elements_to_keep]
+    columns_to_keep_inks = [el + inks_suffix for el in elements_to_keep]
     train_order = X_y_train['Sample_id']
     val_order = X_y_val['Sample_id']
     test_order = X_y_test['Sample_id']
@@ -206,9 +202,9 @@ def data_to_device(X, device):
     X = torch.Tensor(X).to(device)
     return X
   
-def split_inDKs_df(inDKs_df):
-    inds_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith('_i')]].copy()
-    inks_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith('_a')]].copy()
+def split_inDKs_df(inDKs_df, indicators_suffix='_i', inks_suffix='_a'):
+    inds_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith(indicators_suffix)]].copy()
+    inks_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith(inks_suffix)]].copy()
     return inds_df, inks_df
 
 def join_to_inDKs_df(inks_df, inds_df, identifiers):
@@ -220,9 +216,12 @@ def visualise_pca_and_class_means(X_pca, X_sample_ids,
                                     x_lower=None, x_upper=None,
                                     y_lower=None, y_upper=None,
                                     cmap = plt.get_cmap('hsv'),
-                                    seed=42, path_to_save=None):
+                                    seed=42, dimensions=[0,1],
+                                    path_to_save=None):
 
     n_colors = X_sample_ids.nunique()
+
+    dim0, dim1 = dimensions
 
     #continuous cmap
     colors = [cmap(i / n_colors) for i in range(n_colors)]
@@ -235,16 +234,16 @@ def visualise_pca_and_class_means(X_pca, X_sample_ids,
 
     fig, ax = plt.subplots(figsize=(7,7))
     for i, name in enumerate(X_sample_ids):
-        ax.plot(X_pca[i, 0], X_pca[i, 1], marker='o', linestyle='', ms=8, color=color_dict[name])
+        ax.plot(X_pca[i, dim0], X_pca[i, dim1], marker='o', linestyle='', ms=8, color=color_dict[name])
         
     for j, name in enumerate(means_sample_ids):
-        ax.plot(means_pca[j, 0], means_pca[j, 1], marker='X', linestyle='', ms=20, color=color_dict[name]) #marker's colorful filling
-        ax.plot(means_pca[j, 0], means_pca[j, 1], marker='X', linestyle='', ms=20, color='black', fillstyle='none') #marker's black frame
+        ax.plot(means_pca[j, dim0], means_pca[j, dim1], marker='X', linestyle='', ms=20, color=color_dict[name]) #marker's colorful filling
+        ax.plot(means_pca[j, dim0], means_pca[j, dim1], marker='X', linestyle='', ms=20, color='black', fillstyle='none') #marker's black frame
 
     ax.legend()
 
-    plt.xlabel('PC1', fontsize=20)
-    plt.ylabel('PC2', fontsize=20)
+    plt.xlabel('PC'+str(dim0+1), fontsize=20)
+    plt.ylabel('PC'+str(dim1+1), fontsize=20)
     ax.set_xticks([])
     ax.set_yticks([])
 
@@ -262,7 +261,7 @@ def visualise_train_val_test_distributions(train_data,
                                             val_data, 
                                             test_data,
                                             elements_to_keep,
-                                            title='',
+                                            title='Logarithm of relative quantity',
                                             lower_x_lim=-5,
                                             upper_x_lim=15,
                                             lower_y_lim=0,
@@ -278,17 +277,15 @@ def visualise_train_val_test_distributions(train_data,
         axes[i].hist(train_data[:,i], bins=80, label='training', color='#007C91')
         axes[i].hist(val_data[:,i], bins=80, label='validation', color='#E66100')
         axes[i].hist(test_data[:,i], bins=80, label='test', color='#4B4B4B')
-        axes[i].set_title(title + elements_to_keep[i], x=0.5, y=0.75)
+        axes[i].set_title(elements_to_keep[i], x=0.5, y=0.75)
         axes[i].set_xlim([lower_x_lim, upper_x_lim])
         axes[i].set_ylim([lower_y_lim, upper_y_lim])
 
-    fig.supxlabel('Logarithm of relative quantity')
+    fig.supxlabel(title)
     plt.legend(bbox_to_anchor=(1.6,2.5))
 
     if path_to_save is not None:
         plt.savefig(path_to_save, bbox_inches='tight', dpi=300)
-
-
 
 
 def load_target_data(target_path, elements_to_keep, header=0):
@@ -317,7 +314,7 @@ def load_prediction(prediction_path, elements_to_keep):
 def visualise_pca(X_low_dim, y,
                     dimensions = [0,1],
                     figures_name = 'pca',
-                    annotate = False, 
+                    annotate = False,
                     whether_sort = True,
                     figures_path=None):
 
