@@ -26,7 +26,7 @@ def read_raw_file(path: str) -> pd.DataFrame:
         Raw DataFrame (including original column names).
     """
     try:
-        return pd.read_csv(path, skiprows=1)
+        return pd.read_csv(path, skiprows=1, encoding_errors='replace', encoding='latin-1')
     except ParserError:
         # fallback for files with tabs or comma-as-decimal
         return (

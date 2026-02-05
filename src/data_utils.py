@@ -76,7 +76,7 @@ def delete_elements(any_df, elements_to_keep, indicators_suffix='_i', inks_suffi
     if keep_name:
         elements_to_keep = elements_to_keep + ['name']
 
-    return any_df[[col for col in any_df.columns if col in elements_to_keep + columns_to_keep_inds + columns_to_keep_inds]]
+    return any_df[[col for col in any_df.columns if col in elements_to_keep + columns_to_keep_inds + columns_to_keep_inks]]
 
 def remove_missing_data(any_df):
 
