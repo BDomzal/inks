@@ -253,6 +253,26 @@ def add_names_column(bunched: pd.DataFrame, path: str) -> pd.DataFrame:
     bunched["name"] = [f"{filename}_{i}" for i in range(len(bunched))]
     return bunched
 
+def join_inks_and_inds_rows(
+    res_all, 
+    indicators_suffix = '.i', 
+    inks_suffix = '.a', 
+    indicators_output_suffix = '_i', 
+    inks_output_suffix = '_a'
+) -> pd.DataFrame:
+
+    res_inds = res_all[res_all['name'].endswith(indicators_suffix)].copy()
+    res_inds.columns = res_inds.columns + indicators_output_suffix
+    res_inds['name short'] = res_inds['name'].apply(lambda x: x[:-len(indicators_suffix)])
+
+    res_inks = res_all[res_all['name'].endswith(inks_suffix)].copy()
+    res_inks.columns = res_inks.columns + inks_output_suffix
+    res_inks['name short'] = res_inks['name'].apply(lambda x: x[:-len(inks_suffix)])
+
+    res = res_inds.join(res_inks, on='name short', how='inner')
+    res.drop(columns=['name_short'], inplace=True)
+    return res
+
 
 def machine(path: str, elements_dict: dict, n_std: int = 1, row_nr: int = 31, n_des: int = 1, n: int = 10, bunch_no: int = 10, to_fe: bool = False, keep_fe: bool = True) -> pd.DataFrame:
     """
@@ -333,6 +353,12 @@ def preprocess_all_from_directory(
     bunch_no: int = 10,
     to_fe: bool = False,
     keep_fe: bool = True,
+    inks_present = False,
+    indicators_suffix = '.i',
+    inks_suffix = '.a',
+    indicators_output_suffix = '_i',
+    inks_output_suffix = '_a',
+    sort=True
 ) -> pd.DataFrame:
     """Preprocess all raw files in a directory using the ``machine`` pipeline.
 
@@ -363,7 +389,7 @@ def preprocess_all_from_directory(
 
     for raw_data_file in os.listdir(raw_data_path):
 
-        filename = raw_data_file.split('.')[0]
+        filename = '.'.join(raw_data_file.split('.')[:-1])
 
         res = machine(
                      path = raw_data_path + raw_data_file,
@@ -380,6 +406,18 @@ def preprocess_all_from_directory(
 
     res_all = pd.concat(res_dict.values())
     res_all.reset_index(inplace=True, drop=True)
+    print(res_all.shape)
+
+    if inks_present:
+        res_all = join_inks_and_inds_rows(res_all, 
+                                        indicators_suffix = indicators_suffix, 
+                                        inks_suffix = inks_suffix, 
+                                        indicators_output_suffix = indicators_output_suffix, 
+                                        inks_output_suffix = inks_output_suffix)
+        print(res_all.shape)
+
+    if sort:
+        res_all.sort_values(by='name'+indicators_output_suffix if inks_present else 'name', inplace=True)
 
     if preprocessed_data_path:
 
