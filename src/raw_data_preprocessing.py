@@ -273,8 +273,49 @@ def join_inks_and_inds_rows(
     res.drop(columns=['name_short'], inplace=True)
     return res
 
+def visualise_intemediate_steps(intermediate_dfs, nrows = 2, figsize=(12,6)):
 
-def machine(path: str, elements_dict: dict, n_std: int = 1, row_nr: int = 31, n_des: int = 1, n: int = 10, bunch_no: int = 10, to_fe: bool = False, keep_fe: bool = True) -> pd.DataFrame:
+    dfs = intermediate_dfs
+    fig, axes = plt.subplots(
+        nrows=2,
+        ncols=len(intermediate_dfs)//2,
+        figsize=figsize,
+        sharey='row'
+    )
+
+    # Flatten axes array for easy iteration
+    axes = axes.flatten()
+
+    # Plot each data vector
+    for i, ax in enumerate(axes):
+        if i == 5:
+            ax.plot(dfs[i][el], '*')
+        else:
+            ax.plot(dfs[i][el])
+        ax.set_title(preprocessing_steps[i])
+        ax.set_xticks([])
+
+    # Label shared axes
+    fig.supxlabel('Time')
+    fig.supylabel('Signal ' + el)
+
+    # Improve layout
+    plt.tight_layout()
+    plt.show()
+
+
+def machine(
+    path: str, 
+    elements_dict: dict, 
+    n_std: int = 1, 
+    row_nr: int = 31, 
+    n_des: int = 1, 
+    n: int = 10, 
+    bunch_no: int = 10, 
+    to_fe: bool = False, 
+    keep_fe: bool = True,
+    intermediate_steps = False
+) -> pd.DataFrame:
     """
     High-level preprocessing pipeline for a raw spectrometer file.
 
@@ -313,6 +354,9 @@ def machine(path: str, elements_dict: dict, n_std: int = 1, row_nr: int = 31, n_
     - elements_dict : mapping of expected raw column names to isotope values
     - despike : function that accepts a 1D array/Series and returns a despiked 1D array/Series
     """
+    if intermediate_steps:
+        intermediate_dfs = []
+
     # load raw
     raw_df = read_raw_file(path)
 
@@ -340,6 +384,14 @@ def machine(path: str, elements_dict: dict, n_std: int = 1, row_nr: int = 31, n_
 
     # add names column and return
     bunched = add_names_column(bunched, path)
+
+    if intermediate_steps:
+
+        selected.columns = despike_df.columns
+        cleaned.columns = despike_df.columns
+        dfs = [selected, cleaned, normalized, normalized_blank, despike_df, bunched]
+        return bunched, intermediate_steps
+
     return bunched
 
 def preprocess_all_from_directory(
