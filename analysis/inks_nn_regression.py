@@ -195,7 +195,7 @@ print(torch.mean(difference, axis=0))
 
 # ### Visualisations
 
-visualise_prediction_against_true(outputs, labels, dimension=0)
+#visualise_prediction_against_true(outputs, labels, dimension=0)
 
 
 # ## Quality of prediction: closest points
