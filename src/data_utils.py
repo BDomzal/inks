@@ -33,6 +33,17 @@ def load_training_data(data_path, indicators_suffix='_i', inks_suffix='_a', stan
 
     return inDKs_df, inks_df, inds_df
 
+def split_inDKs_df(inDKs_df, indicators_suffix='_i', inks_suffix='_a'):
+
+    inds_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith(indicators_suffix)]].copy()
+    inks_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith(inks_suffix)]].copy()
+    return inds_df, inks_df
+
+def join_to_inDKs_df(inks_df, inds_df, identifiers):
+
+    inDKs_df = pd.concat([inks_df, inds_df, identifiers], axis=1)
+    return inDKs_df
+
 def create_sample_id_in_training_data(inDKs_df, name_indicators='name_i', name_inks='name_a'):
     
     inDKs_df = inDKs_df.copy()
@@ -115,7 +126,7 @@ def divide_by_weights(any_df, columns_to_transform, suffix='',
 
     return any_df
 
-def normalize_to_Fe(any_df, elements_to_keep, remove_Fe=False, suffixes=['', '_i', '_a']):
+def normalise_to_Fe(any_df, elements_to_keep, remove_Fe=False, suffixes=['', '_i', '_a']):
 
     any_df = any_df.copy()
 
@@ -148,7 +159,7 @@ def create_partition(inDKs_df, random_state=3):
     X_y_test.reset_index(drop=True, inplace=True)
     return X_y_train, X_y_val, X_y_test
 
-def prepare_data_for_training(X_y_train, X_y_val, X_y_test, elements_to_keep, indicators_suffix='_i', inks_suffix='_a'):
+def split_to_X_and_y(X_y_train, X_y_val, X_y_test, elements_to_keep, indicators_suffix='_i', inks_suffix='_a'):
     columns_to_keep_inds = [el + indicators_suffix for el in elements_to_keep]
     columns_to_keep_inks = [el + inks_suffix for el in elements_to_keep]
     train_order = X_y_train['Sample_id']
@@ -169,7 +180,7 @@ def transform_data(X, preprocessing_method):
         res = np.where(input_array>0, np.log(input_array), 0.)
         return res
     
-    if preprocessing_method == 'normalization':
+    if preprocessing_method == 'normalisation':
 
         X = (X - np.min(X, axis=0))/np.std(X, axis=0)
     
@@ -177,12 +188,12 @@ def transform_data(X, preprocessing_method):
         
         X = adjusted_log_transform(X)
 
-    elif preprocessing_method == 'logarithm_and_normalization':
+    elif preprocessing_method == 'logarithm_and_normalisation':
         
         #logarithm
         X = adjusted_log_transform(X)
         
-        #normalization
+        #normalisation
         X = (X - np.min(X, axis=0))/np.std(X, axis=0)
 
     return X
@@ -201,15 +212,116 @@ def get_device():
 def data_to_device(X, device):
     X = torch.Tensor(X).to(device)
     return X
-  
-def split_inDKs_df(inDKs_df, indicators_suffix='_i', inks_suffix='_a'):
-    inds_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith(indicators_suffix)]].copy()
-    inks_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith(inks_suffix)]].copy()
-    return inds_df, inks_df
 
-def join_to_inDKs_df(inks_df, inds_df, identifiers):
-    inDKs_df = pd.concat([inks_df, inds_df, identifiers], axis=1)
-    return inDKs_df
+def prepare_training_data(
+    data_path,
+    how_many_outer_to_remove,
+    elements_to_keep,
+    multiplication_weights,
+    preprocessing_method, 
+    return_data=True
+    ):
+
+    inDKs_df, inks_df, inds_df = load_training_data(data_path)
+
+    # ## Preprocessing
+
+    # 0. Keeping track of the records from the same sample.
+    # We will keep this info in 'Sample_id' and 'name' columns.
+
+    inDKs_df = create_sample_id_in_training_data(inDKs_df)
+
+    # 1. Removing 'outer' samples:
+
+    inDKs_df = remove_outer_samples(inDKs_df, how_many_outer_to_remove)
+
+
+    # 2. Removing columns that we don't need.
+    # Instead of predicting amounts of all the elements, we will predict only those from elements_to_keep list.
+
+    inDKs_df = delete_elements(inDKs_df, elements_to_keep)
+
+    # 3. Removing rows with missing values if there are any.
+
+    inDKs_df = remove_missing_data(inDKs_df)
+
+    # 4. Setting negative numbers to zeros. (First, checking if there are any.)
+
+    inDKs_df = set_negative_to_zero(inDKs_df)
+
+    # 5. Dividing the indicators by weights (leaving inks as they are!)
+
+    inDKs_df = divide_by_weights(inDKs_df, elements_to_keep, suffix='_i', weights=multiplication_weights)
+
+    # 6. Normalising with respect to Fe and remove Fe (both indicators and inks).
+
+    inDKs_df = normalise_to_Fe(inDKs_df, elements_to_keep, suffixes=['_i', '_a'])
+
+    # 7. Removing Fe.
+
+    elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
+    inDKs_df = delete_elements(inDKs_df, elements_to_keep_no_fe)
+
+    # 8. Train - val - test split.
+
+    X_y_train, X_y_val, X_y_test = create_partition(inDKs_df)
+
+
+    # 9. Creating features and labels matrices.
+
+
+    X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order = split_to_X_and_y(
+                                                                                                            X_y_train, 
+                                                                                                            X_y_val, 
+                                                                                                            X_y_test, 
+                                                                                                            elements_to_keep_no_fe)
+
+
+    # 10. Normalisation / taking logarithm.
+    # (It is done after splitting because normalisation takes into account info from every sample in the input dataset.
+    # Therefore, normalisation of val and test data must be done separately, in order not to use information from train data.)
+
+    X_train = transform_data(X_train, preprocessing_method)
+    y_train = transform_data(y_train, preprocessing_method)
+    X_val = transform_data(X_val, preprocessing_method)
+    y_val = transform_data(y_val, preprocessing_method)
+    X_test = transform_data(X_test, preprocessing_method)
+    y_test = transform_data(y_test, preprocessing_method)
+
+    if return_data:
+        data_to_return = [X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order]
+
+
+    # 11. Converting to tensors.
+
+    device = get_device()
+
+    X_train = data_to_device(X_train, device)
+    y_train = data_to_device(y_train, device)
+    X_val = data_to_device(X_val, device)
+    y_val = data_to_device(y_val, device)
+    X_test = data_to_device(X_test, device)
+    y_test = data_to_device(y_test, device)
+
+
+    # 12. Creating InksDatasets.
+
+    train_dataset = InksDataset(X=X_train, y=y_train)
+    val_dataset = InksDataset(X=X_val, y=y_val)
+    test_dataset = InksDataset(X=X_test, y=y_test)
+
+    # 13. Creating DataLoaders.
+
+    train_loader = DataLoader(train_dataset, shuffle=True, batch_size=100)
+    val_loader = DataLoader(val_dataset, shuffle=True)
+    test_loader = DataLoader(test_dataset, shuffle=False)
+
+    if return_data:
+        return train_loader, val_loader, test_loader, data_to_return
+    else:
+        return train_loader, val_loader, test_loader
+
+  
 
 def visualise_pca_and_class_means(X_pca, X_sample_ids, 
                                     means_pca, means_sample_ids,

@@ -18,7 +18,8 @@ from matplotlib.lines import Line2D
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-INPUT_SIZE = len(config["elements_to_keep_no_Fe"])
+INPUT_SIZE = len(config["elements_to_keep"])-1 # -1 because we remove Fe and the end of preprocessing
+
 
 def train_one_epoch(model, loader, loss_fn, optimizer):
     running_loss = 0.
@@ -86,8 +87,9 @@ def train_model(model, train_loader, val_loader, epochs, loss_fn=CustomLoss(torc
 
 
 def visualise_losses(train_losses, val_losses):
-    plt.plot(train_losses)
-    plt.plot(val_losses)
+    plt.plot(train_losses);
+    plt.plot(val_losses);
+    plt.show()
 
 
 def evaluate_on_test_set(model, test_loader, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
