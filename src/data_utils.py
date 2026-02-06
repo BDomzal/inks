@@ -474,6 +474,7 @@ def visualise_pca(X_low_dim, y,
             
     if figures_path is not None:
         plt.savefig(figures_path + figures_name + '_' + 'PC' + str(dimensions[0]+1) + '_' + 'PC' + str(dimensions[1]+1) + '.png')
+    plt.show()
 
 # def visualise_pca_with_split_labels(X_low_dim, y,
 #                                     dimensions = [0, 1],
@@ -540,6 +541,32 @@ def visualise_means_pca(X, y, elements_to_keep,
     df['Sample_id'] = y
     df = df.groupby('Sample_id').mean()
     visualise_pca(df.values, df.index, method_name=method_name, annotate=annotate, figures_path=figures_path)
+
+def join_datasets_into_one(
+                            datasets, 
+                            prediction_path_dict,
+                            preprocessed_data_path_dict,
+                            elements_to_keep
+                            ):
+    dfs = []
+    labels = []
+
+    for dataset in datasets:
+        
+        prediction_path = prediction_path_dict[dataset]
+        preprocessed_data_path = preprocessed_data_path_dict[dataset]
+        
+        df = load_prediction(prediction_path, elements_to_keep)
+        y_true = load_target_data(preprocessed_data_path, ['name'], header=0)['Sample_id']
+
+        dfs.append(df)
+        labels.append(dataset + '_' + y_true)
+
+    df = pd.concat(dfs)
+    y_true = pd.concat(labels)
+    y_true = y_true.apply(lambda x: x.split('_')[0])
+
+    return df, y_true
 
 def visulise_clustering_on_heatmap(X, y, elements_to_keep, figures_path=None, show_classes_names=False):
 

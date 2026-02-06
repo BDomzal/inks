@@ -14,7 +14,7 @@ DATASET = "Konstytucja"
 PREPROCESSING_METHOD = config["preprocessing_method"] # normalization / logarithm
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
-ELEMENTS_TO_KEEP_NO_FE = config["elements_to_keep_no_Fe"]
+
 MULTIPLICATION_WEIGHTS = config["multiplication_weights"]
 DROPOUT_PROB = config["dropout_prob"]
 CHEMICAL_ELEMENTS_TRANSLATOR = config["chemical_elements_translator"]
@@ -23,6 +23,8 @@ REVERSED_CHEMICAL_ELEMENTS_TRANSLATOR = {v: k for k, v in CHEMICAL_ELEMENTS_TRAN
 PREPROCESSED_DATA_PATH = config["preprocessed_data_path"][DATASET]
 MODELS_PATH = config["models_path"]
 RESULTS_PATH = config["results_path"][DATASET]
+
+ELEMENTS_TO_KEEP_NO_FE = [el for el in ELEMENTS_TO_KEEP if el != 'Fe']
 
 
 # ## Loading the data

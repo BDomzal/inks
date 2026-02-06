@@ -405,6 +405,7 @@ def visualise_pca(X_low_dim, y,
             
     if figures_path is not None:
         plt.savefig(figures_path + figures_name + '_' + 'PC' + str(dimensions[0]+1) + '_' + 'PC' + str(dimensions[1]+1) + '.png')
+    plt.show()
 
 # def visualise_pca_with_split_labels(X_low_dim, y,
 #                                     dimensions = [0, 1],
