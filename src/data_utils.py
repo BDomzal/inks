@@ -435,7 +435,7 @@ def visualise_train_val_test_distributions(train_data,
                                             val_data, 
                                             test_data,
                                             elements_to_keep,
-                                            title='Logarithm of relative quantity: indicators',
+                                            title='Logarithm of relative quantity:',
                                             lower_x_lim=-5,
                                             upper_x_lim=15,
                                             lower_y_lim=0,
@@ -456,7 +456,7 @@ def visualise_train_val_test_distributions(train_data,
         axes[i].set_ylim([lower_y_lim, upper_y_lim])
 
     fig.supxlabel(title)
-    fig.legend(bbox_to_anchor=(1.6,2.5))
+    plt.legend(bbox_to_anchor=(1.6,2.5))
 
     if path_to_save is not None:
         plt.savefig(path_to_save, bbox_inches='tight', dpi=300)

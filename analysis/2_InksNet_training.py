@@ -26,8 +26,7 @@ train_loader, val_loader, test_loader, data_list = prepare_training_data(
                                                                         elements_to_keep = ELEMENTS_TO_KEEP,
                                                                         multiplication_weights = MULTIPLICATION_WEIGHTS,
                                                                         preprocessing_method = PREPROCESSING_METHOD, 
-                                                                        return_data=True,
-                                                                        stop_before_partition=False
+                                                                        return_data=True
                                                                         )
 
 X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order = data_list
