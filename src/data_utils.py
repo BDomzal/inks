@@ -369,18 +369,80 @@ def visualise_pca_and_class_means(X_pca, X_sample_ids,
     if path_to_save is not None:
         plt.savefig(path_to_save, dpi=300)
 
+def prepare_training_data_for_visualisations(
+    data_path,
+    how_many_outer_to_remove,
+    elements_to_keep,
+    multiplication_weights,
+    preprocessing_method, 
+    return_data=True
+    ):
+
+    inDKs_df, inks_df, inds_df = load_training_data(data_path)
+
+    # ## Preprocessing
+
+    # 0. Keeping track of the records from the same sample.
+    # We will keep this info in 'Sample_id' and 'name' columns.
+
+    inDKs_df = create_sample_id_in_training_data(inDKs_df)
+
+    # 1. Removing 'outer' samples:
+
+    inDKs_df = remove_outer_samples(inDKs_df, how_many_outer_to_remove)
+
+
+    # 2. Removing columns that we don't need.
+    # Instead of predicting amounts of all the elements, we will predict only those from elements_to_keep list.
+
+    inDKs_df = delete_elements(inDKs_df, elements_to_keep)
+
+    # 3. Removing rows with missing values if there are any.
+
+    inDKs_df = remove_missing_data(inDKs_df)
+
+    # 4. Setting negative numbers to zeros. (First, checking if there are any.)
+
+    inDKs_df = set_negative_to_zero(inDKs_df)
+
+    # 5. Dividing the indicators by weights (leaving inks as they are!)
+
+    inDKs_df = divide_by_weights(inDKs_df, elements_to_keep, suffix='_i', weights=multiplication_weights)
+
+    # # 6. Normalising with respect to Fe and remove Fe (both indicators and inks).
+
+    # inDKs_df = normalise_to_Fe(inDKs_df, elements_to_keep, suffixes=['_i', '_a'])
+
+    # # 7. Removing Fe.
+
+    # elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
+    # inDKs_df = delete_elements(inDKs_df, elements_to_keep_no_fe)
+
+
+    inds_df, inks_df = split_inDKs_df(inDKs_df)
+    inds_values = transform_data(inds_df, preprocessing_method)
+    inks_values = transform_data(inks_df, preprocessing_method)
+
+    inds_df = pd.DataFrame(inds_values, columns=inds_df.columns)
+    inks_df = pd.DataFrame(inks_values, columns=inks_df.columns)
+
+    inDKs_df = join_to_inDKs_df(inks_df, inds_df, inDKs_df[['Sample_id', 'name']])
+
+    return inDKs_df
+
+
 def visualise_train_val_test_distributions(train_data, 
                                             val_data, 
                                             test_data,
                                             elements_to_keep,
-                                            title='Logarithm of relative quantity',
+                                            title='Logarithm of relative quantity: indicators',
                                             lower_x_lim=-5,
                                             upper_x_lim=15,
                                             lower_y_lim=0,
                                             upper_y_lim=100,
                                             path_to_save=None):
 
-    fig, axes = plt.subplots(len(elements_to_keep)//2, 2, figsize=(7, 7), sharey=True, sharex=True) 
+    fig, axes = plt.subplots(len(elements_to_keep)//2 + 1, 2, figsize=(7, 7), sharey=True, sharex=True) 
 
     axes = axes.flatten()
 
@@ -394,10 +456,11 @@ def visualise_train_val_test_distributions(train_data,
         axes[i].set_ylim([lower_y_lim, upper_y_lim])
 
     fig.supxlabel(title)
-    plt.legend(bbox_to_anchor=(1.6,2.5))
+    fig.legend(bbox_to_anchor=(1.6,2.5))
 
     if path_to_save is not None:
         plt.savefig(path_to_save, bbox_inches='tight', dpi=300)
+
 
 
 def load_target_data(target_path, elements_to_keep, header=0):
