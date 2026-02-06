@@ -41,7 +41,6 @@ model = InksNet(input_size=INPUT_SIZE, dropout_prob=DROPOUT_PROB).to(device)
 weights = torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1).to(device)
 loss_fn = CustomLoss(weights=weights)
 
-# Sidenote: Order of importance: Cu >> Mn > Al > Zn > Pb > S > Cr > Co >>
 
 # Training the neural network 
 

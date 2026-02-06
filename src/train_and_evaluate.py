@@ -140,6 +140,7 @@ def visualise_prediction_against_true(outputs, labels, dimension, lower=-10, upp
     plt.plot( [lower, upper],[lower, upper], 'r' )
     plt.xlabel('True value')
     plt.ylabel('Predicted value')
+    plt.show()
 
 
 def create_means_df(elements_to_keep, y_train, train_order, y_val, val_order):
@@ -180,7 +181,7 @@ def find_and_compare_closest_class(y_test, test_order, elements_to_keep, mean_df
 
 def compute_accuracy(outputs_df):
     acc = outputs_df[outputs_df['Real sample_id'] == outputs_df['Closest sample id']].shape[0] / outputs_df.shape[0]
-    print('Accuracy: '+str(np.round(100*acc, 1))+'%.')
+    print('Accuracy: '+str(acc))
     return acc
 
 def compute_precision_and_recall(outputs_df):
@@ -217,7 +218,7 @@ def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat
 
     if path_to_save is not None:
         plt.savefig(path_to_save + 'Confusion_matrix.png')
-
+    plt.show()
 
 def create_min_max_df(y_train, train_order, y_val, val_order, elements_to_keep):
 
@@ -310,7 +311,7 @@ def visualise_min_max_intervals(outputs, test_order, elements_to_keep, min_max_d
     sorted_min_max_df = min_max_df.sort_values(min_max_df.columns[element_nr+1])
     sorted_min_max_df.reset_index(drop=True, inplace=True)
 
-    plt.rcParams['figure.figsize'] = [8, 8]
+    #plt.rcParams['figure.figsize'] = [8, 8]
 
     for sample_id in range(sorted_min_max_df.shape[0]):
         plt.vlines(x=sample_id, ymin=sorted_min_max_df.iloc[sample_id, element_nr+len(elements_to_keep)+1], 
@@ -329,7 +330,7 @@ def visualise_min_max_intervals(outputs, test_order, elements_to_keep, min_max_d
 
     if path_to_save is not None:
         plt.savefig(path_to_save + '_min_max_intervals_' + str(outputs_df.columns[element_nr+1]))
-
+    plt.show()
 
 def visualise_mean_plus_minus_sd_intervals(outputs, 
                                             test_order, 
@@ -354,7 +355,7 @@ def visualise_mean_plus_minus_sd_intervals(outputs,
     sorted_lower_bound_df = lower_bound_df.iloc[upper_bound_df.sort_values(upper_bound_df.columns[element_nr]).index,:]
     sorted_lower_bound_df.reset_index(drop=True, inplace=True)
 
-    plt.rcParams['figure.figsize'] = [8, 8]
+    #plt.rcParams['figure.figsize'] = [8, 8]
 
     for sample_id in range(sorted_lower_bound_df.shape[0]):
         plt.vlines(x=sample_id, ymin=sorted_lower_bound_df.iloc[sample_id, element_nr], 
@@ -372,7 +373,7 @@ def visualise_mean_plus_minus_sd_intervals(outputs,
     
     if path_to_save is not None:
         plt.savefig(path_to_save + '_mean_plus_minus_sd_intervals_' + str(outputs_df.columns[element_nr+1]))
-
+    plt.show()
 
 def visualise_pca(X_low_dim, y,
                     dimensions = [0,1],
