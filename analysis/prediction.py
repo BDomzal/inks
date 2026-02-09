@@ -9,7 +9,7 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-DATASET = "Kopernik"
+DATASET = "Konstytucja"
 
 PREPROCESSING_METHOD = config["preprocessing_method"] # normalization / logarithm
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
