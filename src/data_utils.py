@@ -33,6 +33,10 @@ def load_training_data(data_path, indicators_suffix='_i', inks_suffix='_a', stan
 
     return inDKs_df, inks_df, inds_df
 
+def load_target_data(target_path, header=0):
+    inds_df = pd.read_csv(target_path, header=header)
+    return inds_df
+
 def split_inDKs_df(inDKs_df, indicators_suffix='_i', inks_suffix='_a'):
 
     inds_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith(indicators_suffix)]].copy()
@@ -63,6 +67,16 @@ def create_sample_id_in_training_data(inDKs_df, name_indicators='name_i', name_i
     )
 
     return inDKs_df
+
+def create_sample_id_in_target_data(inds_df, column_to_use='name'):
+
+    assert column_to_use in inds_df.columns
+
+    inds_df['Sample_id'] = inds_df[column_to_use].apply(lambda x: x.split('_')[0] if len(x.split('_'))==2 else x.split('_')[0] + x.split('_')[1])
+    inds_df.drop(columns=[column_to_use], inplace=True)
+    inds_df.reset_index(drop=True, inplace=True)
+
+    return inds_df
 
 def remove_outer_samples(any_df, how_many_outer_to_remove, sample_id_column='Sample_id'):
     
@@ -253,7 +267,7 @@ def prepare_training_data(
 
     inDKs_df = divide_by_weights(inDKs_df, elements_to_keep, suffix='_i', weights=multiplication_weights)
 
-    # 6. Normalising with respect to Fe and remove Fe (both indicators and inks).
+    # 6. Normalising with respect to Fe.
 
     inDKs_df = normalise_to_Fe(inDKs_df, elements_to_keep, suffixes=['_i', '_a'])
 
@@ -419,15 +433,6 @@ def visualise_train_val_test_distributions(train_data,
     if path_to_save is not None:
         plt.savefig(path_to_save, bbox_inches='tight', dpi=300)
     plt.show()
-
-
-def load_target_data(target_path, elements_to_keep, header=0):
-    inds_df = pd.read_csv(target_path, usecols = elements_to_keep, header=header)
-    if 'name' in inds_df.columns:
-        inds_df['Sample_id'] = inds_df['name'].apply(lambda x: x.split('_')[0] if len(x.split('_'))==2 else x.split('_')[0] + x.split('_')[1])
-        inds_df.drop(columns=['name'], inplace=True)
-    inds_df.reset_index(drop=True, inplace=True)
-    return inds_df
 
 def save_prediction(prediction, results_path, model_name):
     outputs_to_save = prediction.cpu().detach().numpy()
@@ -629,3 +634,84 @@ def visulise_clustering_on_heatmap(X, y, elements_to_keep, figures_path=None, sh
         ax.set_yticklabels([])
 
     plt.savefig(figures_path + 'clustering_heatmap.png', dpi=400)
+
+
+def prepare_target_data(
+    target_path,
+    elements_to_keep,
+    how_many_outer_to_remove,
+    multiplication_weights,
+    preprocessing_method, 
+    header=0,
+    column_to_use='name',
+    return_numpy=False
+    ):
+
+    inds_df = load_target_data(target_path, header)
+
+    # ## Preprocessing
+
+    # 0. Keeping track of the records from the same sample.
+    # We will keep this info in 'Sample_id' column.
+
+    inds_df = create_sample_id_in_target_data(inds_df, column_to_use)
+    
+    # 1. Removing 'outer' samples:
+
+    inds_df = remove_outer_samples(inds_df, how_many_outer_to_remove)
+
+    # 2. Removing columns that we don't need.
+    # Instead of predicting amounts of all the elements, we will predict only those from elements_to_keep list.
+
+    inds_df = delete_elements(inds_df, elements_to_keep, keep_sample_id=True, keep_name=False)
+
+    # 3. Removing rows with missing values if there are any.
+
+    inds_df = remove_missing_data(inds_df)
+
+    # 4. Setting negative numbers to zeros. (First, checking if there are any.)
+
+    inds_df = set_negative_to_zero(inds_df)
+
+    # 5. Dividing the indicators by weights.
+
+    inds_df = divide_by_weights(inds_df, elements_to_keep, suffix='', weights=multiplication_weights)
+
+    # 6. Normalising with respect to Fe.
+
+    inds_df = normalise_to_Fe(inds_df, elements_to_keep, remove_Fe=False, suffixes=[''])
+
+    # 7. Removing Fe.
+
+    elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
+    inds_df = delete_elements(inds_df, elements_to_keep_no_fe, keep_sample_id=True, keep_name=False)
+
+    # 8. Resetting the index.
+
+    inds_df.reset_index(drop=True, inplace=True)
+
+
+    # 9. Converting to np.array
+    # (Everything except Sample_id column.)
+
+    X = np.array(inds_df[elements_to_keep_no_fe].values)
+
+    # 10.  Normalisation / taking logarithm.
+
+    X = transform_data(X, preprocessing_method)
+
+
+    if return_numpy:
+        data_to_return = X
+
+
+    # 11. Converting to tensors.
+
+    device = get_device()
+    X = data_to_device(X, device)
+
+    if return_numpy:
+        return X, data_to_return
+
+    else:
+        return X
