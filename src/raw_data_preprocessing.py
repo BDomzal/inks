@@ -458,7 +458,6 @@ def preprocess_all_from_directory(
 
     res_all = pd.concat(res_dict.values())
     res_all.reset_index(inplace=True, drop=True)
-    print(res_all.shape)
 
     if inks_present:
         res_all = join_inks_and_inds_rows(res_all, 
@@ -466,7 +465,6 @@ def preprocess_all_from_directory(
                                         inks_suffix = inks_suffix, 
                                         indicators_output_suffix = indicators_output_suffix, 
                                         inks_output_suffix = inks_output_suffix)
-        print(res_all.shape)
 
     if sort:
         res_all.sort_values(by='name'+indicators_output_suffix if inks_present else 'name', inplace=True)
