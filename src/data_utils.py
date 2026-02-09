@@ -73,6 +73,7 @@ def create_sample_id_in_target_data(inds_df, column_to_use='name'):
     assert column_to_use in inds_df.columns
 
     inds_df['Sample_id'] = inds_df[column_to_use].apply(lambda x: x.split('_')[0] if len(x.split('_'))==2 else x.split('_')[0] + x.split('_')[1])
+    #inds_df['Sample_id'] = inds_df['Sample_id'].apply(lambda x: x.split('.')[0])
     inds_df.drop(columns=[column_to_use], inplace=True)
     inds_df.reset_index(drop=True, inplace=True)
 
@@ -452,11 +453,12 @@ def load_prediction(prediction_path, elements_to_keep):
 def visualise_pca(X_low_dim, y,
                     dimensions = [0,1],
                     figures_name = 'pca',
+                    cmap=plt.get_cmap('tab20'),
                     annotate = False,
                     whether_sort = True,
                     figures_path=None):
 
-    colors = cm.tab20(np.linspace(0, 0.99, y.nunique()))
+    colors = cmap(np.linspace(0, 0.99, y.nunique()))
 
     if whether_sort:
         sorted_labels = sorted(y.unique())
@@ -478,7 +480,7 @@ def visualise_pca(X_low_dim, y,
     plt.legend(handles=legend_elements, prop={'size': 8})
             
     if figures_path is not None:
-        plt.savefig(figures_path + figures_name + '_' + 'PC' + str(dimensions[0]+1) + '_' + 'PC' + str(dimensions[1]+1) + '.png')
+        plt.savefig(figures_path + '_' + figures_name + '_' + 'PC' + str(dimensions[0]+1) + '_' + 'PC' + str(dimensions[1]+1) + '.png')
     plt.show()
 
 # def visualise_pca_with_split_labels(X_low_dim, y,
@@ -537,21 +539,23 @@ def visualise_pca(X_low_dim, y,
 #         plt.savefig(figures_path + '_' + method_name + '.png')
     
 
-def visualise_means_pca(X, y, elements_to_keep,
-                        method_name = 'pca_means',
-                        annotate = False, 
+def visualise_means_pca(X_low_dim, y,
+                        figures_name='pca_means',
+                        cmap=plt.get_cmap('tab20'),
+                        annotate=False, 
                         figures_path=None):
 
-    df = pd.DataFrame(X, columns=elements_to_keep)
-    df['Sample_id'] = y
+    df = pd.DataFrame(X_low_dim)
+    df['Sample_id'] = y.values
     df = df.groupby('Sample_id').mean()
-    visualise_pca(df.values, df.index, method_name=method_name, annotate=annotate, figures_path=figures_path)
+    visualise_pca(df.values, df.index, figures_name=figures_name, cmap=cmap, annotate=annotate, figures_path=figures_path)
 
 def join_datasets_into_one(
                             datasets, 
                             prediction_path_dict,
                             preprocessed_data_path_dict,
-                            elements_to_keep
+                            elements_to_keep,
+                            header=0
                             ):
     dfs = []
     labels = []
@@ -562,7 +566,8 @@ def join_datasets_into_one(
         preprocessed_data_path = preprocessed_data_path_dict[dataset]
         
         df = load_prediction(prediction_path, elements_to_keep)
-        y_true = load_target_data(preprocessed_data_path, ['name'], header=0)['Sample_id']
+        inds_df = load_target_data(preprocessed_data_path, header=header)
+        y_true = create_sample_id_in_target_data(inds_df, column_to_use='name')['Sample_id']
 
         dfs.append(df)
         labels.append(dataset + '_' + y_true)
@@ -573,7 +578,7 @@ def join_datasets_into_one(
 
     return df, y_true
 
-def visulise_clustering_on_heatmap(X, y, elements_to_keep, figures_path=None, show_classes_names=False):
+def visualise_clustering_on_heatmap(X, y, elements_to_keep, figures_path=None, show_classes_names=False):
 
     y_true = pd.Series(y)
     y_true = y_true.rename('ID')
@@ -633,7 +638,10 @@ def visulise_clustering_on_heatmap(X, y, elements_to_keep, figures_path=None, sh
         ax.set_yticks([])
         ax.set_yticklabels([])
 
-    plt.savefig(figures_path + 'clustering_heatmap.png', dpi=400)
+    if figures_path is not None:
+        plt.savefig(figures_path + 'clustering_heatmap.png', dpi=400)
+
+    plt.show()
 
 
 def prepare_target_data(
