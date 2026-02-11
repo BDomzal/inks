@@ -3,7 +3,7 @@ sys.path.insert(1, '../src/')
 from raw_data_preprocessing import *
 
 
-DATASET = "Konstytucja"
+DATASET = "training"
 
 
 import matplotlib.pyplot as plt
@@ -36,5 +36,6 @@ preprocessing_results = preprocess_all_from_directory(
                                                         bunch_no = BUNCH_NO, 
                                                         to_fe = TO_FE, 
                                                         keep_fe = KEEP_FE,
+                                                        inks_present = True if DATASET == "training" else False,
                                                         sort=True
                                                     )

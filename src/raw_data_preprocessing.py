@@ -26,7 +26,7 @@ def read_raw_file(path: str) -> pd.DataFrame:
         Raw DataFrame (including original column names).
     """
     try:
-        return pd.read_csv(path, skiprows=1, encoding_errors='replace', encoding='utf-8')
+        return pd.read_csv(path, skiprows=1)
     except ParserError:
         # fallback for files with tabs or comma-as-decimal
         return (
@@ -187,7 +187,7 @@ def apply_multiple_despike(df: pd.DataFrame, n_des: int = 1) -> pd.DataFrame:
     return despike_df
 
 
-def sort_and_bunch(df: pd.DataFrame, n: int = 10, bunch_no: int = 10) -> pd.DataFrame:
+def sort_and_bunch(df: pd.DataFrame, n: int = 9, bunch_no: int = 10) -> pd.DataFrame:
     """
     Sort by 'Fe' descending, remove first n rows (outlier bunch) and compute means
     for successive groups of n rows (bunching).
@@ -258,19 +258,25 @@ def join_inks_and_inds_rows(
     indicators_suffix = '.i', 
     inks_suffix = '.a', 
     indicators_output_suffix = '_i', 
-    inks_output_suffix = '_a'
+    inks_output_suffix = '_a',
+    sep='_'
 ) -> pd.DataFrame:
 
-    res_inds = res_all[res_all['name'].endswith(indicators_suffix)].copy()
+    def remove_ending_number(name, sep=sep):
+        res = name.split(sep)
+        res = sep.join(res[:-1])
+        return res
+
+    res_inds = res_all[res_all['name'].apply(lambda x: remove_ending_number(x).endswith(indicators_suffix))].copy()
     res_inds.columns = res_inds.columns + indicators_output_suffix
-    res_inds['name short'] = res_inds['name'].apply(lambda x: x[:-len(indicators_suffix)])
+    res_inds['name short'] = res_inds['name' + indicators_output_suffix].apply(lambda x: x.replace(indicators_suffix, ''))
 
-    res_inks = res_all[res_all['name'].endswith(inks_suffix)].copy()
+    res_inks = res_all[res_all['name'].apply(lambda x: remove_ending_number(x).endswith(inks_suffix))].copy()
     res_inks.columns = res_inks.columns + inks_output_suffix
-    res_inks['name short'] = res_inks['name'].apply(lambda x: x[:-len(inks_suffix)])
+    res_inks['name short'] = res_inks['name' + inks_output_suffix].apply(lambda x: x.replace(inks_suffix, ''))
 
-    res = res_inds.join(res_inks, on='name short', how='inner')
-    res.drop(columns=['name_short'], inplace=True)
+    res = pd.merge(res_inks, res_inds, on='name short', how='inner')
+    res.drop(columns=['name short'], inplace=True)
     return res
 
 def visualise_intemediate_steps(intermediate_dfs, nrows = 2, figsize=(12,6)):
@@ -454,6 +460,7 @@ def preprocess_all_from_directory(
                      to_fe = to_fe, 
                      keep_fe = keep_fe
                      )
+        
         res_dict[filename] = res
 
     res_all = pd.concat(res_dict.values())
@@ -465,6 +472,8 @@ def preprocess_all_from_directory(
                                         inks_suffix = inks_suffix, 
                                         indicators_output_suffix = indicators_output_suffix, 
                                         inks_output_suffix = inks_output_suffix)
+
+        res_all.dropna(axis=1, inplace=True)
 
     if sort:
         res_all.sort_values(by='name'+indicators_output_suffix if inks_present else 'name', inplace=True)

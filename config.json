@@ -107,19 +107,19 @@
 		  
 "preprocessed_data_path" : {
 		"corroded" : "../data/corroded/preprocessed_data/corroded_inds.csv",
-		"Konstytucja": "../data/Konstytucja/preprocessed_data/konstytucja_nowe_firstdespike_0sd.csv",
+		"Konstytucja": "../data/Konstytucja/preprocessed_data/preprocessed.csv",
 		"Merkuriusz" : "../data/Merkuriusz/preprocessed_data/preprocessed.csv",
 		"Kopernik" : "../data/Kopernik/preprocessed_data/preprocessed.csv",
-		"training" : "../data/training/preprocessed_data/all_pairs_ai_firstdespike_0sd.csv"
+		"training" : "../data/training/preprocessed_data/preprocessed.csv"
 		  },
 
-"n_std" : 1, 
+"n_std" : 0, 
 
 "row_nr" : 31,
 
-"n_des" : 1,
+"n_des" : 0,
 
-"n" : 10,
+"n" : 9,
 
 "bunch_no" : 10,
 
