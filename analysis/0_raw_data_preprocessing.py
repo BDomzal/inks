@@ -3,7 +3,7 @@ sys.path.insert(1, '../src/')
 from raw_data_preprocessing import *
 
 
-DATASET = "Merkuriusz"
+DATASET = "training"
 
 
 import matplotlib.pyplot as plt
