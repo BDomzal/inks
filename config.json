@@ -24,7 +24,7 @@
 
 "multiplication_weights" : [1, 1, 1, 10, 19, 20, 17, 9, 20, 1],
 
-"training_data_path" : "../data/training/preprocessed_data/all_pairs_ai_firstdespike_0sd.csv",
+"training_data_path" : "../data/training/preprocessed_data/preprocessed.csv",
 	
 
 "results_path" : {"Konstytucja" : "../results/Konstytucja/",
