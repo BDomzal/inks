@@ -403,7 +403,19 @@ def prepare_data_without_splitting(
     X = transform_data(X, preprocessing_method)
     y = transform_data(y, preprocessing_method)
 
-    return X, y, sample_order
+    inDKs_df[columns_to_keep_inks] = X
+    inDKs_df[columns_to_keep_inds] = y
+
+    inds_df, inks_df = split_inDKs_df(inDKs_df)
+    inds_df.columns = [name.split('_')[0] for name in inds_df.columns]
+    inks_df.columns = [name.split('_')[0] for name in inks_df.columns]
+    inds_df['name'] = inDKs_df['name']
+    inks_df['name'] = inDKs_df['name']
+
+    return inds_df, inks_df, sample_order
+
+def sample_in_list(sample, list_of_names):
+    return any([sample.startswith(el) for el in list_of_names])
 
 
 def visualise_pca_and_class_means(X_pca, 
