@@ -298,6 +298,8 @@ def prepare_training_data(
                                         indicators_suffix='_i', 
                                         inks_suffix='_a'
                                         )
+    
+    elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
 
     # 8. Train - val - test split.
 
@@ -305,7 +307,6 @@ def prepare_training_data(
 
 
     # 9. Creating features and labels matrices.
-
 
     X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order = split_to_X_and_y(
                                                                                                             X_y_train, 
