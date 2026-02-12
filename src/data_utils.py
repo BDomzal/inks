@@ -228,16 +228,14 @@ def data_to_device(X, device):
     X = torch.Tensor(X).to(device)
     return X
 
-def prepare_training_data(
-                        data_path,
-                        how_many_outer_to_remove,
-                        elements_to_keep,
-                        multiplication_weights,
-                        preprocessing_method, 
-                        indicators_suffix='_i', 
-                        inks_suffix='_a',
-                        return_data=True
-                        ):
+def preprocessing_beginning(
+                            data_path,
+                            how_many_outer_to_remove,
+                            elements_to_keep,
+                            multiplication_weights,
+                            indicators_suffix='_i', 
+                            inks_suffix='_a'
+                            ):
 
     inDKs_df, inks_df, inds_df = load_training_data(data_path)
 
@@ -278,6 +276,28 @@ def prepare_training_data(
 
     elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
     inDKs_df = delete_elements(inDKs_df, elements_to_keep_no_fe)
+
+    return inDKs_df
+
+def prepare_training_data(
+                        data_path,
+                        how_many_outer_to_remove,
+                        elements_to_keep,
+                        multiplication_weights,
+                        preprocessing_method, 
+                        indicators_suffix='_i', 
+                        inks_suffix='_a',
+                        return_data=True
+                        ):
+
+    inDKs_df = preprocessing_beginning(
+                                        data_path,
+                                        how_many_outer_to_remove,
+                                        elements_to_keep,
+                                        multiplication_weights,
+                                        indicators_suffix='_i', 
+                                        inks_suffix='_a'
+                                        )
 
     # 8. Train - val - test split.
 
@@ -349,45 +369,14 @@ def prepare_data_without_splitting(
                                     inks_suffix='_a'
                                     ):
 
-    inDKs_df, inks_df, inds_df = load_training_data(data_path)
-
-    # ## Preprocessing
-
-    # 0. Keeping track of the records from the same sample.
-    # We will keep this info in 'Sample_id' and 'name' columns.
-
-    inDKs_df = create_sample_id_in_training_data(inDKs_df)
-
-    # 1. Removing 'outer' samples:
-
-    inDKs_df = remove_outer_samples(inDKs_df, how_many_outer_to_remove)
-
-
-    # 2. Removing columns that we don't need.
-    # Instead of predicting amounts of all the elements, we will predict only those from elements_to_keep list.
-
-    inDKs_df = delete_elements(inDKs_df, elements_to_keep)
-
-    # 3. Removing rows with missing values if there are any.
-
-    inDKs_df = remove_missing_data(inDKs_df)
-
-    # 4. Setting negative numbers to zeros. (First, checking if there are any.)
-
-    inDKs_df = set_negative_to_zero(inDKs_df)
-
-    # 5. Dividing the indicators by weights (leaving inks as they are!)
-
-    inDKs_df = divide_by_weights(inDKs_df, elements_to_keep, suffix=indicators_suffix, weights=multiplication_weights)
-
-    # 6. Normalising with respect to Fe.
-
-    inDKs_df = normalise_to_Fe(inDKs_df, elements_to_keep, suffixes=[indicators_suffix, inks_suffix])
-
-    # 7. Removing Fe.
-
-    elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
-    inDKs_df = delete_elements(inDKs_df, elements_to_keep_no_fe)
+    inDKs_df = preprocessing_beginning(
+                                        data_path,
+                                        how_many_outer_to_remove,
+                                        elements_to_keep,
+                                        multiplication_weights,
+                                        indicators_suffix='_i', 
+                                        inks_suffix='_a'
+                                        )
 
     # 8. Creating features and labels matrices.
 
