@@ -378,6 +378,8 @@ def prepare_data_without_splitting(
                                         inks_suffix='_a'
                                         )
 
+    elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
+
     # 8. Creating features and labels matrices.
 
     columns_to_keep_inds = [el + indicators_suffix for el in elements_to_keep_no_fe]
