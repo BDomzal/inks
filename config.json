@@ -106,7 +106,7 @@
 		  },
 		  
 "preprocessed_data_path" : {
-		"corroded" : "../data/corroded/preprocessed_data/corroded_inds.csv",
+		"corroded" : "../data/corroded/nn_ready/corroded_inds.csv",
 		"Konstytucja": "../data/Konstytucja/preprocessed_data/preprocessed.csv",
 		"Merkuriusz" : "../data/Merkuriusz/preprocessed_data/preprocessed.csv",
 		"Kopernik" : "../data/Kopernik/preprocessed_data/preprocessed.csv",

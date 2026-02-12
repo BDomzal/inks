@@ -8,7 +8,7 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-DATASET = "Merkuriusz"
+DATASET = "Konstytucja"
 
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
 ELEMENTS_TO_KEEP_NO_FE = [el for el in ELEMENTS_TO_KEEP if el != 'Fe']
