@@ -12,6 +12,7 @@ with open('../config.json', 'r') as f:
 PREPROCESSING_METHOD = config["preprocessing_method"]
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
+ELEMENTS_TO_KEEP_NO_FE = [el for el in ELEMENTS_TO_KEEP if el != 'Fe']
 MULTIPLICATION_WEIGHTS = config["multiplication_weights"]
 DROPOUT_PROB = config["dropout_prob"]
 
@@ -47,7 +48,7 @@ loss_fn = CustomLoss(weights=weights)
 model, train_losses, val_losses = train_model(model=model,
                                               train_loader=train_loader,
                                               val_loader=val_loader,
-                                              epochs=10,
+                                              epochs=5000,
                                               loss_fn=loss_fn)
 
 # Loss visualisation

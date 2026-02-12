@@ -41,7 +41,7 @@
 		"all" : "../figures/all/"
 		},
 
-"models_path" : "../models/model_regression_logarithm_outer_not_removed_0_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2026_01_26_13_03_51",
+"models_path" : "../models/model_regression_logarithm_outer_not_removed_0_Al_S_Cr_Mn_Co_Cu_Zn_Pb_Fe_Mg_2026_02_12_11_58_05",
 		
 "prediction_path" : {
 			"corroded" : "../results/corroded/corroded_inks.csv",
