@@ -287,6 +287,7 @@ def prepare_training_data(
                         preprocessing_method, 
                         indicators_suffix='_i', 
                         inks_suffix='_a',
+                        random_state=3,
                         return_data=True
                         ):
 
@@ -303,7 +304,7 @@ def prepare_training_data(
 
     # 8. Train - val - test split.
 
-    X_y_train, X_y_val, X_y_test = create_partition(inDKs_df)
+    X_y_train, X_y_val, X_y_test = create_partition(inDKs_df, random_state=random_state)
 
 
     # 9. Creating features and labels matrices.
