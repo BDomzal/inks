@@ -146,9 +146,10 @@ def normalise_to_Fe(any_df, elements_to_keep, remove_Fe=False, suffixes=['', '_i
     any_df = any_df.copy()
 
     for suffix in suffixes:
+        divisor = any_df['Fe' + suffix].copy()
         columns_to_keep = [el + suffix for el in elements_to_keep]
         for col in columns_to_keep:
-            any_df[col] = any_df[col] / any_df['Fe' + suffix]
+            any_df[col] = any_df[col] / divisor
 
     if remove_Fe:
         any_df = any_df.drop(columns=['Fe' + suffix for suffix in suffixes])
