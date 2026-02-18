@@ -117,6 +117,8 @@
 		"Kopernik" : "../data/Kopernik/preprocessed_data/preprocessed.csv",
 		"training" : "../data/training/preprocessed_data/preprocessed.csv"
 		  },
+		  
+"excel_prediction_path" : "../results/",
 
 "n_std" : 0, 
 

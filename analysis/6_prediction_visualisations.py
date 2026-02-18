@@ -70,10 +70,12 @@ visualise_pca(X_tsne, y_true, cmap=CMAP, figures_path=FIGURES_PATH + DATASET, fi
 
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
 ELEMENTS_TO_KEEP_NO_FE = [el for el in ELEMENTS_TO_KEEP if el != 'Fe']
+NORMALISATION_TO_FE = config["normalisation_to_Fe"]
 
 PREDICTION_PATH_DICT = config["prediction_path"]
 PREPROCESSED_DATA_PATH_DICT = config["preprocessed_data_path"]
 FIGURES_PATH = config["figures_path"]['all']
+EXCEL_PREDICTION_PATH = config['excel_prediction_path']
 
 
 DATASETS = ['Konstytucja', 'corroded', 'Merkuriusz', 'Kopernik']
@@ -125,3 +127,13 @@ X_tsne = tsne.fit_transform(X)
 
 
 visualise_pca(X_tsne, y_true, dimensions=[0, 1], whether_sort=False, figures_path=FIGURES_PATH, figures_name='tsne')
+
+
+dfs = load_prediction_list(DATASETS,
+                           PREDICTION_PATH_DICT,
+                           PREPROCESSED_DATA_PATH_DICT,
+                           ELEMENTS_TO_KEEP,
+                           NORMALISATION_TO_FE,
+                           logarithm=True)
+
+save_df_list_to_excel(dfs, EXCEL_PREDICTION_PATH)

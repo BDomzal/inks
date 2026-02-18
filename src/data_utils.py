@@ -4,7 +4,6 @@ from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
-from scipy.spatial.distance import directed_hausdorff
 from matplotlib.pyplot import cm
 from matplotlib.lines import Line2D
 import seaborn as sns
@@ -644,7 +643,8 @@ def join_datasets_into_one(
                             prediction_path_dict,
                             preprocessed_data_path_dict,
                             elements_to_keep,
-                            header=0
+                            header=0,
+                            short_name=True
                             ):
     dfs = []
     labels = []
@@ -663,7 +663,8 @@ def join_datasets_into_one(
 
     df = pd.concat(dfs)
     y_true = pd.concat(labels)
-    y_true = y_true.apply(lambda x: x.split('_')[0])
+    if short_name:
+        y_true = y_true.apply(lambda x: x.split('_')[0])
 
     return df, y_true
 
@@ -818,3 +819,45 @@ def prepare_target_data(
 
     else:
         return X
+
+
+def load_prediction_list(datasets, 
+                        prediction_path_dict, 
+                        preprocessed_data_path_dict,
+                        elements_to_keep,
+                        normalisation_to_Fe=False,
+                        logarithm=True):
+    
+    elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
+    
+    df, y_true = join_datasets_into_one(
+                                datasets, 
+                                prediction_path_dict,
+                                preprocessed_data_path_dict,
+                                elements_to_keep_no_fe if normalisation_to_Fe else elements_to_keep,
+                                short_name = False
+                                )
+    df.reset_index(inplace=True, drop=True)
+    y_true.reset_index(inplace=True, drop=True)
+    y_true_short = y_true.apply(lambda x: x.split('_')[0])
+    
+    dfs = []
+    for dataset_name in y_true_short.unique():
+        df_dataset = pd.DataFrame(data=df[y_true_short == dataset_name], 
+                                  columns=elements_to_keep_no_fe if normalisation_to_Fe else elements_to_keep)
+        df_dataset['Sample_id'] = y_true[y_true_short == dataset_name]
+        dfs.append(df_dataset)
+                
+    return dfs
+
+def save_df_list_to_excel(dfs, 
+                          excel_prediction_path, 
+                          names = ['Konstytucja', 'corroded', 'Merkuriusz', 'Kopernik']
+                         ):
+
+    writer = pd.ExcelWriter(excel_prediction_path + 'prediction.xlsx', engine='xlsxwriter')
+    
+    for i, frame in enumerate(dfs):
+       frame.to_excel(writer, sheet_name = names[i], index=False)
+        
+    writer.close()
