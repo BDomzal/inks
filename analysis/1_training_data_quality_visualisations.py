@@ -13,6 +13,7 @@ with open('../config.json', 'r') as f:
 
 PREPROCESSING_METHOD = config["preprocessing_method"] 
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
+NORMALISATION_TO_FE = config["normalisation_to_Fe"]
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
 MULTIPLICATION_WEIGHTS = config["multiplication_weights"]
 DROPOUT_PROB = config["dropout_prob"]
@@ -30,7 +31,8 @@ train_loader, val_loader, test_loader, data_list = prepare_training_data(
                                                                                 elements_to_keep = ELEMENTS_TO_KEEP,
                                                                                 multiplication_weights = MULTIPLICATION_WEIGHTS,
                                                                                 preprocessing_method = PREPROCESSING_METHOD, 
-                                                                                return_data=True
+                                                                                normalisation_to_Fe=NORMALISATION_TO_FE,
+                                                                                return_data=True,
                                                                                 )
 
 X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order = data_list
@@ -38,7 +40,7 @@ X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_ord
 # Visualisations of distribution
 
 visualise_train_val_test_distributions(X_train, X_val, X_test,
-                                        ELEMENTS_TO_KEEP_NO_FE, 
+                                        ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
                                         title='Indicators',
                                         logarithmed=True,
                                         horizontal_axis_name = 'Logarithm of relative intensity',
@@ -48,7 +50,7 @@ visualise_train_val_test_distributions(X_train, X_val, X_test,
 
 
 visualise_train_val_test_distributions(y_train, y_val, y_test,
-                                        ELEMENTS_TO_KEEP_NO_FE, 
+                                        ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
                                         title='Inks',
                                         logarithmed=True,
                                         horizontal_axis_name = 'Logarithm of relative intensity',
@@ -62,7 +64,7 @@ element_nr = 3
 plt.hist(X_train[:,element_nr], bins=100, label='training');
 plt.hist(X_val[:,element_nr], bins=100, label='validation');
 plt.hist(X_test[:,element_nr], bins=100, label='test');
-plt.title(ELEMENTS_TO_KEEP[element_nr])
+plt.title(ELEMENTS_TO_KEEP_NO_FE[element_nr] if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP[element_nr])
 plt.legend()
 plt.show()
 
@@ -70,14 +72,14 @@ plt.show()
 
 inks_df = pd.DataFrame(
                         data=np.concatenate([X_train, X_val, X_test]), 
-                        columns=ELEMENTS_TO_KEEP_NO_FE
+                        columns=ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP
                         )
 
 order = pd.concat([train_order, val_order, test_order], axis=0).reset_index(drop=True)
 
 
 mean_df = create_means_df(
-                        ELEMENTS_TO_KEEP_NO_FE, 
+                        ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
                         inks_df.values, 
                         order, 
                         np.array([]), 
@@ -90,7 +92,7 @@ from sklearn.decomposition import PCA
 pca = PCA(n_components=2)
 
 X_pca = pca.fit_transform(inks_df.values)
-means_pca = pca.transform(mean_df[ELEMENTS_TO_KEEP_NO_FE])
+means_pca = pca.transform(mean_df[ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP])
 
 # tsne = TSNE(n_components=2, random_state=42)
 # X_tsne = tsne.fit_transform(inks_df.values)

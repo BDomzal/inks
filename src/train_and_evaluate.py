@@ -18,8 +18,12 @@ from matplotlib.lines import Line2D
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-INPUT_SIZE = len(config["elements_to_keep"])-1 # -1 because we remove Fe at the end of preprocessing
+NORMALISATION_TO_FE = config["normalisation_to_fe"]
 
+if NORMALISATION_TO_FE:
+    INPUT_SIZE = len(config["elements_to_keep"])-1 # -1 because we remove Fe at the end of preprocessing
+else:
+    INPUT_SIZE = len(config["elements_to_keep"]) # no subtraction because we keep Fe
 
 def train_one_epoch(model, loader, loss_fn, optimizer):
     running_loss = 0.

@@ -12,7 +12,7 @@ with open('../config.json', 'r') as f:
 PREPROCESSING_METHOD = config["preprocessing_method"]
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
-ELEMENTS_TO_KEEP_NO_FE = [el for el in ELEMENTS_TO_KEEP if el != 'Fe']
+NORMALISATION_TO_FE = config["normalisation_to_Fe"]
 MULTIPLICATION_WEIGHTS = config["multiplication_weights"]
 DROPOUT_PROB = config["dropout_prob"]
 
@@ -27,7 +27,8 @@ train_loader, val_loader, test_loader, data_list = prepare_training_data(
                                                                         elements_to_keep = ELEMENTS_TO_KEEP,
                                                                         multiplication_weights = MULTIPLICATION_WEIGHTS,
                                                                         preprocessing_method = PREPROCESSING_METHOD, 
-                                                                        return_data=True
+                                                                        return_data=True,
+                                                                        normalisation_to_Fe=NORMALISATION_TO_FE
                                                                         )
 
 X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order = data_list

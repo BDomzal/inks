@@ -235,7 +235,8 @@ def preprocessing_beginning(
                             elements_to_keep,
                             multiplication_weights,
                             indicators_suffix='_i', 
-                            inks_suffix='_a'
+                            inks_suffix='_a',
+                            normalisation_to_Fe=False
                             ):
 
     inDKs_df, inks_df, inds_df = load_training_data(data_path)
@@ -269,14 +270,17 @@ def preprocessing_beginning(
 
     inDKs_df = divide_by_weights(inDKs_df, elements_to_keep, suffix=indicators_suffix, weights=multiplication_weights)
 
-    # 6. Normalising with respect to Fe.
 
-    inDKs_df = normalise_to_Fe(inDKs_df, elements_to_keep, suffixes=[indicators_suffix, inks_suffix])
+    if normalisation_to_Fe:
 
-    # 7. Removing Fe.
+        # 6. Normalising with respect to Fe.
 
-    elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
-    inDKs_df = delete_elements(inDKs_df, elements_to_keep_no_fe)
+        inDKs_df = normalise_to_Fe(inDKs_df, elements_to_keep, suffixes=[indicators_suffix, inks_suffix])
+
+        # 7. Removing Fe.
+
+        elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
+        inDKs_df = delete_elements(inDKs_df, elements_to_keep_no_fe)
 
     return inDKs_df
 
@@ -289,6 +293,7 @@ def prepare_training_data(
                         indicators_suffix='_i', 
                         inks_suffix='_a',
                         random_state=3,
+                        normalisation_to_Fe=False,
                         return_data=True
                         ):
 
@@ -298,10 +303,10 @@ def prepare_training_data(
                                         elements_to_keep,
                                         multiplication_weights,
                                         indicators_suffix='_i', 
-                                        inks_suffix='_a'
+                                        inks_suffix='_a',
+                                        normalisation_to_Fe=normalisation_to_Fe
                                         )
     
-    elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
 
     # 8. Train - val - test split.
 
@@ -310,11 +315,13 @@ def prepare_training_data(
 
     # 9. Creating features and labels matrices.
 
+    elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
+
     X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order = split_to_X_and_y(
                                                                                                             X_y_train, 
                                                                                                             X_y_val, 
                                                                                                             X_y_test, 
-                                                                                                            elements_to_keep_no_fe)
+                                                                                                            elements_to_keep_no_fe if normalisation_to_Fe else elements_to_keep)
 
 
     # 10. Normalisation / taking logarithm.
@@ -369,7 +376,8 @@ def prepare_data_without_splitting(
                                     multiplication_weights,
                                     preprocessing_method,
                                     indicators_suffix='_i', 
-                                    inks_suffix='_a'
+                                    inks_suffix='_a',
+                                    normalisation_to_Fe=False
                                     ):
 
     inDKs_df = preprocessing_beginning(
@@ -378,15 +386,21 @@ def prepare_data_without_splitting(
                                         elements_to_keep,
                                         multiplication_weights,
                                         indicators_suffix='_i', 
-                                        inks_suffix='_a'
+                                        inks_suffix='_a',
+                                        normalisation_to_Fe=normalisation_to_Fe
                                         )
 
     elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
 
     # 8. Creating features and labels matrices.
 
-    columns_to_keep_inds = [el + indicators_suffix for el in elements_to_keep_no_fe]
-    columns_to_keep_inks = [el + inks_suffix for el in elements_to_keep_no_fe]
+    if normalisation_to_Fe:
+        columns_to_keep_inds = [el + indicators_suffix for el in elements_to_keep_no_fe]
+        columns_to_keep_inks = [el + inks_suffix for el in elements_to_keep_no_fe]
+    else:
+        columns_to_keep_inds = [el + indicators_suffix for el in elements_to_keep]
+        columns_to_keep_inks = [el + inks_suffix for el in elements_to_keep]
+
     sample_order = inDKs_df['Sample_id']
 
     X = np.array(inDKs_df[columns_to_keep_inds].values)
@@ -726,6 +740,7 @@ def prepare_target_data(
     preprocessing_method, 
     header=0,
     column_to_use='name',
+    normalisation_to_Fe=False,
     return_numpy=False
     ):
 
@@ -759,14 +774,16 @@ def prepare_target_data(
 
     inds_df = divide_by_weights(inds_df, elements_to_keep, suffix='', weights=multiplication_weights)
 
-    # 6. Normalising with respect to Fe.
+    if normalisation_to_Fe:
 
-    inds_df = normalise_to_Fe(inds_df, elements_to_keep, remove_Fe=False, suffixes=[''])
+        # 6. Normalising with respect to Fe.
 
-    # 7. Removing Fe.
+        inds_df = normalise_to_Fe(inds_df, elements_to_keep, remove_Fe=False, suffixes=[''])
 
-    elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
-    inds_df = delete_elements(inds_df, elements_to_keep_no_fe, keep_sample_id=True, keep_name=False)
+        # 7. Removing Fe.
+
+        elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
+        inds_df = delete_elements(inds_df, elements_to_keep_no_fe, keep_sample_id=True, keep_name=False)
 
     # 8. Resetting the index.
 
@@ -776,7 +793,10 @@ def prepare_target_data(
     # 9. Converting to np.array
     # (Everything except Sample_id column.)
 
-    X = np.array(inds_df[elements_to_keep_no_fe].values)
+    if normalisation_to_Fe:
+        X = np.array(inds_df[elements_to_keep_no_fe].values)
+    else:
+        X = np.array(inds_df[elements_to_keep].values)
 
     # 10.  Normalisation / taking logarithm.
 

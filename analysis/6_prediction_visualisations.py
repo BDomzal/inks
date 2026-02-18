@@ -11,6 +11,7 @@ with open('../config.json', 'r') as f:
 DATASET = "Konstytucja"
 
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
+NORMALISATION_TO_FE = config["normalisation_to_Fe"]
 ELEMENTS_TO_KEEP_NO_FE = [el for el in ELEMENTS_TO_KEEP if el != 'Fe']
 
 PREDICTION_PATH = config["prediction_path"][DATASET]
@@ -25,7 +26,7 @@ else:
 
 # ## Loading the data
 
-df = load_prediction(PREDICTION_PATH, ELEMENTS_TO_KEEP_NO_FE)
+df = load_prediction(PREDICTION_PATH, ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP)
 inds_df = load_target_data(PREPROCESSED_DATA_PATH)
 y_true = create_sample_id_in_target_data(inds_df, column_to_use='name')['Sample_id']
 
@@ -36,7 +37,7 @@ X = np.array(df.values)
 
 # ### Heatmap - datasets separately
 
-visualise_clustering_on_heatmap(X, y_true.values, ELEMENTS_TO_KEEP_NO_FE, figures_path=FIGURES_PATH)
+visualise_clustering_on_heatmap(X, y_true.values, ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, figures_path=FIGURES_PATH)
 
 
 # ### PCA - datasets separately
@@ -83,7 +84,7 @@ df, y_true = join_datasets_into_one(
                             DATASETS, 
                             PREDICTION_PATH_DICT,
                             PREPROCESSED_DATA_PATH_DICT,
-                            ELEMENTS_TO_KEEP_NO_FE
+                            ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP
                             )
 
 X = np.array(df.values)
@@ -102,7 +103,7 @@ print(pca.explained_variance_ratio_)
 print(pca.components_)
 
 
-print(ELEMENTS_TO_KEEP_NO_FE)
+print(ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP)
 # Most correlated
 # Zn Cu Co > Mn / Al
 

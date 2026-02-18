@@ -14,6 +14,7 @@ DATASET = "Merkuriusz"
 PREPROCESSING_METHOD = config["preprocessing_method"] # normalization / logarithm
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
+NORMALISATION_TO_FE = config["normalisation_to_Fe"]
 
 MULTIPLICATION_WEIGHTS = config["multiplication_weights"]
 DROPOUT_PROB = config["dropout_prob"]
@@ -21,8 +22,6 @@ DROPOUT_PROB = config["dropout_prob"]
 PREPROCESSED_DATA_PATH = config["preprocessed_data_path"][DATASET]
 MODELS_PATH = config["models_path"]
 RESULTS_PATH = config["results_path"][DATASET]
-
-ELEMENTS_TO_KEEP_NO_FE = [el for el in ELEMENTS_TO_KEEP if el != 'Fe']
 
 
 # ## Loading the data
@@ -34,7 +33,8 @@ X  =  prepare_target_data(PREPROCESSED_DATA_PATH,
                             PREPROCESSING_METHOD, 
                             header=0,
                             column_to_use='name',
-                            return_numpy=False
+                            return_numpy=False,
+                            normalisation_to_Fe=NORMALISATION_TO_FE
                             )
 
 # ## Loading the trained model

@@ -11,8 +11,8 @@ DATASET = "training"
 
 PREPROCESSING_METHOD = config["preprocessing_method"] # normalization / logarithm
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
+NORMALISATION_TO_FE = config["normalisation_to_Fe"]
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
-ELEMENTS_TO_KEEP_NO_FE = [el for el in ELEMENTS_TO_KEEP if el != 'Fe']
 MULTIPLICATION_WEIGHTS = config["multiplication_weights"]
 CORRODED = config["corroded"]
 
@@ -26,11 +26,17 @@ inds_df, inks_df, sample_order = prepare_data_without_splitting(
                                                                 MULTIPLICATION_WEIGHTS,
                                                                 PREPROCESSING_METHOD,
                                                                 indicators_suffix='_i', 
-                                                                inks_suffix='_a'
+                                                                inks_suffix='_a',
+                                                                normalisation_to_Fe=NORMALISATION_TO_FE
                                                                 )
 
-corroded_inds_df = inds_df[inds_df['name'].apply(lambda x: sample_in_list(x, CORRODED))][ELEMENTS_TO_KEEP_NO_FE + ['name']]
-corroded_inks_df = inks_df[inks_df['name'].apply(lambda x: sample_in_list(x, CORRODED))][ELEMENTS_TO_KEEP_NO_FE]
+if NORMALISATION_TO_FE:
+    ELEMENTS_TO_KEEP_NO_FE = [el for el in ELEMENTS_TO_KEEP if el != 'Fe']
+    corroded_inds_df = inds_df[inds_df['name'].apply(lambda x: sample_in_list(x, CORRODED))][ELEMENTS_TO_KEEP_NO_FE + ['name']]
+    corroded_inks_df = inks_df[inks_df['name'].apply(lambda x: sample_in_list(x, CORRODED))][ELEMENTS_TO_KEEP_NO_FE]
+else:
+    corroded_inds_df = inds_df[inds_df['name'].apply(lambda x: sample_in_list(x, CORRODED))][ELEMENTS_TO_KEEP + ['name']]
+    corroded_inks_df = inks_df[inks_df['name'].apply(lambda x: sample_in_list(x, CORRODED))][ELEMENTS_TO_KEEP]
 
 corroded_inds_df.to_csv('../data/corroded/nn_ready/corroded_inds.csv', index=False)
 corroded_inks_df.to_csv('../results/corroded/corroded_inks.csv', index=False, header=False)

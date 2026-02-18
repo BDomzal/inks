@@ -6,6 +6,8 @@
 
 "dropout_prob" : 0.07,
 
+"normalisation_to_Fe" : false,
+
 "corroded" : ["192", "193", "194", "197", "221", "222", "223", "224", "225"],
 
 
@@ -124,10 +126,6 @@
 
 "n" : 9,
 
-"bunch_no" : 10,
-
-"to_fe" : false,
-
-"keep_fe" : true
+"bunch_no" : 10
            
 }
