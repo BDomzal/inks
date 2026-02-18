@@ -8,6 +8,7 @@ from scipy.spatial.distance import directed_hausdorff
 from matplotlib.pyplot import cm
 from matplotlib.lines import Line2D
 import seaborn as sns
+import math
 
 class InksDataset(Dataset):
     def __init__(self, X, y):
@@ -494,7 +495,7 @@ def visualise_train_val_test_distributions(train_data,
                                             upper_y_lim=None,
                                             path_to_save=None):
 
-    fig, axes = plt.subplots(len(elements_to_keep)//2 + 1, 2, figsize=(7, 7), sharey=True, sharex=True) 
+    fig, axes = plt.subplots(math.ceil(len(elements_to_keep)/2), 2, figsize=(7, 7), sharey=True, sharex=True) 
 
     axes = axes.flatten()
 

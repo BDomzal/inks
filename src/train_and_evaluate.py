@@ -18,7 +18,7 @@ from matplotlib.lines import Line2D
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-NORMALISATION_TO_FE = config["normalisation_to_fe"]
+NORMALISATION_TO_FE = config["normalisation_to_Fe"]
 
 if NORMALISATION_TO_FE:
     INPUT_SIZE = len(config["elements_to_keep"])-1 # -1 because we remove Fe at the end of preprocessing
