@@ -33,7 +33,8 @@
 
 "results_path" : {"Konstytucja" : "../results/Konstytucja/",
 		"Merkuriusz" : "../results/Merkuriusz/",
-		"Kopernik" : "../results/Kopernik/"
+		"Kopernik" : "../results/Kopernik/",
+		"corroded" : "../results/corroded/"
 		},
 
 "figures_path" : {
@@ -111,12 +112,20 @@
 		  },
 		  
 "preprocessed_data_path" : {
-		"corroded" : "../data/corroded/nn_ready/corroded_inds.csv",
+		"corroded" : "../data/corroded/preprocessed_data/preprocessed.csv",
 		"Konstytucja": "../data/Konstytucja/preprocessed_data/preprocessed.csv",
 		"Merkuriusz" : "../data/Merkuriusz/preprocessed_data/preprocessed.csv",
 		"Kopernik" : "../data/Kopernik/preprocessed_data/preprocessed.csv",
 		"training" : "../data/training/preprocessed_data/preprocessed.csv"
 		  },
+		  
+"prediction_input_path" : {
+		"corroded" : "../data/corroded/preprocessed_data/preprocessed_inds.csv",
+		"Konstytucja": "../data/Konstytucja/preprocessed_data/preprocessed.csv",
+		"Merkuriusz" : "../data/Merkuriusz/preprocessed_data/preprocessed.csv",
+		"Kopernik" : "../data/Kopernik/preprocessed_data/preprocessed.csv",
+		"training" : "../data/training/preprocessed_data/preprocessed.csv"
+		  },	  
 		  
 "excel_prediction_path" : "../results/",
 

@@ -9,7 +9,7 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-DATASET = "Merkuriusz"
+DATASET = "corroded"
 
 PREPROCESSING_METHOD = config["preprocessing_method"] # normalization / logarithm
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
@@ -19,14 +19,14 @@ NORMALISATION_TO_FE = config["normalisation_to_Fe"]
 MULTIPLICATION_WEIGHTS = config["multiplication_weights"]
 DROPOUT_PROB = config["dropout_prob"]
 
-PREPROCESSED_DATA_PATH = config["preprocessed_data_path"][DATASET]
+PREDICTION_INPUT_PATH = config["prediction_input_path"][DATASET]
 MODELS_PATH = config["models_path"]
 RESULTS_PATH = config["results_path"][DATASET]
 
 
 # ## Loading the data
 
-X  =  prepare_target_data(PREPROCESSED_DATA_PATH,
+X  =  prepare_target_data(PREDICTION_INPUT_PATH,
                             ELEMENTS_TO_KEEP,
                             HOW_MANY_OUTER_TO_REMOVE,
                             MULTIPLICATION_WEIGHTS,

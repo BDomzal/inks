@@ -37,10 +37,15 @@ def load_target_data(target_path, header=0):
     inds_df = pd.read_csv(target_path, header=header)
     return inds_df
 
-def split_inDKs_df(inDKs_df, indicators_suffix='_i', inks_suffix='_a'):
+def split_inDKs_df(inDKs_df, indicators_suffix='_i', inks_suffix='_a', standardise_names=False):
 
     inds_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith(indicators_suffix)]].copy()
     inks_df = inDKs_df[[col for col in inDKs_df.columns if col.endswith(inks_suffix)]].copy()
+
+    if standardise_names:
+        inks_df.columns = [col.replace(inks_suffix, '') for col in inks_df.columns]
+        inds_df.columns = [col.replace(indicators_suffix, '') for col in inds_df.columns]
+
     return inds_df, inks_df
 
 def join_to_inDKs_df(inks_df, inds_df, identifiers):

@@ -1,9 +1,10 @@
 import sys
 sys.path.insert(1, '../src/')
 from raw_data_preprocessing import *
+from data_utils import *
 
 
-DATASET = "Merkuriusz"
+DATASET = "corroded"
 
 
 import matplotlib.pyplot as plt
@@ -24,7 +25,6 @@ TO_FE = config["to_fe"]
 KEEP_FE = config["keep_fe"]
 
 
-
 preprocessing_results = preprocess_all_from_directory(
                                                         raw_data_path = RAW_DATA_PATH, 
                                                         elements_dict = ELEMENTS_DICT, 
@@ -36,6 +36,26 @@ preprocessing_results = preprocess_all_from_directory(
                                                         bunch_no = BUNCH_NO, 
                                                         to_fe = TO_FE, 
                                                         keep_fe = KEEP_FE,
-                                                        inks_present = True if DATASET == "training" else False,
+                                                        inks_present = True if (DATASET == "training" or DATASET == 'corroded') else False,
                                                         sort=True
                                                     )
+
+if DATASET == 'corroded':
+
+    preprocessing_results2 = preprocess_all_from_directory(
+                                                        raw_data_path = RAW_DATA_PATH, 
+                                                        elements_dict = ELEMENTS_DICT, 
+                                                        preprocessed_data_path = '',
+                                                        n_std = N_STD, 
+                                                        row_nr = ROW_NR, 
+                                                        n_des = N_DES, 
+                                                        n = N, 
+                                                        bunch_no = BUNCH_NO, 
+                                                        to_fe = TO_FE, 
+                                                        keep_fe = KEEP_FE,
+                                                        inks_present = True if (DATASET == "training" or DATASET == 'corroded') else False,
+                                                        sort=True
+                                                    )
+
+    inds_df, inks_df = split_inDKs_df(preprocessing_results2, indicators_suffix='_i', inks_suffix='_a', standardise_names=True)
+    inds_df.to_csv('/'.join(PREPROCESSED_DATA_PATH.split('/')[:-1]) + '/preprocessed_inds.csv', index=False)

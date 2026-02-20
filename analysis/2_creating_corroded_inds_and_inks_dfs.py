@@ -38,5 +38,5 @@ else:
     corroded_inds_df = inds_df[inds_df['name'].apply(lambda x: sample_in_list(x, CORRODED))][ELEMENTS_TO_KEEP + ['name']]
     corroded_inks_df = inks_df[inks_df['name'].apply(lambda x: sample_in_list(x, CORRODED))][ELEMENTS_TO_KEEP]
 
-corroded_inds_df.to_csv('../data/corroded/nn_ready/corroded_inds.csv', index=False)
+#corroded_inds_df.to_csv('../data/corroded/nn_ready/corroded_inds.csv', index=False)
 corroded_inks_df.to_csv('../results/corroded/corroded_inks.csv', index=False, header=False)
