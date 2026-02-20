@@ -58,4 +58,5 @@ if DATASET == 'corroded':
                                                     )
 
     inds_df, inks_df = split_inDKs_df(preprocessing_results2, indicators_suffix='_i', inks_suffix='_a', standardise_names=True)
+    inds_df['name'] = inds_df['name'].apply(lambda x: x.replace('.i', ''))
     inds_df.to_csv('/'.join(PREPROCESSED_DATA_PATH.split('/')[:-1]) + '/preprocessed_inds.csv', index=False)

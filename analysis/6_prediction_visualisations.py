@@ -8,14 +8,14 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-DATASET = "Konstytucja"
+DATASET = "Merkuriusz"
 
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
 NORMALISATION_TO_FE = config["normalisation_to_Fe"]
 ELEMENTS_TO_KEEP_NO_FE = [el for el in ELEMENTS_TO_KEEP if el != 'Fe']
 
 PREDICTION_PATH = config["prediction_path"][DATASET]
-PREPROCESSED_DATA_PATH = config["preprocessed_data_path"][DATASET]
+PREDICTION_INPUT_PATH = config["prediction_input_path"][DATASET]
 FIGURES_PATH = config["figures_path"][DATASET]
 
 if DATASET == "Konstytucja":
@@ -27,7 +27,7 @@ else:
 # ## Loading the data
 
 df = load_prediction(PREDICTION_PATH, ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP)
-inds_df = load_target_data(PREPROCESSED_DATA_PATH)
+inds_df = load_target_data(PREDICTION_INPUT_PATH)
 y_true = create_sample_id_in_target_data(inds_df, column_to_use='name')['Sample_id']
 
 # ### Converting to np.array
@@ -83,9 +83,9 @@ DATASETS = ['Konstytucja', 'corroded', 'Merkuriusz', 'Kopernik']
 CMAP = plt.get_cmap('tab20')
 
 df, y_true = join_datasets_into_one(
-                            DATASETS, 
+                            DATASETS,
                             PREDICTION_PATH_DICT,
-                            PREPROCESSED_DATA_PATH_DICT,
+                            PREDICTION_INPUT_PATH_DICT,
                             ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP
                             )
 

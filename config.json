@@ -38,7 +38,7 @@
 		},
 
 "figures_path" : {
-		"corroded" : "../figures/corroded",
+		"corroded" : "../figures/corroded/",
 		"Konstytucja" : "../figures/Konstytucja/",
 		"Merkuriusz" : "../figures/Merkuriusz/",
 		"Kopernik" : "../figures/Kopernik/",
