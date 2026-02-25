@@ -135,6 +135,11 @@
 		  
 "excel_prediction_path" : "../results/",
 
+"inks_only_path" : {
+			"training" : "../results/corroded/corroded_inks.csv",
+			"model_inks" : "../results/model_inks/model_inks.csv"
+		  },  
+
 "n_std" : 0, 
 
 "row_nr" : 31,
