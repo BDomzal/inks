@@ -559,6 +559,7 @@ def visualise_pca(X_low_dim, y,
         sorted_labels = y.unique()
 
     color_dict = dict((key, value) for key, value in zip(sorted_labels, colors))
+    color_dict['corroded'] = [1., 0., 0., 1.]
     legend_elements = [Line2D([0], [0], color='w', marker='o', markerfacecolor=color_dict[label],
                                                   label=label, markersize=15) for label in sorted_labels]
     
@@ -857,7 +858,7 @@ def load_prediction_list(datasets,
 
 def save_df_list_to_excel(dfs, 
                           excel_prediction_path, 
-                          names = ['Konstytucja', 'corroded', 'Merkuriusz', 'Kopernik']
+                          names = ['Konstytucja', 'corroded', 'Merkuriusz', 'Kopernik', 'model_inks']
                          ):
 
     writer = pd.ExcelWriter(excel_prediction_path + 'prediction.xlsx', engine='xlsxwriter')
