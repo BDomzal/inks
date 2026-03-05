@@ -77,6 +77,15 @@ print(outputs)
 print('Difference:')
 print(difference)
 
+for i, element in enumerate(ELEMENTS_TO_KEEP):
+    plt.plot(np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))
+    plt.title(element)
+    plt.show()
+
+for i, element in enumerate(ELEMENTS_TO_KEEP):
+    plt.plot((to_numpy(outputs)-to_numpy(labels))[:,i])
+    plt.title(element)
+    plt.show()
 
 # Mean loss:
 print('Mean loss:')
