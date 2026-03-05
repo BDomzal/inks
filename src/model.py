@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-
+import numpy as np
 
 class InksNet(nn.Module):
     """Small fully-connected network used for reconstruction/regression.
@@ -105,3 +105,23 @@ class CustomLoss(nn.Module):
 #         inner_loss_to_compare = nn.L1Loss(reduction='mean')
 #         assert torch.isclose(inner_loss_to_compare(outputs, targets), res)
         return res
+
+class CustomLoss2(nn.Module):
+
+
+    def __init__(self) -> None:
+        super(CustomLoss2, self).__init__()
+
+        #self.inner_loss = nn.L1Loss(reduction='none')
+
+    def forward(self, outputs: torch.Tensor, targets: torch.Tensor, acceptable_interval=(np.log(0.8), np.log(1.2)), gentleness=0.01) -> torch.Tensor:
+
+        ratio = outputs - targets
+
+        #is_inside_interval = 0.5*(torch.tanh(1+(1/gentleness)*(ratio-acceptable_interval[0]))-torch.tanh(1+(1/gentleness)*(ratio-acceptable_interval[1]))) #continuous approximation of indicator
+
+        is_inside_interval = torch.exp((-ratio**2)/0.05)
+
+
+        is_outside_interval = 1 - is_inside_interval
+        return is_outside_interval.mean()
