@@ -82,10 +82,10 @@ for i, element in enumerate(ELEMENTS_TO_KEEP):
     plt.title(element)
     plt.show()
 
-for i, element in enumerate(ELEMENTS_TO_KEEP):
-    plt.plot((to_numpy(outputs)-to_numpy(labels))[:,i])
-    plt.title(element)
-    plt.show()
+# for i, element in enumerate(ELEMENTS_TO_KEEP):
+#     plt.plot((to_numpy(outputs)-to_numpy(labels))[:,i])
+#     plt.title(element)
+#     plt.show()
 
 # Mean loss:
 print('Mean loss:')

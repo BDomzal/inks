@@ -42,6 +42,7 @@ model = InksNet(input_size=INPUT_SIZE, dropout_prob=DROPOUT_PROB).to(device)
 
 weights = torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1).to(device)
 loss_fn = CustomLoss(weights=weights)
+#loss_fn = CustomLoss3()
 
 
 # Training the neural network 
@@ -49,7 +50,7 @@ loss_fn = CustomLoss(weights=weights)
 model, train_losses, val_losses = train_model(model=model,
                                               train_loader=train_loader,
                                               val_loader=val_loader,
-                                              epochs=5000,
+                                              epochs=3000,
                                               loss_fn=loss_fn)
 
 # Loss visualisation

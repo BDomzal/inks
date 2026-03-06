@@ -84,7 +84,9 @@ class CustomLoss(nn.Module):
             self.weights = weights
         else:
             raise ValueError("weights must be a 1D tensor or a 2D tensor with shape (N, 1)")
-        self.inner_loss = nn.L1Loss(reduction='none')
+        #self.inner_loss = nn.L1Loss(reduction='none')
+        #self.inner_loss = nn.MSELoss(reduction='none')
+        self.inner_loss = nn.HuberLoss(reduction='none', delta=1.0)
 
     def forward(self, outputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         """Compute the weighted L1 loss.
@@ -116,7 +118,7 @@ class CustomLoss2(nn.Module):
 
     def forward(self, outputs: torch.Tensor, targets: torch.Tensor, acceptable_interval=(np.log(0.8), np.log(1.2)), gentleness=0.01) -> torch.Tensor:
 
-        ratio = outputs - targets
+        ratio = outputs - targets #logarithmic scale so subtraction instead of division
 
         #is_inside_interval = 0.5*(torch.tanh(1+(1/gentleness)*(ratio-acceptable_interval[0]))-torch.tanh(1+(1/gentleness)*(ratio-acceptable_interval[1]))) #continuous approximation of indicator
 
@@ -125,3 +127,19 @@ class CustomLoss2(nn.Module):
 
         is_outside_interval = 1 - is_inside_interval
         return is_outside_interval.mean()
+
+class CustomLoss3(nn.Module):
+
+
+    def __init__(self) -> None:
+        super(CustomLoss3, self).__init__()
+
+        #self.inner_loss = nn.L1Loss(reduction='none')
+
+    def forward(self, outputs: torch.Tensor, targets: torch.Tensor, gentleness=0.01) -> torch.Tensor:
+
+        ratio = outputs - targets #logarithmic scale so subtraction instead of division
+        rel_error = torch.abs(ratio)
+        penalty = torch.relu(rel_error - np.min([np.abs(np.log(0.8)), np.abs(np.log(1.2))]))
+
+        return torch.mean(penalty ** 2)
