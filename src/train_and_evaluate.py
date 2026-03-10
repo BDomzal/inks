@@ -139,6 +139,75 @@ def save_model(model, models_path, how_many_outer_to_remove,
 
     torch.save(model.state_dict(), '/'.join(models_path.split('/')[:-1]) + '/model_regression' + settings_str + now)
 
+
+# ARCHITECTURE OPTIMISATION
+
+# -----------------------------
+# Model builder
+# -----------------------------
+def build_model(trial):
+
+    n_layers = trial.suggest_int("n_layers", 6, 7)
+
+    activation_name = trial.suggest_categorical(
+        "activation", ["relu", "tanh", "gelu"]
+    )
+
+    dropout = trial.suggest_float("dropout", 0.0, 0.4)
+
+    layers = []
+    in_features = 12
+
+    for i in range(n_layers):
+
+        out_features = trial.suggest_int(f"n_units_l{i}", 16, 1024, log=True)
+
+        layers.append(nn.Linear(in_features, out_features))
+
+        if activation_name == "relu":
+            layers.append(nn.ReLU())
+        elif activation_name == "tanh":
+            layers.append(nn.Tanh())
+        else:
+            layers.append(nn.GELU())
+
+        if dropout > 0:
+            layers.append(nn.Dropout(dropout))
+
+        in_features = out_features
+
+    layers.append(nn.Linear(in_features, 12))
+
+    return nn.Sequential(*layers)
+
+# -----------------------------
+# Optuna objective
+# -----------------------------
+def objective(trial):
+
+    model = build_model(trial)
+    model = model.to(device)
+
+    lr = trial.suggest_float("lr", 1e-5, 1e-2, log=True)
+    weight_decay = trial.suggest_float("weight_decay", 1e-8, 1e-3, log=True)
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+
+
+    model, train_losses, val_losses = train_model(model=model,
+                                              train_loader=train_loader,
+                                              val_loader=val_loader,
+                                              epochs=1000,
+                                              loss_fn=loss_fn, 
+                                              optimizer=optimizer)
+
+    labels, outputs, difference, mean_loss = evaluate_on_test_set(model=model, 
+                                                              test_loader=test_loader, 
+                                                              loss_fn=loss_fn)
+
+    return mean_loss
+
+# VISUALISATIONS
+
 def visualise_prediction_against_true(outputs, labels, dimension, lower=-10, upper=10):
 
     selected_outputs = outputs[:, dimension].cpu().detach().numpy()
