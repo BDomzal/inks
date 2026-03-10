@@ -86,7 +86,7 @@ class CustomLoss(nn.Module):
             raise ValueError("weights must be a 1D tensor or a 2D tensor with shape (N, 1)")
         #self.inner_loss = nn.L1Loss(reduction='none')
         #self.inner_loss = nn.MSELoss(reduction='none')
-        self.inner_loss = nn.HuberLoss(reduction='none', delta=1.0)
+        self.inner_loss = nn.HuberLoss(reduction='none', delta=1)
 
     def forward(self, outputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         """Compute the weighted L1 loss.
@@ -143,3 +143,32 @@ class CustomLoss3(nn.Module):
         penalty = torch.relu(rel_error - np.min([np.abs(np.log(0.8)), np.abs(np.log(1.2))]))
 
         return torch.mean(penalty ** 2)
+
+
+class CustomLoss4(nn.Module):
+
+
+    def __init__(self) -> None:
+        super(CustomLoss4, self).__init__()
+
+        #self.inner_loss = nn.L1Loss(reduction='none')
+
+    def forward(self, outputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+
+        penalty = nn.functional.huber_loss(torch.exp(outputs)/torch.abs(torch.exp(targets)), torch.exp(targets)/torch.abs(torch.exp(targets)), reduction='mean', delta=0.5)
+
+        return penalty
+
+class CustomLoss5(nn.Module):
+
+
+    def __init__(self) -> None:
+        super(CustomLoss5, self).__init__()
+
+        #self.inner_loss = nn.L1Loss(reduction='none')
+
+    def forward(self, outputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+
+        penalty = nn.functional.mse_loss(torch.exp(outputs)/torch.abs(torch.exp(targets)), torch.exp(targets)/torch.abs(torch.exp(targets)), reduction='mean')
+
+        return penalty

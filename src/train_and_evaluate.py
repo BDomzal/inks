@@ -15,6 +15,9 @@ import json
 from matplotlib.pyplot import cm
 from matplotlib.lines import Line2D
 
+import torch.optim as optim
+import optuna
+
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
@@ -47,10 +50,10 @@ def train_one_epoch(model, loader, loss_fn, optimizer):
     return avg_loss
 
 
-def train_model(model, train_loader, val_loader, epochs, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
+def train_model(model, train_loader, val_loader, epochs, optimizer, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
 
     #loss_fn = nn.L1Loss()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=0.001)
+    #optimizer = torch.optim.AdamW(model.parameters(), lr=0.001)
 
     epoch_number = 0
 
