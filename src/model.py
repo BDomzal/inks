@@ -44,6 +44,40 @@ class InksNet(nn.Module):
             nn.Linear(64, input_size),
         )
 
+    # def __init__(self, input_size: int, dropout_prob: float) -> None:
+    #     super().__init__()
+    #     self.seq = nn.Sequential(
+    #         nn.Linear(input_size, 524),
+    #         nn.Dropout(dropout_prob),
+    #         nn.BatchNorm1d(524),
+    #         nn.Tanh(),
+    #         nn.Linear(524, 299),
+    #         nn.Dropout(dropout_prob),
+    #         nn.BatchNorm1d(299),
+    #         nn.Tanh(),
+    #         nn.Linear(299, 324),
+    #         nn.Dropout(dropout_prob),
+    #         nn.BatchNorm1d(324),
+    #         nn.Tanh(),
+    #         nn.Linear(324, 409),
+    #         nn.Dropout(dropout_prob),
+    #         nn.BatchNorm1d(409),
+    #         nn.Tanh(),
+    #         nn.Linear(409, 506),
+    #         nn.Dropout(dropout_prob),
+    #         nn.BatchNorm1d(506),
+    #         nn.Tanh(),
+    #         nn.Linear(506, 298),
+    #         nn.Dropout(dropout_prob),
+    #         nn.BatchNorm1d(298),
+    #         nn.Tanh(),
+    #         nn.Linear(298, 87),
+    #         nn.Dropout(dropout_prob),
+    #         nn.BatchNorm1d(87),
+    #         nn.Tanh(),
+    #         nn.Linear(87, input_size),
+    #     )
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Run a forward pass.
 
@@ -101,7 +135,11 @@ class CustomLoss(nn.Module):
         torch.Tensor
             Reduced tensor (scalar-like) containing the mean weighted L1 loss.
         """
-        res = self.inner_loss(outputs, targets)
+        
+        #IMPORTANT CHANGE BELOW!!!
+        #res = self.inner_loss(outputs, targets)
+        res = self.inner_loss(torch.exp(outputs), torch.exp(targets))
+
         res = torch.mm(res, self.weights)
         res = res.mean(axis=0)
 #         inner_loss_to_compare = nn.L1Loss(reduction='mean')
