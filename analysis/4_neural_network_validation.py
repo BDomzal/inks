@@ -77,10 +77,16 @@ print(outputs)
 print('Difference:')
 print(difference)
 
+print('Mean of |y_pred/y_true|:')
 for i, element in enumerate(ELEMENTS_TO_KEEP):
     plt.plot(np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))
     plt.title(element)
+    #plt.ylim((0.8, 1.2))
+    plt.axhline(0.8)
+    plt.axhline(1.2)
     plt.show()
+    print(np.abs(1-(np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))).mean())
+
 
 # for i, element in enumerate(ELEMENTS_TO_KEEP):
 #     plt.plot((to_numpy(outputs)-to_numpy(labels))[:,i])
@@ -192,25 +198,25 @@ np.array(sd_res_list).mean(0)
 
 element_nr = 0 #Al
 
-visualise_min_max_intervals(outputs, 
-                            test_order, 
-                            ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
-                            min_max_df, 
-                            min_max_res_list, 
-                            element_nr=element_nr, 
-                            path_to_save=None)
+# visualise_min_max_intervals(outputs, 
+#                             test_order, 
+#                             ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
+#                             min_max_df, 
+#                             min_max_res_list, 
+#                             element_nr=element_nr, 
+#                             path_to_save=None)
 
 
 # Visualisations of mean +- 2 * standard deviation intervals
 
 
-visualise_mean_plus_minus_sd_intervals(outputs, 
-                                       test_order, 
-                                        ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
-                                       lower_bound_df, 
-                                       upper_bound_df, 
-                                       how_many_sd=2,
-                                       sd_res_list=sd_res_list, 
-                                       element_nr=element_nr, 
-                                       path_to_save=None)
+# visualise_mean_plus_minus_sd_intervals(outputs, 
+#                                        test_order, 
+#                                         ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
+#                                        lower_bound_df, 
+#                                        upper_bound_df, 
+#                                        how_many_sd=2,
+#                                        sd_res_list=sd_res_list, 
+#                                        element_nr=element_nr, 
+#                                        path_to_save=None)
 
