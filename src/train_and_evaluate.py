@@ -61,7 +61,9 @@ def train_model(model, train_loader, val_loader, epochs, optimizer, loss_fn=Cust
     val_losses = []
 
     for epoch in range(epochs):
-        print('EPOCH {}:'.format(epoch_number + 1))
+
+        if epoch % 50 == 0:
+            print('EPOCH {}:'.format(epoch_number + 1))
 
         model.train(True)
         avg_loss = train_one_epoch(model, train_loader, loss_fn=loss_fn, optimizer=optimizer)
@@ -83,7 +85,9 @@ def train_model(model, train_loader, val_loader, epochs, optimizer, loss_fn=Cust
                 running_vloss += loss.item()
         
         avg_vloss = float(running_vloss / len(val_loader))
-        print('LOSS train {} test {}'.format(avg_loss, avg_vloss))
+
+        if epoch % 50 == 0:
+            print('LOSS train {} test {}'.format(avg_loss, avg_vloss))
         
         train_losses.append(avg_loss)
         val_losses.append(avg_vloss)
