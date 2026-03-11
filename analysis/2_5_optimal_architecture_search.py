@@ -41,6 +41,29 @@ X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_ord
 
 device = get_device()
 
+def objective(trial):
+
+    model = build_model(trial)
+    model = model.to(device)
+
+    lr = trial.suggest_float("lr", 1e-5, 1e-2, log=True)
+    weight_decay = trial.suggest_float("weight_decay", 1e-8, 1e-3, log=True)
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+
+
+    model, train_losses, val_losses = train_model(model=model,
+                                              train_loader=train_loader,
+                                              val_loader=val_loader,
+                                              epochs=1000,
+                                              loss_fn=loss_fn, 
+                                              optimizer=optimizer)
+
+    labels, outputs, difference, mean_loss = evaluate_on_test_set(model=model, 
+                                                              test_loader=test_loader, 
+                                                              loss_fn=loss_fn)
+
+    return mean_loss
+
 # Setting loss function
 
 weights = torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1).to(device)
@@ -52,7 +75,7 @@ loss_fn = CustomLoss(weights=weights)
 # -----------------------------
 study = optuna.create_study(direction="minimize")
 
-study.optimize(objective, n_trials=10)
+study.optimize(objective, n_trials=100)
 
 
 print("Best trial:")
