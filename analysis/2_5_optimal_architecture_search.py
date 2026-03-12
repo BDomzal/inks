@@ -51,7 +51,7 @@ def objective(trial):
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
 
-    model, train_losses, val_losses = train_model(model=model,
+    model, train_losses, val_losses = train_model_optuna(model=model,
                                               train_loader=train_loader,
                                               val_loader=val_loader,
                                               epochs=1000,

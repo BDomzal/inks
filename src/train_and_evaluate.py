@@ -49,11 +49,22 @@ def train_one_epoch(model, loader, loss_fn, optimizer):
     avg_loss = running_loss / len(loader) # loss per batch
     return avg_loss
 
+def train_model(model, train_loader, val_loader, epochs, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
 
-def train_model(model, train_loader, val_loader, epochs, optimizer, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
-
-    #loss_fn = nn.L1Loss()
     #optimizer = torch.optim.AdamW(model.parameters(), lr=0.001)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004588056450155375, weight_decay=1.4141817769552913e-05)
+
+    model, train_losses, val_losses = train_model_optuna(model=model,
+                                                        train_loader=train_loader,
+                                                        val_loader=val_loader,
+                                                        epochs=epochs,
+                                                        optimizer=optimizer, 
+                                                        loss_fn=loss_fn)
+
+    return model, train_losses, val_losses
+
+
+def train_model_optuna(model, train_loader, val_loader, epochs, optimizer, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
 
     epoch_number = 0
 
