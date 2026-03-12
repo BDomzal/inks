@@ -118,9 +118,9 @@ class CustomLoss(nn.Module):
             self.weights = weights
         else:
             raise ValueError("weights must be a 1D tensor or a 2D tensor with shape (N, 1)")
-        #self.inner_loss = nn.L1Loss(reduction='none')
+        self.inner_loss = nn.L1Loss(reduction='none')
         #self.inner_loss = nn.MSELoss(reduction='none')
-        self.inner_loss = nn.HuberLoss(reduction='none', delta=1)
+        #self.inner_loss = nn.HuberLoss(reduction='none', delta=1)
 
     def forward(self, outputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         """Compute the weighted L1 loss.
@@ -136,9 +136,9 @@ class CustomLoss(nn.Module):
             Reduced tensor (scalar-like) containing the mean weighted L1 loss.
         """
         
-        #IMPORTANT CHANGE BELOW!!!
-        #res = self.inner_loss(outputs, targets)
-        res = self.inner_loss(torch.exp(outputs), torch.exp(targets))
+        res = self.inner_loss(outputs, targets)
+        #IMPORTANT CHANGE BELOW!!! UN-LOGARITHMING THE VALUES
+        #res = self.inner_loss(torch.exp(outputs), torch.exp(targets))
 
         res = torch.mm(res, self.weights)
         res = res.mean(axis=0)
