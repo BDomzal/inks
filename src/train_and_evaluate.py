@@ -51,8 +51,7 @@ def train_one_epoch(model, loader, loss_fn, optimizer):
 
 def train_model(model, train_loader, val_loader, epochs, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
 
-    #optimizer = torch.optim.AdamW(model.parameters(), lr=0.001)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004588056450155375, weight_decay=1.4141817769552913e-05)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=0.001)
 
     model, train_losses, val_losses = train_model_optuna(model=model,
                                                         train_loader=train_loader,
@@ -160,7 +159,7 @@ def save_model(model, models_path, how_many_outer_to_remove,
 # -----------------------------
 # Model builder
 # -----------------------------
-def build_model(trial):
+def build_model(trial, input_size=INPUT_SIZE):
 
     n_layers = trial.suggest_int("n_layers", 5, 5)
 
@@ -171,7 +170,7 @@ def build_model(trial):
     dropout = trial.suggest_float("dropout", 0.0, 0.2)
 
     layers = []
-    in_features = 12
+    in_features = input_size
 
     for i in range(n_layers):
 
@@ -191,7 +190,7 @@ def build_model(trial):
 
         in_features = out_features
 
-    layers.append(nn.Linear(in_features, 12))
+    layers.append(nn.Linear(in_features, input_size))
 
     return nn.Sequential(*layers)
 
