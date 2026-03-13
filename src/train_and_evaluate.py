@@ -51,7 +51,8 @@ def train_one_epoch(model, loader, loss_fn, optimizer):
 
 def train_model(model, train_loader, val_loader, epochs, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=0.001)
+    #optimizer = torch.optim.AdamW(model.parameters(), lr=0.001)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=0.00047821091730482294, weight_decay=3.5679905885354596e-08)
 
     model, train_losses, val_losses = train_model_optuna(model=model,
                                                         train_loader=train_loader,
@@ -161,7 +162,7 @@ def save_model(model, models_path, how_many_outer_to_remove,
 # -----------------------------
 def build_model(trial, input_size=INPUT_SIZE):
 
-    n_layers = trial.suggest_int("n_layers", 5, 5)
+    n_layers = trial.suggest_int("n_layers", 7, 7)
 
     activation_name = trial.suggest_categorical(
         "activation", ["relu", "tanh", "gelu"]

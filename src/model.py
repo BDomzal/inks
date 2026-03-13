@@ -18,65 +18,58 @@ class InksNet(nn.Module):
         Dropout probability used after each Linear layer.
     """
 
-    def __init__(self, input_size: int, dropout_prob: float) -> None:
-        super().__init__()
-        self.seq = nn.Sequential(
-            nn.Linear(input_size, 64),
-            nn.Dropout(dropout_prob),
-            nn.BatchNorm1d(64),
-            nn.ReLU(),
-            nn.Linear(64, 256),
-            nn.Dropout(dropout_prob),
-            nn.BatchNorm1d(256),
-            nn.ReLU(),
-            nn.Linear(256, 1024),
-            nn.Dropout(dropout_prob),
-            nn.BatchNorm1d(1024),
-            nn.ReLU(),
-            nn.Linear(1024, 256),
-            nn.Dropout(dropout_prob),
-            nn.BatchNorm1d(256),
-            nn.ReLU(),
-            nn.Linear(256, 64),
-            nn.Dropout(dropout_prob),
-            nn.BatchNorm1d(64),
-            nn.ReLU(),
-            nn.Linear(64, input_size),
-        )
-
     # def __init__(self, input_size: int, dropout_prob: float) -> None:
     #     super().__init__()
     #     self.seq = nn.Sequential(
-    #         nn.Linear(input_size, 524),
+    #         nn.Linear(input_size, 64),
     #         nn.Dropout(dropout_prob),
-    #         nn.BatchNorm1d(524),
-    #         nn.Tanh(),
-    #         nn.Linear(524, 299),
+    #         nn.BatchNorm1d(64),
+    #         nn.ReLU(),
+    #         nn.Linear(64, 256),
     #         nn.Dropout(dropout_prob),
-    #         nn.BatchNorm1d(299),
-    #         nn.Tanh(),
-    #         nn.Linear(299, 324),
+    #         nn.BatchNorm1d(256),
+    #         nn.ReLU(),
+    #         nn.Linear(256, 1024),
     #         nn.Dropout(dropout_prob),
-    #         nn.BatchNorm1d(324),
-    #         nn.Tanh(),
-    #         nn.Linear(324, 409),
+    #         nn.BatchNorm1d(1024),
+    #         nn.ReLU(),
+    #         nn.Linear(1024, 256),
     #         nn.Dropout(dropout_prob),
-    #         nn.BatchNorm1d(409),
-    #         nn.Tanh(),
-    #         nn.Linear(409, 506),
+    #         nn.BatchNorm1d(256),
+    #         nn.ReLU(),
+    #         nn.Linear(256, 64),
     #         nn.Dropout(dropout_prob),
-    #         nn.BatchNorm1d(506),
-    #         nn.Tanh(),
-    #         nn.Linear(506, 298),
-    #         nn.Dropout(dropout_prob),
-    #         nn.BatchNorm1d(298),
-    #         nn.Tanh(),
-    #         nn.Linear(298, 87),
-    #         nn.Dropout(dropout_prob),
-    #         nn.BatchNorm1d(87),
-    #         nn.Tanh(),
-    #         nn.Linear(87, input_size),
+    #         nn.BatchNorm1d(64),
+    #         nn.ReLU(),
+    #         nn.Linear(64, input_size),
     #     )
+
+    def __init__(self, input_size: int, dropout_prob: float) -> None:
+        super().__init__()
+        self.seq = nn.Sequential(
+            nn.Linear(input_size, 353),
+            nn.GELU(),
+            nn.Dropout(dropout_prob),
+            nn.Linear(353, 161),
+            nn.GELU(),
+            nn.Dropout(dropout_prob),
+            nn.Linear(161, 413),
+            nn.GELU(),
+            nn.Dropout(dropout_prob),
+            nn.Linear(413, 466),
+            nn.GELU(),
+            nn.Dropout(dropout_prob),
+            nn.Linear(466, 102),
+            nn.GELU(),
+            nn.Dropout(dropout_prob),
+            nn.Linear(102, 225),
+            nn.GELU(),
+            nn.Dropout(dropout_prob),
+            nn.Linear(225, 564),
+            nn.GELU(),
+            nn.Dropout(dropout_prob),
+            nn.Linear(564, input_size),
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Run a forward pass.
