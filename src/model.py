@@ -47,28 +47,25 @@ class InksNet(nn.Module):
     def __init__(self, input_size: int, dropout_prob: float) -> None:
         super().__init__()
         self.seq = nn.Sequential(
-            nn.Linear(input_size, 765),
+            nn.Linear(input_size, 93),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(765, 402),
+            nn.Linear(93, 586),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(402, 311),
+            nn.Linear(586, 660),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(311, 547),
+            nn.Linear(660, 743),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(547, 365),
+            nn.Linear(743, 105),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(365, 78),
+            nn.Linear(105, 893),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(78, 341),
-            nn.GELU(),
-            nn.Dropout(dropout_prob),
-            nn.Linear(341, input_size),
+            nn.Linear(893, input_size),
         )
 
 
