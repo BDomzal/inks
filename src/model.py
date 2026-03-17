@@ -47,29 +47,30 @@ class InksNet(nn.Module):
     def __init__(self, input_size: int, dropout_prob: float) -> None:
         super().__init__()
         self.seq = nn.Sequential(
-            nn.Linear(input_size, 353),
+            nn.Linear(input_size, 765),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(353, 161),
+            nn.Linear(765, 402),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(161, 413),
+            nn.Linear(402, 311),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(413, 466),
+            nn.Linear(311, 547),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(466, 102),
+            nn.Linear(547, 365),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(102, 225),
+            nn.Linear(365, 78),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(225, 564),
+            nn.Linear(78, 341),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(564, input_size),
+            nn.Linear(341, input_size),
         )
+
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Run a forward pass.

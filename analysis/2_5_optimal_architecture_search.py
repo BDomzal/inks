@@ -47,7 +47,7 @@ def objective(trial):
     model = model.to(device)
 
     lr = trial.suggest_float("lr", 1e-5, 1e-2, log=True)
-    weight_decay = trial.suggest_float("weight_decay", 1e-8, 1e-3, log=True)
+    weight_decay = trial.suggest_float("weight_decay", 1e-8, 1e-5, log=True)
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
 

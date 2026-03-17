@@ -52,7 +52,7 @@ def train_one_epoch(model, loader, loss_fn, optimizer):
 def train_model(model, train_loader, val_loader, epochs, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
 
     #optimizer = torch.optim.AdamW(model.parameters(), lr=0.001)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=0.00047821091730482294, weight_decay=3.5679905885354596e-08)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=0.0003871094064046511, weight_decay=1.2781144611099992e-06)
 
     model, train_losses, val_losses = train_model_optuna(model=model,
                                                         train_loader=train_loader,
@@ -168,14 +168,14 @@ def build_model(trial, input_size=INPUT_SIZE):
         "activation", ["relu", "tanh", "gelu"]
     )
 
-    dropout = trial.suggest_float("dropout", 0.0, 0.2)
+    dropout = trial.suggest_float("dropout", 0.04, 0.12)
 
     layers = []
     in_features = input_size
 
     for i in range(n_layers):
 
-        out_features = trial.suggest_int(f"n_units_l{i}", 16, 1024, log=True)
+        out_features = trial.suggest_int(f"n_units_l{i}", 50, 900, log=True)
 
         layers.append(nn.Linear(in_features, out_features))
 
@@ -185,6 +185,7 @@ def build_model(trial, input_size=INPUT_SIZE):
             layers.append(nn.Tanh())
         else:
             layers.append(nn.GELU())
+        #layers.append(nn.GELU())
 
         if dropout > 0:
             layers.append(nn.Dropout(dropout))

@@ -4,7 +4,7 @@
 
 "how_many_outer_to_remove" : 0,
 
-"dropout_prob" : 0.059151428842999745,
+"dropout_prob" : 0.06610579157296317,
 
 "normalisation_to_Fe" : false,
 
@@ -47,7 +47,7 @@
 		"model_inks" : "../figures/model_inks/"
 		},
 
-"models_path" : "../models/optuna_7_19_3000",
+"models_path" : "../models/optuna_7_90_3000",
 		
 "prediction_path" : {
 			"corroded" : "../results/corroded/corroded_inks.csv",
