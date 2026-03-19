@@ -34,7 +34,7 @@
 		"Merkuriusz" : "../results/Merkuriusz/",
 		"Kopernik" : "../results/Kopernik/",
 		"corroded" : "../results/corroded/",
-		"model_inks" : "../results/model_inks/"
+		"artificial_inks" : "../results/artificial_inks/"
 		},
 
 "figures_path" : {
@@ -44,7 +44,7 @@
 		"Kopernik" : "../figures/Kopernik/",
 		"training": "../figures/training/",
 		"all" : "../figures/all/",
-		"model_inks" : "../figures/model_inks/"
+		"artificial_inks" : "../figures/artificial_inks/"
 		},
 
 "models_path" : "../models/optuna_l1_71_3000",
@@ -54,7 +54,7 @@
 			"Konstytucja" : "../results/Konstytucja/prediction_for_new_dataset_from_optuna_l1_71_3000",
 			"Merkuriusz" : "../results/Merkuriusz/prediction_for_new_dataset_from_optuna_l1_71_3000",
 			"Kopernik" : "../results/Kopernik/prediction_for_new_dataset_from_optuna_l1_71_3000",
-			"model_inks" : "../results/model_inks/prediction_for_new_dataset_from_optuna_l1_71_3000"
+			"artificial_inks" : "../results/artificial_inks/prediction_for_new_dataset_from_optuna_l1_71_3000"
 			},
 
 		
@@ -110,7 +110,7 @@
 		"Merkuriusz" : "../data/Merkuriusz/raw_data/",
 		"Kopernik" : "../data/Kopernik/raw_data/",
 		"training" : "../data/training/raw_data/",
-		"model_inks" : "../data/model_inks/raw_data/"
+		"artificial_inks" : "../data/artificial_inks/raw_data/"
 		  },
 		  
 "preprocessed_data_path" : {
@@ -119,7 +119,7 @@
 		"Merkuriusz" : "../data/Merkuriusz/preprocessed_data/preprocessed.csv",
 		"Kopernik" : "../data/Kopernik/preprocessed_data/preprocessed.csv",
 		"training" : "../data/training/preprocessed_data/preprocessed.csv",
-		"model_inks" : "../data/model_inks/preprocessed_data/preprocessed.csv"
+		"artificial_inks" : "../data/artificial_inks/preprocessed_data/preprocessed.csv"
 		  },
 		  
 "prediction_input_path" : {
@@ -128,14 +128,14 @@
 		"Merkuriusz" : "../data/Merkuriusz/preprocessed_data/preprocessed.csv",
 		"Kopernik" : "../data/Kopernik/preprocessed_data/preprocessed.csv",
 		"training" : "../data/training/preprocessed_data/preprocessed.csv",
-		"model_inks" : "../data/model_inks/preprocessed_data/preprocessed_inds.csv"
+		"artificial_inks" : "../data/artificial_inks/preprocessed_data/preprocessed_inds.csv"
 		  },	  
 		  
 "excel_prediction_path" : "../results/",
 
 "inks_only_path" : {
 			"training" : "../results/corroded/corroded_inks.csv",
-			"model_inks" : "../results/model_inks/model_inks.csv"
+			"artificial_inks" : "../results/artificial_inks/artificial_inks.csv"
 		  },  
 
 "n_std" : 0, 
