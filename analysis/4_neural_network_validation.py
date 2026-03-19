@@ -85,7 +85,15 @@ for i, element in enumerate(ELEMENTS_TO_KEEP):
     plt.axhline(0.8)
     plt.axhline(1.2)
     plt.show()
+
+    print(element)
+    print('Fraction above 120%:')
+    print(((np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))>1.2).sum() / outputs.shape[0])
+    print('Fraction below 80%:')
+    print(((np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))<0.8).sum() / outputs.shape[0])
+    print('Mean deviation from 1:')
     print(np.abs(1-(np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))).mean())
+    print('--------------------')
 
 
 # for i, element in enumerate(ELEMENTS_TO_KEEP):
