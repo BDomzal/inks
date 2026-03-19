@@ -4,7 +4,7 @@ from raw_data_preprocessing import *
 from data_utils import *
 
 
-DATASET = "model_inks"
+DATASET = "artificial_inks"
 
 
 import matplotlib.pyplot as plt
@@ -36,11 +36,11 @@ preprocessing_results = preprocess_all_from_directory(
                                                         bunch_no = BUNCH_NO, 
                                                         to_fe = TO_FE, 
                                                         keep_fe = KEEP_FE,
-                                                        inks_present = True if (DATASET == "training" or DATASET == 'corroded' or DATASET == 'model_inks') else False,
+                                                        inks_present = True if (DATASET == "training" or DATASET == 'corroded' or DATASET == 'artificial_inks') else False,
                                                         sort=True
                                                     )
 
-if DATASET == 'corroded' or DATASET == 'model_inks':
+if DATASET == 'corroded' or DATASET == 'artificial_inks':
 
     preprocessing_results2 = preprocess_all_from_directory(
                                                         raw_data_path = RAW_DATA_PATH, 
@@ -53,7 +53,7 @@ if DATASET == 'corroded' or DATASET == 'model_inks':
                                                         bunch_no = BUNCH_NO, 
                                                         to_fe = TO_FE, 
                                                         keep_fe = KEEP_FE,
-                                                        inks_present = True if (DATASET == "training" or DATASET == 'corroded' or DATASET == 'model_inks') else False,
+                                                        inks_present = True if (DATASET == "training" or DATASET == 'corroded' or DATASET == 'artificial_inks') else False,
                                                         sort=True
                                                     )
 

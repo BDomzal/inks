@@ -858,7 +858,7 @@ def load_prediction_list(datasets,
 
 def save_df_list_to_excel(dfs, 
                           excel_prediction_path, 
-                          names = ['Konstytucja', 'corroded', 'Merkuriusz', 'Kopernik', 'model_inks']
+                          names = ['Konstytucja', 'corroded', 'Merkuriusz', 'Kopernik', 'artificial_inks']
                          ):
 
     writer = pd.ExcelWriter(excel_prediction_path + 'prediction.xlsx', engine='xlsxwriter')

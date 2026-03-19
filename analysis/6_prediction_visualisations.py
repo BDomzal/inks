@@ -8,7 +8,7 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-DATASET = "model_inks"
+DATASET = "artificial_inks"
 
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
 NORMALISATION_TO_FE = config["normalisation_to_Fe"]
@@ -78,7 +78,7 @@ FIGURES_PATH = config["figures_path"]['all']
 EXCEL_PREDICTION_PATH = config['excel_prediction_path']
 
 
-DATASETS = ['Konstytucja', 'corroded', 'Merkuriusz', 'Kopernik', 'model_inks']
+DATASETS = ['Konstytucja', 'corroded', 'Merkuriusz', 'Kopernik', 'artificial_inks']
 
 CMAP = plt.get_cmap('tab20')
 
