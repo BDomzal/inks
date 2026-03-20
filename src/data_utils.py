@@ -8,6 +8,7 @@ from matplotlib.pyplot import cm
 from matplotlib.lines import Line2D
 import seaborn as sns
 import math
+from collections import Counter
 
 class InksDataset(Dataset):
     def __init__(self, X, y):

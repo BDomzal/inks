@@ -77,6 +77,11 @@ print(outputs)
 print('Difference:')
 print(difference)
 
+difficult_cases_above = []
+diff_elements_above = dict()
+difficult_cases_below = []
+diff_elements_below = dict()
+
 print('Mean of |y_pred/y_true|:')
 for i, element in enumerate(ELEMENTS_TO_KEEP):
     plt.plot(np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))
@@ -95,11 +100,16 @@ for i, element in enumerate(ELEMENTS_TO_KEEP):
     print(np.abs(1-(np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))).mean())
     print('--------------------')
 
+    diff_i_above = np.array(test_order)[((np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))>1.2)]
+    diff_i_below = np.array(test_order)[((np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))<0.8)]
+    difficult_cases_above.append(diff_i_above)
+    difficult_cases_below.append(diff_i_below)
 
-# for i, element in enumerate(ELEMENTS_TO_KEEP):
-#     plt.plot((to_numpy(outputs)-to_numpy(labels))[:,i])
-#     plt.title(element)
-#     plt.show()
+
+difficult_cases = difficult_cases_above + difficult_cases_below
+
+print(Counter(difficult_cases))
+
 
 # Mean loss:
 print('Mean loss:')
