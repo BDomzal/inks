@@ -245,7 +245,7 @@ def preprocessing_beginning(
                             normalisation_to_Fe=False
                             ):
 
-    inDKs_df, inks_df, inds_df = load_training_data(data_path)
+    inDKs_df, inks_df, inds_df = load_training_data(data_path, indicators_suffix=indicators_suffix, inks_suffix=inks_suffix)
 
     # ## Preprocessing
 
@@ -300,7 +300,8 @@ def prepare_training_data(
                         inks_suffix='_a',
                         random_state=3,
                         normalisation_to_Fe=False,
-                        return_data=True
+                        return_data=True,
+                        return_original_labels=False
                         ):
 
     inDKs_df = preprocessing_beginning(
@@ -308,8 +309,8 @@ def prepare_training_data(
                                         how_many_outer_to_remove,
                                         elements_to_keep,
                                         multiplication_weights,
-                                        indicators_suffix='_i', 
-                                        inks_suffix='_a',
+                                        indicators_suffix=indicators_suffix, 
+                                        inks_suffix=inks_suffix,
                                         normalisation_to_Fe=normalisation_to_Fe
                                         )
     
@@ -317,11 +318,15 @@ def prepare_training_data(
     # 8. Train - val - test split.
 
     X_y_train, X_y_val, X_y_test = create_partition(inDKs_df, random_state=random_state)
+    print(X_y_test)
 
 
     # 9. Creating features and labels matrices.
 
     elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
+
+    if return_original_labels:
+        original_labels = X_y_test['name']
 
     X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order = split_to_X_and_y(
                                                                                                             X_y_train, 
@@ -370,9 +375,15 @@ def prepare_training_data(
     test_loader = DataLoader(test_dataset, shuffle=False)
 
     if return_data:
-        return train_loader, val_loader, test_loader, data_to_return
+        if return_original_labels:
+            return train_loader, val_loader, test_loader, data_to_return, original_labels
+        else:
+            return train_loader, val_loader, test_loader, data_to_return
     else:
-        return train_loader, val_loader, test_loader
+        if return_original_labels:
+            return train_loader, val_loader, test_loader, original_labels
+        else:
+            return train_loader, val_loader, test_loader
 
 
 def prepare_data_without_splitting(
@@ -391,8 +402,8 @@ def prepare_data_without_splitting(
                                         how_many_outer_to_remove,
                                         elements_to_keep,
                                         multiplication_weights,
-                                        indicators_suffix='_i', 
-                                        inks_suffix='_a',
+                                        indicators_suffix=indicators_suffix, 
+                                        inks_suffix=inks_suffix,
                                         normalisation_to_Fe=normalisation_to_Fe
                                         )
 

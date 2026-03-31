@@ -24,17 +24,21 @@ FIGURES_PATH = config["figures_path"]["training"]
 
 # Preparing training, validation, test data
 
-train_loader, val_loader, test_loader, data_list = prepare_training_data(
+train_loader, val_loader, test_loader, data_list, original_labels = prepare_training_data(
                                                                         data_path = DATA_PATH,
                                                                         how_many_outer_to_remove = HOW_MANY_OUTER_TO_REMOVE,
                                                                         elements_to_keep = ELEMENTS_TO_KEEP,
                                                                         multiplication_weights = MULTIPLICATION_WEIGHTS,
                                                                         preprocessing_method = PREPROCESSING_METHOD, 
                                                                         return_data=True,
-                                                                        normalisation_to_Fe=NORMALISATION_TO_FE
+                                                                        normalisation_to_Fe=NORMALISATION_TO_FE,
+                                                                        return_original_labels=True
                                                                         )
 
+original_labels = get_sample_number_in_group(original_labels)
+
 X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order = data_list
+
 
 device = get_device()
 X_train = data_to_device(X_train, device)
@@ -43,6 +47,7 @@ X_val = data_to_device(X_val, device)
 y_val = data_to_device(y_val, device)
 X_test = data_to_device(X_test, device)
 y_test = data_to_device(y_test, device)
+
 
 # Loading pretrained model
 
@@ -60,6 +65,10 @@ labels, outputs, difference, mean_loss = evaluate_on_test_set(model=model,
                                                               test_loader=test_loader, 
                                                               loss_fn=loss_fn)
 
+# First five in group only
+# labels = labels[original_labels<=5]
+# outputs = outputs[original_labels<=5]
+# test_order = test_order[original_labels<=5]
 
 ## Validation on test set (never seen by InksNet)
 
@@ -81,6 +90,7 @@ difficult_cases_above = []
 diff_elements_above = dict()
 difficult_cases_below = []
 diff_elements_below = dict()
+
 
 print('Mean of |y_pred/y_true|:')
 for i, element in enumerate(ELEMENTS_TO_KEEP):
@@ -106,10 +116,31 @@ for i, element in enumerate(ELEMENTS_TO_KEEP):
     difficult_cases_below.append(diff_i_below)
 
 
+print('Mean deviation from 1:')
+print(np.abs(1-(np.exp(to_numpy(outputs))/np.exp(to_numpy(labels)))).mean())
+
+above = (np.exp(to_numpy(outputs))/np.exp(to_numpy(labels)))>1.2
+below = (np.exp(to_numpy(outputs))/np.exp(to_numpy(labels)))<0.8
+
+print('Mean number of protruding elements:')
+print(np.logical_or(above, below).mean()*len(ELEMENTS_TO_KEEP))
+print('Fraction of samples for which more than 50% of elements protrude:')
+print(np.sum(np.logical_or(above, below).mean(axis=1)>0.5)/above.shape[0])
+print('Which labels are difficult:')
+difficult_indices = np.logical_or(above, below).mean(axis=1)>0.3
+print(np.array(test_order)[difficult_indices])
+print(np.array(test_order)[difficult_indices] + '_' + np.array(original_labels).astype('str')[difficult_indices])
+
+
+plt.plot(np.exp(to_numpy(outputs)[1,:])/np.exp(to_numpy(labels)[1,:]))
+plt.axhline(0.8)
+plt.axhline(1.2)
+plt.show()
+
+
+
 difficult_cases = difficult_cases_above + difficult_cases_below
-
-print(Counter(difficult_cases))
-
+print(difficult_cases)
 
 # Mean loss:
 print('Mean loss:')

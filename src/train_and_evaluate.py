@@ -268,6 +268,9 @@ def compute_precision_and_recall(outputs_df):
 
     return np.nanmean(precision), np.nanmean(recall)
 
+def get_sample_number_in_group(original_labels):
+    return np.array(original_labels.apply(lambda x: int(x.split('_')[-1])).values)
+
 def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, figsize=[15,10], path_to_save = None):
 
     conf_mat = confusion_matrix(true_labels, closest_labels, 
