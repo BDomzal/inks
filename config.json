@@ -50,7 +50,7 @@
 "models_path" : "../models/optuna_l1_71_3000",
 		
 "prediction_path" : {
-			"corroded" : "../results/corroded/corroded_inks.csv",
+			"corroded" : "../results/corroded/prediction_for_new_dataset_from_optuna_l1_71_3000",
 			"Konstytucja" : "../results/Konstytucja/prediction_for_new_dataset_from_optuna_l1_71_3000",
 			"Merkuriusz" : "../results/Merkuriusz/prediction_for_new_dataset_from_optuna_l1_71_3000",
 			"Kopernik" : "../results/Kopernik/prediction_for_new_dataset_from_optuna_l1_71_3000",
