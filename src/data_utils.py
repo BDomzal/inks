@@ -318,7 +318,6 @@ def prepare_training_data(
     # 8. Train - val - test split.
 
     X_y_train, X_y_val, X_y_test = create_partition(inDKs_df, random_state=random_state)
-    print(X_y_test)
 
 
     # 9. Creating features and labels matrices.
@@ -406,7 +405,7 @@ def prepare_data_without_splitting(
                                         inks_suffix=inks_suffix,
                                         normalisation_to_Fe=normalisation_to_Fe
                                         )
-
+    
     elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
 
     # 8. Creating features and labels matrices.
@@ -428,8 +427,8 @@ def prepare_data_without_splitting(
     X = transform_data(X, preprocessing_method)
     y = transform_data(y, preprocessing_method)
 
-    inDKs_df[columns_to_keep_inks] = X
-    inDKs_df[columns_to_keep_inds] = y
+    inDKs_df[columns_to_keep_inds] = X
+    inDKs_df[columns_to_keep_inks] = y
 
     inds_df, inks_df = split_inDKs_df(inDKs_df)
     inds_df.columns = [name.split('_')[0] for name in inds_df.columns]

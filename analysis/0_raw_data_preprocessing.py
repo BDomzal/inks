@@ -4,7 +4,7 @@ from raw_data_preprocessing import *
 from data_utils import *
 
 
-DATASET = "artificial_inks"
+DATASET = "Merkuriusz"
 
 
 import matplotlib.pyplot as plt
@@ -40,7 +40,7 @@ preprocessing_results = preprocess_all_from_directory(
                                                         sort=True
                                                     )
 
-if DATASET == 'corroded' or DATASET == 'artificial_inks':
+if DATASET == 'corroded' or DATASET == 'artificial_inks' or DATASET == 'training':
 
     preprocessing_results2 = preprocess_all_from_directory(
                                                         raw_data_path = RAW_DATA_PATH, 
