@@ -8,7 +8,7 @@ from model import CustomLoss
 from model import InksNet
 import time
 import datetime
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, r2_score, mean_absolute_error, mean_squared_error
 import seaborn as sns
 from seaborn import heatmap
 import json
@@ -199,16 +199,200 @@ def build_model(trial, input_size=INPUT_SIZE):
 
 # VISUALISATIONS
 
-def visualise_prediction_against_true(outputs, labels, dimension, lower=-10, upper=10):
+# BASIC
+
+def visualise_prediction_against_true(outputs, labels, dimension, xlabel='True value', ylabel='Predicted value', title=''):
 
     selected_outputs = outputs[:, dimension].cpu().detach().numpy()
     selected_labels = labels[:, dimension].cpu().detach().numpy()
+
+    lower = selected_outputs.min()
+    upper = selected_outputs.max()
+
     plt.plot(selected_labels, selected_outputs, '.')
     plt.plot( [lower, upper],[lower, upper], 'r' )
-    plt.xlabel('True value')
-    plt.ylabel('Predicted value')
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
     plt.show()
 
+def compute_metrics(outputs, labels):
+
+    assert outputs.shape == labels.shape
+    n_dims = outputs.shape[1]
+
+    mae, rmse, r2, bias = [], [], [], []
+
+    for i in range(n_dims):
+        y_true = labels[:, i]
+        y_pred = outputs[:, i]
+
+        mae.append(mean_absolute_error(y_true, y_pred))
+        rmse.append(np.sqrt(mean_squared_error(y_true, y_pred)))
+        r2.append(r2_score(y_true, y_pred))
+        bias.append(np.mean(y_pred - y_true))
+
+    l2_error = np.linalg.norm(outputs - labels, axis=1)
+
+    summary = {
+        "mae": np.array(mae),
+        "rmse": np.array(rmse),
+        "r2": np.array(r2),
+        "bias": np.array(bias),
+        "mean_mae": float(np.mean(mae)),
+        "mean_rmse": float(np.mean(rmse)),
+        "mean_r2": float(np.mean(r2)),
+        "mean_l2": float(np.mean(l2_error)),
+    }
+
+    return summary
+
+def plot_pred_vs_gt(outputs, labels, elements_to_keep, xlabel='Ground truth', ylabel='Prediction', path_to_save=None):
+
+    n_dims = outputs.shape[1]
+    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 10))
+    axes = axes.flatten()
+
+    metrics = compute_metrics(outputs, labels)
+
+    for i in range(n_dims):
+        ax = axes[i]
+        y_true = labels[:, i]
+        y_pred = outputs[:, i]
+
+        min_val = min(y_true.min(), y_pred.min())
+        max_val = max(y_true.max(), y_pred.max())
+        ax.plot([min_val, max_val], [min_val, max_val], 'black')
+
+        ax.scatter(y_true, y_pred, alpha=0.5)
+
+        title = elements_to_keep[i]
+
+        text = f"R2={metrics['r2'][i]:.2f} \nMAE={metrics['mae'][i]:.2f}"
+
+        ax.text(min_val, max_val-0.05*(max_val-min_val), text)
+
+        ax.set_title(title, size=15)
+
+    fig.text(0.52, 0.03, xlabel, ha='center', size=18)
+    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=18)
+
+    #plt.tight_layout()
+    if path_to_save:
+        plt.savefig(path_to_save+'prediction_vs_true.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
+
+def plot_residuals(outputs, labels, elements_to_keep, xlabel='True value', ylabel='Residual', path_to_save=None):
+
+    n_dims = outputs.shape[1]
+    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 8), sharey=True)
+    axes = axes.flatten()
+
+    y_max_max = (outputs-labels).max().max()
+
+    for i in range(n_dims):
+        ax = axes[i]
+        y_true = labels[:, i]
+        y_pred = outputs[:, i]
+
+        min_val = y_true.min()
+        max_val = y_true.max()
+        mean_res = np.mean(y_pred-y_true)
+
+        ax.plot([min_val, max_val], [mean_res, mean_res], 'black')
+
+        ax.scatter(y_true, y_pred-y_true, alpha=0.25, color='red')
+
+        title = elements_to_keep[i]
+
+        y_max = (y_pred-y_true).max()
+        y_min = (y_pred-y_true).min()
+        text = 'Mean residual: \n' + str(np.round(mean_res, 3))
+        ax.text(min_val, y_max_max-0.4, text)
+
+        ax.set_title(title, size=15)
+
+    fig.text(0.52, 0.03, xlabel, ha='center', size=18)
+    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=18)
+
+    #plt.tight_layout()
+    if path_to_save:
+        plt.savefig(path_to_save+'residuals.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
+
+def plot_error_distributions(outputs, labels, elements_to_keep, xlabel='Residual', ylabel='Count', path_to_save=None):
+
+    n_dims = outputs.shape[1]
+    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 8), sharey=True)
+    axes = axes.flatten()
+
+    y_max_max = (outputs-labels).max().max()
+
+    for i in range(n_dims):
+        ax = axes[i]
+        y_true = labels[:, i]
+        y_pred = outputs[:, i]
+
+
+        residuals = y_pred-y_true
+        sns.histplot(residuals, kde=True, ax=ax)
+
+        title = elements_to_keep[i]
+
+        # y_max = (y_pred-y_true).max()
+        # y_min = (y_pred-y_true).min()
+        # text = 'Mean residual: \n' + str(np.round(mean_res, 3))
+        # ax.text(min_val, y_max_max-0.4, text)
+
+        ax.set_title(title, size=15)
+
+    fig.text(0.52, 0.03, xlabel, ha='center', size=18)
+    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=18)
+
+    #plt.tight_layout()
+    if path_to_save:
+        plt.savefig(path_to_save+'error_distributions.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
+
+def plot_error_boxplot(outputs, labels, elements_to_keep, xlabel='', ylabel='Residual', path_to_save=None):
+
+    residuals_all = outputs - labels
+
+    fig = plt.figure(figsize=(10, 5))
+    sns.boxplot(data=residuals_all)
+    fig.text(0.52, 0.03, xlabel, ha='center', size=18)
+    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=18)
+    if path_to_save:
+        plt.savefig(path_to_save+'error_boxplot.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
+
+def plot_correlation_heatmaps(outputs, labels, elements_to_keep, xlabel='', ylabel='Residual', path_to_save=None):
+    sns.heatmap(np.abs(np.corrcoef(labels, rowvar=False) - np.corrcoef(outputs, rowvar=False)))
+    plt.show()
+    plt.close()
+
+    fig = plt.figure(figsize=(12, 5))
+
+    plt.subplot(1, 2, 1)
+    sns.heatmap(np.corrcoef(labels, rowvar=False), annot=False)
+    plt.title("Ground Truth Correlation")
+
+    plt.subplot(1, 2, 2)
+    sns.heatmap(np.corrcoef(outputs, rowvar=False), annot=False)
+    plt.title("Prediction Correlation")
+    print('------------------')
+    print(np.sum(np.abs(np.corrcoef(labels, rowvar=False) - np.corrcoef(outputs, rowvar=False))))
+
+    if path_to_save:
+        plt.savefig(path_to_save+'correlation_heatmap.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
+
+# LESS BASIC
 
 def create_means_df(elements_to_keep, y_train, train_order, y_val, val_order):
 

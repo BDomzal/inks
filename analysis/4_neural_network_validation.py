@@ -94,12 +94,11 @@ diff_elements_below = dict()
 
 print('Mean of |y_pred/y_true|:')
 for i, element in enumerate(ELEMENTS_TO_KEEP):
-    plt.plot(np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))
-    plt.title(element)
-    #plt.ylim((0.8, 1.2))
-    plt.axhline(0.8)
-    plt.axhline(1.2)
-    plt.show()
+    #plt.plot(np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))
+    #plt.title(element)
+    #plt.axhline(0.8)
+    #plt.axhline(1.2)
+    #plt.show()
 
     print(element)
     print('Fraction above 120%:')
@@ -132,10 +131,10 @@ print(np.array(test_order)[difficult_indices])
 print(np.array(test_order)[difficult_indices] + '_' + np.array(original_labels).astype('str')[difficult_indices])
 
 
-plt.plot(np.exp(to_numpy(outputs)[1,:])/np.exp(to_numpy(labels)[1,:]))
-plt.axhline(0.8)
-plt.axhline(1.2)
-plt.show()
+# plt.plot(np.exp(to_numpy(outputs)[1,:])/np.exp(to_numpy(labels)[1,:]))
+# plt.axhline(0.8)
+# plt.axhline(1.2)
+# plt.show()
 
 
 
@@ -154,8 +153,21 @@ print(torch.mean(difference, axis=0))
 
 # Visualise prediction against true:
 
-element_nr = 5 #Cu
-visualise_prediction_against_true(outputs, labels, dimension=element_nr)
+# plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Logarithmed ground truth', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
+
+# plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='True value (logarithmed)', path_to_save=FIGURES_PATH)
+
+# plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
+
+plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+
+plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+
+
+
+
+# for element_nr, element in enumerate(ELEMENTS_TO_KEEP):
+#     visualise_prediction_against_true(outputs, labels, dimension=element_nr, xlabel='Logarithm of true value', ylabel='Logarithm of predicted value', title=element)
 
 
 # Quality of prediction: closest points
