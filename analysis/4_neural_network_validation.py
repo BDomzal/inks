@@ -153,16 +153,23 @@ print(torch.mean(difference, axis=0))
 
 # Visualise prediction against true:
 
-plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Logarithmed ground truth', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
+# plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Logarithmed ground truth', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
 
-plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='True value (logarithmed)', path_to_save=FIGURES_PATH)
+# plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='True value (logarithmed)', path_to_save=FIGURES_PATH)
 
-plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
+# plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
 
-plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+# plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
 
-plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+# plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
 
+# plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+
+# plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+
+# plot_l2_error(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
+
+plot_pca_projection(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
 
 
 

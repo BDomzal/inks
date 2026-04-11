@@ -14,6 +14,8 @@ from seaborn import heatmap
 import json
 from matplotlib.pyplot import cm
 from matplotlib.lines import Line2D
+from scipy.stats import probplot
+from sklearn.decomposition import PCA
 
 import torch.optim as optim
 import optuna
@@ -199,7 +201,7 @@ def build_model(trial, input_size=INPUT_SIZE):
 
 # VISUALISATIONS
 
-# BASIC
+# BASIC DIAGNOSTIC PLOTS
 
 def visualise_prediction_against_true(outputs, labels, dimension, xlabel='True value', ylabel='Predicted value', title=''):
 
@@ -268,9 +270,9 @@ def plot_pred_vs_gt(outputs, labels, elements_to_keep, xlabel='Ground truth', yl
 
         title = elements_to_keep[i]
 
-        text = f"R$^2$={metrics['r2'][i]:.2f} \nMAE={metrics['mae'][i]:.2f}"
+        text = f"R$^2$={metrics['r2'][i]:.2f} \nMAE={metrics['mae'][i]:.2f} \nRMSE={metrics['rmse'][i]:.2f}"
 
-        ax.text(min_val, max_val-0.07*(max_val-min_val), text)
+        ax.text(min_val, max_val-0.12*(max_val-min_val), text)
 
         ax.set_title(title, size=15)
 
@@ -341,15 +343,10 @@ def plot_error_distributions(outputs, labels, elements_to_keep, xlabel='Residual
 
 
         residuals = y_pred-y_true
-        sns.histplot(residuals, kde=False, ax=ax)
+        sns.histplot(residuals, kde=True, ax=ax)
         ax.set(ylabel='')
 
         title = elements_to_keep[i]
-
-        # y_max = (y_pred-y_true).max()
-        # y_min = (y_pred-y_true).min()
-        # text = 'Mean residual: \n' + str(np.round(mean_res, 3))
-        # ax.text(min_val, y_max_max-0.4, text)
 
         ax.set_title(title, size=15)
 
@@ -361,6 +358,39 @@ def plot_error_distributions(outputs, labels, elements_to_keep, xlabel='Residual
     #plt.tight_layout()
     if path_to_save:
         plt.savefig(path_to_save+'error_distributions.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
+
+def plot_qq(outputs, labels, elements_to_keep, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=None):
+
+    n_dims = outputs.shape[1]
+    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 8), sharey=True, sharex=True)
+    axes = axes.flatten()
+
+    for i in range(n_dims):
+        ax = axes[i]
+        y_true = labels[:, i]
+        y_pred = outputs[:, i]
+
+        norm_residuals = ((y_pred-y_true)-np.mean(y_pred-y_true))/np.std(y_pred-y_true)
+
+        ret1, ret2 = probplot(norm_residuals, dist="norm")
+        osm, osr = ret1
+        ax.scatter(osm, osr, alpha=0.5)
+        ax.set(ylabel='')
+
+        title = elements_to_keep[i]
+
+        ax.set_title(title, size=15)
+
+    axes[-1].set_axis_off()
+
+    fig.text(0.52, 0.03, xlabel, ha='center', size=18)
+    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=18)
+
+    #plt.tight_layout()
+    if path_to_save:
+        plt.savefig(path_to_save+'qq_plot.png', dpi=300, bbox_inches="tight")
     plt.show()
     plt.close(fig)
 
@@ -379,11 +409,22 @@ def plot_error_boxplot(outputs, labels, elements_to_keep, xlabel='', ylabel='Res
     plt.show()
     plt.close(fig)
 
-def plot_correlation_heatmaps(outputs, labels, elements_to_keep, xlabel='', ylabel='Residual', path_to_save=None):
+def plot_error_violinplot(outputs, labels, elements_to_keep, xlabel='', ylabel='Residual', path_to_save=None):
 
-    # sns.heatmap(np.abs(np.corrcoef(labels, rowvar=False) - np.corrcoef(outputs, rowvar=False)))
-    # plt.show()
-    # plt.close()
+    residuals_all = outputs - labels
+
+    fig = plt.figure(figsize=(10, 5))
+    ax = sns.violinplot(data=residuals_all)
+    fig.text(0.52, 0.03, xlabel, ha='center', size=18)
+    fig.text(0.07, 0.5, ylabel, va='center', rotation='vertical', size=18)
+    ax.set_xticklabels(elements_to_keep, size=15)
+
+    if path_to_save:
+        plt.savefig(path_to_save+'error_violinplot.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
+
+def plot_correlation_heatmaps(outputs, labels, elements_to_keep, xlabel='', ylabel='Residual', path_to_save=None):
 
     fig = plt.figure(figsize=(12, 5))
 
@@ -408,7 +449,61 @@ def plot_correlation_heatmaps(outputs, labels, elements_to_keep, xlabel='', ylab
     plt.show()
     plt.close(fig)
 
-# LESS BASIC
+
+def plot_l2_error(outputs, labels, path_to_save=None):
+
+    l2_error = np.linalg.norm(outputs - labels, axis=1)
+
+    true_norm = np.linalg.norm(labels, axis=1)
+
+    fig = plt.figure(figsize=(8,5))
+    plt.scatter(true_norm, l2_error, alpha=0.5)
+    plt.xlabel("Sum of ground truth magnitudes for all elements", size=18)
+    plt.ylabel("L2 error of prediction", size=18)
+
+    if path_to_save:
+        plt.savefig(path_to_save+'global_error_vs_magnitude.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
+
+def plot_pca_projection(outputs, labels, path_to_save=None, max_arrows=200):
+
+    # Fit PCA on ground truth only (important for fair comparison)
+    pca = PCA(n_components=2)
+    pca.fit(labels)
+
+    labels_2d = pca.transform(labels)
+    outputs_2d = pca.transform(outputs)
+
+    fig = plt.figure(figsize=(8, 6))
+
+    plt.scatter(labels_2d[:, 0], labels_2d[:, 1], alpha=0.5, label="Ground Truth")
+    plt.scatter(outputs_2d[:, 0], outputs_2d[:, 1], alpha=0.5, label="Prediction")
+
+    from sklearn.metrics import pairwise_distances
+
+    d_true = pairwise_distances(labels_2d)
+    d_pred = pairwise_distances(outputs_2d)
+
+    # Normalize (avoid scale issues)
+    d_true /= np.mean(d_true)
+    d_pred /= np.mean(d_pred)
+
+    alignment_score = np.mean(np.abs(d_true - d_pred))
+
+    print(f"PCA alignment score (lower is better): {alignment_score:.4f}")
+
+    plt.xlabel("PC1")
+    plt.ylabel("PC2")
+    plt.title("PCA Projection (2D)")
+    plt.legend()
+
+    if path_to_save:
+        plt.savefig(path_to_save+'pca_projection_test_set.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
+
+# CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS
 
 def create_means_df(elements_to_keep, y_train, train_order, y_val, val_order):
 
