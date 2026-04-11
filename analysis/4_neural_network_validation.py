@@ -153,11 +153,11 @@ print(torch.mean(difference, axis=0))
 
 # Visualise prediction against true:
 
-# plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Logarithmed ground truth', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
+plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Logarithmed ground truth', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
 
-# plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='True value (logarithmed)', path_to_save=FIGURES_PATH)
+plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='True value (logarithmed)', path_to_save=FIGURES_PATH)
 
-# plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
+plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
 
 plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
 
@@ -199,10 +199,10 @@ print('How about precision and recall?')
 precision, recall = compute_precision_and_recall(outputs_df)
 
 
-plot_confusion_matrix(true_labels = outputs_df['Real sample_id'], 
-                      closest_labels = outputs_df['Closest sample id'], 
-                      normalization_in_conf_mat = None, 
-                      path_to_save = FIGURES_PATH)
+# plot_confusion_matrix(true_labels = outputs_df['Real sample_id'], 
+#                       closest_labels = outputs_df['Closest sample id'], 
+#                       normalization_in_conf_mat = None, 
+#                       path_to_save = FIGURES_PATH)
 
 
 # Quality of prediction: confidence intervals

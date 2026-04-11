@@ -268,14 +268,16 @@ def plot_pred_vs_gt(outputs, labels, elements_to_keep, xlabel='Ground truth', yl
 
         title = elements_to_keep[i]
 
-        text = f"R2={metrics['r2'][i]:.2f} \nMAE={metrics['mae'][i]:.2f}"
+        text = f"R$^2$={metrics['r2'][i]:.2f} \nMAE={metrics['mae'][i]:.2f}"
 
-        ax.text(min_val, max_val-0.05*(max_val-min_val), text)
+        ax.text(min_val, max_val-0.07*(max_val-min_val), text)
 
         ax.set_title(title, size=15)
 
-    fig.text(0.52, 0.03, xlabel, ha='center', size=18)
-    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=18)
+    axes[-1].set_axis_off()
+
+    fig.text(0.52, 0.05, xlabel, ha='center', size=18)
+    fig.text(0.09, 0.5, ylabel, va='center', rotation='vertical', size=18)
 
     #plt.tight_layout()
     if path_to_save:
@@ -286,7 +288,7 @@ def plot_pred_vs_gt(outputs, labels, elements_to_keep, xlabel='Ground truth', yl
 def plot_residuals(outputs, labels, elements_to_keep, xlabel='True value', ylabel='Residual', path_to_save=None):
 
     n_dims = outputs.shape[1]
-    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 8), sharey=True)
+    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 10), sharey=True)
     axes = axes.flatten()
 
     y_max_max = (outputs-labels).max().max()
@@ -309,11 +311,13 @@ def plot_residuals(outputs, labels, elements_to_keep, xlabel='True value', ylabe
         y_max = (y_pred-y_true).max()
         y_min = (y_pred-y_true).min()
         text = 'Mean residual: \n' + str(np.round(mean_res, 3))
-        ax.text(min_val, y_max_max-0.4, text)
+        ax.text(min_val, y_max_max-0.45, text)
 
         ax.set_title(title, size=15)
 
-    fig.text(0.52, 0.03, xlabel, ha='center', size=18)
+    axes[-1].set_axis_off()
+
+    fig.text(0.52, 0.05, xlabel, ha='center', size=18)
     fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=18)
 
     #plt.tight_layout()
@@ -325,7 +329,7 @@ def plot_residuals(outputs, labels, elements_to_keep, xlabel='True value', ylabe
 def plot_error_distributions(outputs, labels, elements_to_keep, xlabel='Residual', ylabel='Count', path_to_save=None):
 
     n_dims = outputs.shape[1]
-    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 8), sharey=True)
+    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 8), sharey=True, sharex=True)
     axes = axes.flatten()
 
     y_max_max = (outputs-labels).max().max()
@@ -337,7 +341,8 @@ def plot_error_distributions(outputs, labels, elements_to_keep, xlabel='Residual
 
 
         residuals = y_pred-y_true
-        sns.histplot(residuals, kde=True, ax=ax)
+        sns.histplot(residuals, kde=False, ax=ax)
+        ax.set(ylabel='')
 
         title = elements_to_keep[i]
 
@@ -347,6 +352,8 @@ def plot_error_distributions(outputs, labels, elements_to_keep, xlabel='Residual
         # ax.text(min_val, y_max_max-0.4, text)
 
         ax.set_title(title, size=15)
+
+    axes[-1].set_axis_off()
 
     fig.text(0.52, 0.03, xlabel, ha='center', size=18)
     fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=18)
@@ -362,30 +369,39 @@ def plot_error_boxplot(outputs, labels, elements_to_keep, xlabel='', ylabel='Res
     residuals_all = outputs - labels
 
     fig = plt.figure(figsize=(10, 5))
-    sns.boxplot(data=residuals_all)
+    ax = sns.boxplot(data=residuals_all)
     fig.text(0.52, 0.03, xlabel, ha='center', size=18)
-    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=18)
+    fig.text(0.07, 0.5, ylabel, va='center', rotation='vertical', size=18)
+    ax.set_xticklabels(elements_to_keep, size=15)
+
     if path_to_save:
         plt.savefig(path_to_save+'error_boxplot.png', dpi=300, bbox_inches="tight")
     plt.show()
     plt.close(fig)
 
 def plot_correlation_heatmaps(outputs, labels, elements_to_keep, xlabel='', ylabel='Residual', path_to_save=None):
-    sns.heatmap(np.abs(np.corrcoef(labels, rowvar=False) - np.corrcoef(outputs, rowvar=False)))
-    plt.show()
-    plt.close()
+
+    # sns.heatmap(np.abs(np.corrcoef(labels, rowvar=False) - np.corrcoef(outputs, rowvar=False)))
+    # plt.show()
+    # plt.close()
 
     fig = plt.figure(figsize=(12, 5))
 
     plt.subplot(1, 2, 1)
-    sns.heatmap(np.corrcoef(labels, rowvar=False), annot=False)
-    plt.title("Ground Truth Correlation")
+    ax = sns.heatmap(np.corrcoef(labels, rowvar=False), annot=False)
+    ax.set_xticklabels(elements_to_keep)
+    ax.set_yticklabels(elements_to_keep)
+    plt.tick_params(axis='both', which='major', labelbottom = False, bottom=False, top = True, labeltop=True)
+    #plt.title("Ground Truth Correlation")
 
     plt.subplot(1, 2, 2)
-    sns.heatmap(np.corrcoef(outputs, rowvar=False), annot=False)
-    plt.title("Prediction Correlation")
-    print('------------------')
-    print(np.sum(np.abs(np.corrcoef(labels, rowvar=False) - np.corrcoef(outputs, rowvar=False))))
+    ax = sns.heatmap(np.corrcoef(outputs, rowvar=False), annot=False)
+    ax.set_xticklabels(elements_to_keep)
+    ax.set_yticklabels(elements_to_keep)
+    plt.tick_params(axis='both', which='major', labelbottom = False, bottom=False, top = True, labeltop=True)
+    #plt.title("Prediction Correlation")
+
+    fig.text(0.47, 0.05, "Ground Truth Correlation                           Prediction Correlation", ha='center', size=18)
 
     if path_to_save:
         plt.savefig(path_to_save+'correlation_heatmap.png', dpi=300, bbox_inches="tight")
