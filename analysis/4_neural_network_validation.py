@@ -151,11 +151,11 @@ print(torch.mean(difference, axis=0))
 # Consecutive coordinates correspond to: Al, S, Cr, Mn, Co, Cu, Zn, Pb, Fe, Mg.
 # Significance of elements: Cu >> Mn > Al > Zn > Pb > S > Cr > Co >> all the others.
 
-# Visualise prediction against true:
+# BASIC DIAGNOSTIC PLOTS
 
-# plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Logarithmed ground truth', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
+# plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
 
-# plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='True value (logarithmed)', path_to_save=FIGURES_PATH)
+# plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
 
 # plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
 
@@ -165,12 +165,11 @@ print(torch.mean(difference, axis=0))
 
 # plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
 
-# plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+# plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH)
 
 # plot_l2_error(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
 
-plot_pca_projection(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
-
+# plot_pca_projection(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
 
 
 # for element_nr, element in enumerate(ELEMENTS_TO_KEEP):
@@ -204,6 +203,20 @@ accuracy = compute_accuracy(outputs_df)
 
 print('How about precision and recall?')
 precision, recall = compute_precision_and_recall(outputs_df)
+
+# CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 1
+
+y_true = outputs_df['Real sample_id']
+y_pred = outputs_df['Closest sample id']
+
+#plot_topk_confusion(y_true, y_pred, top_k=20, path_to_save=FIGURES_PATH)
+
+plot_prf_distribution_subplots(y_true, y_pred, path_to_save=FIGURES_PATH)
+
+#plot_freq_vs_f1(y_true, y_pred, path_to_save=FIGURES_PATH)
+
+
+# CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 2
 
 
 # plot_confusion_matrix(true_labels = outputs_df['Real sample_id'], 

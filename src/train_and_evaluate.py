@@ -8,14 +8,16 @@ from model import CustomLoss
 from model import InksNet
 import time
 import datetime
-from sklearn.metrics import confusion_matrix, r2_score, mean_absolute_error, mean_squared_error
+from sklearn.metrics import confusion_matrix, r2_score, mean_absolute_error, mean_squared_error, accuracy_score, f1_score, precision_recall_fscore_support
 import seaborn as sns
 from seaborn import heatmap
 import json
 from matplotlib.pyplot import cm
 from matplotlib.lines import Line2D
 from scipy.stats import probplot
+from scipy.cluster.hierarchy import linkage, leaves_list
 from sklearn.decomposition import PCA
+from collections import Counter
 
 import torch.optim as optim
 import optuna
@@ -249,7 +251,7 @@ def compute_metrics(outputs, labels):
 
     return summary
 
-def plot_pred_vs_gt(outputs, labels, elements_to_keep, xlabel='Ground truth', ylabel='Prediction', path_to_save=None):
+def plot_pred_vs_gt(outputs, labels, elements_to_keep, xlabel='True value', ylabel='Prediction', path_to_save=None):
 
     n_dims = outputs.shape[1]
     fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 10))
@@ -290,7 +292,7 @@ def plot_pred_vs_gt(outputs, labels, elements_to_keep, xlabel='Ground truth', yl
 def plot_residuals(outputs, labels, elements_to_keep, xlabel='True value', ylabel='Residual', path_to_save=None):
 
     n_dims = outputs.shape[1]
-    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 10), sharey=True)
+    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(12, 5), sharey=True)
     axes = axes.flatten()
 
     y_max_max = (outputs-labels).max().max()
@@ -306,21 +308,23 @@ def plot_residuals(outputs, labels, elements_to_keep, xlabel='True value', ylabe
 
         ax.plot([min_val, max_val], [mean_res, mean_res], 'black')
 
-        ax.scatter(y_true, y_pred-y_true, alpha=0.25, color='red')
+        ax.scatter(y_true, y_pred-y_true, alpha=0.25)
 
         title = elements_to_keep[i]
 
         y_max = (y_pred-y_true).max()
         y_min = (y_pred-y_true).min()
         text = 'Mean residual: \n' + str(np.round(mean_res, 3))
-        ax.text(min_val, y_max_max-0.45, text)
+        ax.text(min_val, y_max_max-0.85, text)
 
-        ax.set_title(title, size=15)
+        ax.tick_params(axis='both', labelsize=5)
+
+        ax.set_title(title, size=10)
 
     axes[-1].set_axis_off()
 
-    fig.text(0.52, 0.05, xlabel, ha='center', size=18)
-    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=18)
+    fig.text(0.52, 0.0, xlabel, ha='center', size=25)
+    fig.text(0.06, 0.55, ylabel, va='center', rotation='vertical', size=25)
 
     #plt.tight_layout()
     if path_to_save:
@@ -352,8 +356,8 @@ def plot_error_distributions(outputs, labels, elements_to_keep, xlabel='Residual
 
     axes[-1].set_axis_off()
 
-    fig.text(0.52, 0.03, xlabel, ha='center', size=18)
-    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=18)
+    fig.text(0.52, 0.03, xlabel, ha='center', size=34)
+    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=34)
 
     #plt.tight_layout()
     if path_to_save:
@@ -364,7 +368,7 @@ def plot_error_distributions(outputs, labels, elements_to_keep, xlabel='Residual
 def plot_qq(outputs, labels, elements_to_keep, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=None):
 
     n_dims = outputs.shape[1]
-    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 8), sharey=True, sharex=True)
+    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 6), sharey=True, sharex=True)
     axes = axes.flatten()
 
     for i in range(n_dims):
@@ -381,12 +385,13 @@ def plot_qq(outputs, labels, elements_to_keep, xlabel='Theoretical quantiles', y
 
         title = elements_to_keep[i]
 
+        ax.tick_params(axis='both', labelsize=8)
         ax.set_title(title, size=15)
 
     axes[-1].set_axis_off()
 
-    fig.text(0.52, 0.03, xlabel, ha='center', size=18)
-    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=18)
+    fig.text(0.52, 0.0, xlabel, ha='center', size=34)
+    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=34)
 
     #plt.tight_layout()
     if path_to_save:
@@ -413,36 +418,51 @@ def plot_error_violinplot(outputs, labels, elements_to_keep, xlabel='', ylabel='
 
     residuals_all = outputs - labels
 
-    fig = plt.figure(figsize=(10, 5))
+    fig = plt.figure(figsize=(16, 8))
     ax = sns.violinplot(data=residuals_all)
     fig.text(0.52, 0.03, xlabel, ha='center', size=18)
-    fig.text(0.07, 0.5, ylabel, va='center', rotation='vertical', size=18)
-    ax.set_xticklabels(elements_to_keep, size=15)
+    fig.text(0.07, 0.5, ylabel, va='center', rotation='vertical', size=32)
+    ax.set_xticklabels(elements_to_keep, size=25)
 
     if path_to_save:
         plt.savefig(path_to_save+'error_violinplot.png', dpi=300, bbox_inches="tight")
     plt.show()
     plt.close(fig)
 
-def plot_correlation_heatmaps(outputs, labels, elements_to_keep, xlabel='', ylabel='Residual', path_to_save=None):
+def plot_correlation_heatmaps(outputs, labels, elements_to_keep, xlabel='', ylabel='Residual', cluster=False, path_to_save=None):
+
+    def clustered_corr(data, method='average'):
+        corr = np.corrcoef(data, rowvar=False)
+        Z = linkage(corr, method=method)
+        order = leaves_list(Z)
+        return corr[order][:, order]
 
     fig = plt.figure(figsize=(12, 5))
 
     plt.subplot(1, 2, 1)
-    ax = sns.heatmap(np.corrcoef(labels, rowvar=False), annot=False)
+    if cluster:
+        ax = sns.heatmap(clustered_corr(labels), annot=False, cmap='rocket_r')
+    else:
+        ax = sns.heatmap(np.corrcoef(labels, rowvar=False), annot=False, cmap='rocket_r')
+
     ax.set_xticklabels(elements_to_keep)
     ax.set_yticklabels(elements_to_keep)
+
     plt.tick_params(axis='both', which='major', labelbottom = False, bottom=False, top = True, labeltop=True)
-    #plt.title("Ground Truth Correlation")
 
     plt.subplot(1, 2, 2)
-    ax = sns.heatmap(np.corrcoef(outputs, rowvar=False), annot=False)
+    if cluster:
+        ax = sns.heatmap(clustered_corr(outputs), annot=False, cmap='rocket_r')
+    else:
+        ax = sns.heatmap(np.corrcoef(outputs, rowvar=False), annot=False, cmap='rocket_r')
+
     ax.set_xticklabels(elements_to_keep)
     ax.set_yticklabels(elements_to_keep)
-    plt.tick_params(axis='both', which='major', labelbottom = False, bottom=False, top = True, labeltop=True)
-    #plt.title("Prediction Correlation")
 
-    fig.text(0.47, 0.05, "Ground Truth Correlation                           Prediction Correlation", ha='center', size=18)
+
+    plt.tick_params(axis='both', which='major', labelbottom = False, bottom=False, top = True, labeltop=True)
+
+    fig.text(0.47, 0.05, "     True correlations               Prediction correlations", ha='center', size=25)
 
     if path_to_save:
         plt.savefig(path_to_save+'correlation_heatmap.png', dpi=300, bbox_inches="tight")
@@ -456,10 +476,10 @@ def plot_l2_error(outputs, labels, path_to_save=None):
 
     true_norm = np.linalg.norm(labels, axis=1)
 
-    fig = plt.figure(figsize=(8,5))
+    fig = plt.figure(figsize=(10, 6))
     plt.scatter(true_norm, l2_error, alpha=0.5)
-    plt.xlabel("Sum of ground truth magnitudes for all elements", size=18)
-    plt.ylabel("L2 error of prediction", size=18)
+    plt.xlabel("Sum of true magnitudes", size=34)
+    plt.ylabel("L2 error of prediction", size=33)
 
     if path_to_save:
         plt.savefig(path_to_save+'global_error_vs_magnitude.png', dpi=300, bbox_inches="tight")
@@ -503,7 +523,120 @@ def plot_pca_projection(outputs, labels, path_to_save=None, max_arrows=200):
     plt.show()
     plt.close(fig)
 
-# CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS
+# CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 1
+
+def plot_topk_confusion(y_true, y_pred, top_k=20, path_to_save=None):
+
+    # get most frequent classes
+    counts = Counter(y_true)
+    top_classes = [c for c, _ in counts.most_common(top_k)]
+    print(top_classes)
+
+    mask = np.isin(y_true, top_classes)
+    y_true_k = y_true[mask]
+    y_pred_k = y_pred[mask]
+
+    cm = confusion_matrix(y_true_k, y_pred_k, labels=top_classes)
+
+    plt.figure(figsize=(8, 6))
+    plt.imshow(cm, cmap=sns.cm.rocket_r)
+
+    plt.title(f"Top-{top_k} confusion matrix", size=25)
+    plt.xlabel("Predicted class", size=25)
+    plt.ylabel("True class", size=25)
+    plt.xticks([])
+    plt.yticks([])
+    #plt.colorbar()
+
+    if path_to_save:
+        plt.savefig(path_to_save+'top_k_confusion_matrix.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+
+def plot_prf_distribution_subplots(y_true, y_pred, xlabel='Score distribution', ylabel='Count', path_to_save=None):
+
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        y_true, y_pred, average=None
+    )
+
+    fig, axes = plt.subplots(1, 3, sharey=True, figsize=(16,6))
+
+    axes[0].hist(precision, bins=30)
+    axes[0].set_xlabel("Precision", size=25)
+
+    axes[1].hist(recall, bins=30)
+    axes[1].set_xlabel("Recall", size=25)
+
+    axes[2].hist(f1, bins=30)
+    axes[2].set_xlabel("F1", size=25)
+
+    fig.text(0.5, 0.9, xlabel, ha='center', size=25)
+    fig.text(0.05, 0.5, ylabel, va='center', rotation='vertical', size=25)
+
+    if path_to_save:
+        plt.savefig(path_to_save+'prec_rec_f1_distributions.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+def plot_error_distribution(y_true, y_pred, path_to_save=None):
+    errors = y_true[y_true != y_pred]
+    error_counts = Counter(errors)
+
+    sorted_counts = sorted(error_counts.values(), reverse=True)
+
+    plt.figure()
+    plt.plot(sorted_counts)
+    plt.title("Error distribution (long tail)")
+    plt.xlabel("Class rank")
+    plt.ylabel("Number of errors")
+
+    if path_to_save:
+        plt.savefig(path_to_save+'error_distribution_classification.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+def plot_freq_vs_f1(y_true, y_pred, xlabel='Class frequency', path_to_save=None):
+
+
+    counts = Counter(y_true)
+    labels = np.unique(y_true)
+
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        y_true, y_pred, labels=labels, average=None
+    )
+
+    freqs = np.array([counts[l] for l in labels])
+
+    fig, axes = plt.subplots(1, 3, sharey=True, figsize=(16,6))
+
+    #axes[0].hist2d(freqs, precision, bins=30)
+    axes[0].scatter(freqs, precision, alpha = 0.2, s=[0.7*len(freqs)])
+    axes[0].set_ylabel("Precision", size=25)
+
+    #axes[1].hist2d(freqs, recall, bins=30)
+    axes[1].scatter(freqs, recall, alpha = 0.2, s=[0.7*len(freqs)])
+    axes[1].set_ylabel("Recall", size=25)
+
+    #axes[2].hist2d(freqs, f1, bins=30)
+    axes[2].scatter(freqs, f1, alpha = 0.2, s=[0.7*len(freqs)])
+    axes[2].set_ylabel("F1", size=25)
+
+    fig.text(0.5, 0.0, xlabel, ha='center', size=25)
+    #fig.colorbar(label="Number of classes")
+    #fig.text(0.05, 0.5, ylabel, va='center', rotation='vertical', size=25)
+
+    # plt.figure()
+    # plt.scatter(freqs, f1, alpha = 0.2)
+    # plt.ylabel("F1 score")
+    # plt.title("Class frequency vs F1")
+    if path_to_save:
+        plt.savefig(path_to_save+'freq_vs_f1.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+
+# CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 2
 
 def create_means_df(elements_to_keep, y_train, train_order, y_val, val_order):
 
