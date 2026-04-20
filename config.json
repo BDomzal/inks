@@ -46,7 +46,8 @@
 		"training": "../figures/training/",
 		"all" : "../figures/all/",
 		"artificial_inks" : "../figures/artificial_inks/",
-		"training" : "../figures/training/"
+		"training" : "../figures/training/",
+		"robustness" : "../figures/robustness/"
 		},
 
 "models_path" : "../models/optuna_l1_71_3000",

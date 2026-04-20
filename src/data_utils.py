@@ -301,6 +301,9 @@ def prepare_training_data(
                         random_state=3,
                         normalisation_to_Fe=False,
                         return_data=True,
+                        perturb_data=False,
+                        mu=0,
+                        sigma=0.1,
                         return_original_labels=False
                         ):
 
@@ -345,11 +348,15 @@ def prepare_training_data(
     X_test = transform_data(X_test, preprocessing_method)
     y_test = transform_data(y_test, preprocessing_method)
 
-    if return_data:
-        data_to_return = [X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order]
+
+    # 10 1/2. Optional perturbation of X in test_data.
+    if perturb_data:
+        X_test = X_test + np.random.normal(mu, sigma, X_test.shape[0]).reshape(-1, 1)
 
 
     # 11. Converting to tensors.
+    if return_data:
+        data_to_return = [X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order]
 
     device = get_device()
 
