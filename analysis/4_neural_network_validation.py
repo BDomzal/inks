@@ -9,6 +9,8 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
+mode = "training"
+
 PREPROCESSING_METHOD = config["preprocessing_method"]
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
@@ -18,7 +20,14 @@ DROPOUT_PROB = config["dropout_prob"]
 
 DATA_PATH = config["training_data_path"]
 MODELS_PATH = config["models_path"]
-FIGURES_PATH = config["figures_path"]["training"]
+FIGURES_PATH = config["figures_path"][mode]
+
+if mode == "training":
+    nrows = 2
+    dims_to_keep = "all"
+else:
+    nrows = 1
+    dims_to_keep = [1, 3, 4, 7, 9, 10]
 
 ## Loading data and trained model
 
@@ -152,24 +161,45 @@ print(torch.mean(difference, axis=0))
 # Significance of elements: Cu >> Mn > Al > Zn > Pb > S > Cr > Co >> all the others.
 
 # BASIC DIAGNOSTIC PLOTS
+if mode == "training":
 
-# plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
+    plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
 
-# plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
+    plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
 
-# plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
+    plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
 
-# plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
+    plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
 
-# plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+    plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
 
-# plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+    plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
 
-# plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH)
+    plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH)
 
-# plot_l2_error(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
+    plot_l2_error(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
 
-# plot_pca_projection(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
+    plot_pca_projection(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
+
+if mode == "training_subset":
+
+    plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(14, 5), xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
+
+    plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(14, 4), xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
+
+    plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(14,4.5), xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
+
+    plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(13,4.5), xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
+
+    plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+
+    plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+
+    plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH)
+
+    plot_l2_error(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
+
+    plot_pca_projection(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
 
 
 # for element_nr, element in enumerate(ELEMENTS_TO_KEEP):
@@ -209,20 +239,20 @@ precision, recall = compute_precision_and_recall(outputs_df)
 y_true = outputs_df['Real sample_id']
 y_pred = outputs_df['Closest sample id']
 
-#plot_topk_confusion(y_true, y_pred, top_k=20, path_to_save=FIGURES_PATH)
+plot_topk_confusion(y_true, y_pred, top_k=20, path_to_save=FIGURES_PATH)
 
 plot_prf_distribution_subplots(y_true, y_pred, path_to_save=FIGURES_PATH)
 
-#plot_freq_vs_f1(y_true, y_pred, path_to_save=FIGURES_PATH)
+plot_freq_vs_f1(y_true, y_pred, path_to_save=FIGURES_PATH)
 
 
 # CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 2
 
 
-# plot_confusion_matrix(true_labels = outputs_df['Real sample_id'], 
-#                       closest_labels = outputs_df['Closest sample id'], 
-#                       normalization_in_conf_mat = None, 
-#                       path_to_save = FIGURES_PATH)
+plot_confusion_matrix(true_labels = outputs_df['Real sample_id'], 
+                      closest_labels = outputs_df['Closest sample id'], 
+                      normalization_in_conf_mat = None, 
+                      path_to_save = FIGURES_PATH)
 
 
 # Quality of prediction: confidence intervals
@@ -277,27 +307,27 @@ np.array(sd_res_list).mean(0)
 
 # Visualisations of min-max intervals
 
-element_nr = 0 #Al
+element_nr = 1 #S
 
-# visualise_min_max_intervals(outputs, 
-#                             test_order, 
-#                             ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
-#                             min_max_df, 
-#                             min_max_res_list, 
-#                             element_nr=element_nr, 
-#                             path_to_save=None)
+visualise_min_max_intervals(outputs, 
+                            test_order, 
+                            ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
+                            min_max_df, 
+                            min_max_res_list, 
+                            element_nr=element_nr, 
+                            path_to_save=None)
 
 
 # Visualisations of mean +- 2 * standard deviation intervals
 
 
-# visualise_mean_plus_minus_sd_intervals(outputs, 
-#                                        test_order, 
-#                                         ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
-#                                        lower_bound_df, 
-#                                        upper_bound_df, 
-#                                        how_many_sd=2,
-#                                        sd_res_list=sd_res_list, 
-#                                        element_nr=element_nr, 
-#                                        path_to_save=None)
+visualise_mean_plus_minus_sd_intervals(outputs, 
+                                       test_order, 
+                                        ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
+                                       lower_bound_df, 
+                                       upper_bound_df, 
+                                       how_many_sd=2,
+                                       sd_res_list=sd_res_list, 
+                                       element_nr=element_nr, 
+                                       path_to_save=None)
 

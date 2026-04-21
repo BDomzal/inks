@@ -47,6 +47,7 @@
 		"all" : "../figures/all/",
 		"artificial_inks" : "../figures/artificial_inks/",
 		"training" : "../figures/training/",
+		"training_subset" : "../figures/training_subset/",
 		"robustness" : "../figures/robustness/"
 		},
 

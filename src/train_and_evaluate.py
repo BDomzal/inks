@@ -251,10 +251,18 @@ def compute_metrics(outputs, labels):
 
     return summary
 
-def plot_pred_vs_gt(outputs, labels, elements_to_keep, xlabel='True value', ylabel='Prediction', path_to_save=None):
+def plot_pred_vs_gt(outputs, labels, elements_to_keep, dims_to_keep='all', nrows=2, figsize=(16,10), xlabel='True value', ylabel='Prediction', path_to_save=None):
 
-    n_dims = outputs.shape[1]
-    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 10))
+    if dims_to_keep == 'all':
+        dims_to_keep = list(range(len(elements_to_keep)))
+
+    n_dims = len(dims_to_keep)
+    in_dims_to_keep = [i in dims_to_keep for i in np.array(range(outputs.shape[1]))]
+    labels = labels[:, in_dims_to_keep]
+    outputs = outputs[:, in_dims_to_keep]
+    elements_to_keep = [elements_to_keep[i] for i in dims_to_keep]
+
+    fig, axes = plt.subplots(nrows, n_dims//nrows + 1 if nrows==2 else n_dims//nrows, figsize=figsize)
     axes = axes.flatten()
 
     metrics = compute_metrics(outputs, labels)
@@ -278,10 +286,11 @@ def plot_pred_vs_gt(outputs, labels, elements_to_keep, xlabel='True value', ylab
 
         ax.set_title(title, size=15)
 
-    axes[-1].set_axis_off()
+    if nrows==2:
+        axes[-1].set_axis_off()
 
-    fig.text(0.52, 0.05, xlabel, ha='center', size=18)
-    fig.text(0.09, 0.5, ylabel, va='center', rotation='vertical', size=18)
+    fig.text(0.52, 0.0, xlabel, ha='center', size=25)
+    fig.text(0.07, 0.5, ylabel, va='center', rotation='vertical', size=25)
 
     #plt.tight_layout()
     if path_to_save:
@@ -289,10 +298,18 @@ def plot_pred_vs_gt(outputs, labels, elements_to_keep, xlabel='True value', ylab
     plt.show()
     plt.close(fig)
 
-def plot_residuals(outputs, labels, elements_to_keep, xlabel='True value', ylabel='Residual', path_to_save=None):
+def plot_residuals(outputs, labels, elements_to_keep, dims_to_keep='all', nrows=2, figsize=(12,5), xlabel='True value', ylabel='Residual', path_to_save=None):
 
-    n_dims = outputs.shape[1]
-    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(12, 5), sharey=True)
+    if dims_to_keep == 'all':
+        dims_to_keep = list(range(len(elements_to_keep)))
+
+    n_dims = len(dims_to_keep)
+    in_dims_to_keep = [i in dims_to_keep for i in np.array(range(outputs.shape[1]))]
+    labels = labels[:, in_dims_to_keep]
+    outputs = outputs[:, in_dims_to_keep]
+    elements_to_keep = [elements_to_keep[i] for i in dims_to_keep]
+
+    fig, axes = plt.subplots(nrows, n_dims//nrows + 1 if nrows==2 else n_dims//nrows, figsize=figsize, sharey=True)
     axes = axes.flatten()
 
     y_max_max = (outputs-labels).max().max()
@@ -315,13 +332,14 @@ def plot_residuals(outputs, labels, elements_to_keep, xlabel='True value', ylabe
         y_max = (y_pred-y_true).max()
         y_min = (y_pred-y_true).min()
         text = 'Mean residual: \n' + str(np.round(mean_res, 3))
-        ax.text(min_val, y_max_max-0.85, text)
+        ax.text(min_val, y_max_max-0.45*nrows, text)
 
         ax.tick_params(axis='both', labelsize=5)
 
         ax.set_title(title, size=10)
 
-    axes[-1].set_axis_off()
+    if nrows==2:
+        axes[-1].set_axis_off()
 
     fig.text(0.52, 0.0, xlabel, ha='center', size=25)
     fig.text(0.06, 0.55, ylabel, va='center', rotation='vertical', size=25)
@@ -332,10 +350,18 @@ def plot_residuals(outputs, labels, elements_to_keep, xlabel='True value', ylabe
     plt.show()
     plt.close(fig)
 
-def plot_error_distributions(outputs, labels, elements_to_keep, xlabel='Residual', ylabel='Count', path_to_save=None):
+def plot_error_distributions(outputs, labels, elements_to_keep, dims_to_keep='all', nrows=2, figsize=(16,8), xlabel='Residual', ylabel='Count', path_to_save=None):
 
-    n_dims = outputs.shape[1]
-    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 8), sharey=True, sharex=True)
+    if dims_to_keep == 'all':
+        dims_to_keep = list(range(len(elements_to_keep)))
+
+    n_dims = len(dims_to_keep)
+    in_dims_to_keep = [i in dims_to_keep for i in np.array(range(outputs.shape[1]))]
+    labels = labels[:, in_dims_to_keep]
+    outputs = outputs[:, in_dims_to_keep]
+    elements_to_keep = [elements_to_keep[i] for i in dims_to_keep]
+
+    fig, axes = plt.subplots(nrows, n_dims//nrows + 1 if nrows==2 else n_dims//nrows, figsize=figsize, sharey=True, sharex=True)
     axes = axes.flatten()
 
     y_max_max = (outputs-labels).max().max()
@@ -354,10 +380,11 @@ def plot_error_distributions(outputs, labels, elements_to_keep, xlabel='Residual
 
         ax.set_title(title, size=15)
 
-    axes[-1].set_axis_off()
+    if nrows==2:
+        axes[-1].set_axis_off()
 
-    fig.text(0.52, 0.03, xlabel, ha='center', size=34)
-    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=34)
+    fig.text(0.52, 0.0, xlabel, ha='center', size=25)
+    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=25)
 
     #plt.tight_layout()
     if path_to_save:
@@ -365,10 +392,18 @@ def plot_error_distributions(outputs, labels, elements_to_keep, xlabel='Residual
     plt.show()
     plt.close(fig)
 
-def plot_qq(outputs, labels, elements_to_keep, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=None):
+def plot_qq(outputs, labels, elements_to_keep, dims_to_keep='all', nrows=2, figsize=(16,6), xlabel='Theoretical quantiles', ylabel='Prediction \n quantiles', path_to_save=None):
 
-    n_dims = outputs.shape[1]
-    fig, axes = plt.subplots(2, n_dims//2 + 1, figsize=(16, 6), sharey=True, sharex=True)
+    if dims_to_keep == 'all':
+        dims_to_keep = list(range(len(elements_to_keep)))
+
+    n_dims = len(dims_to_keep)
+    in_dims_to_keep = [i in dims_to_keep for i in np.array(range(outputs.shape[1]))]
+    labels = labels[:, in_dims_to_keep]
+    outputs = outputs[:, in_dims_to_keep]
+    elements_to_keep = [elements_to_keep[i] for i in dims_to_keep]
+
+    fig, axes = plt.subplots(nrows, n_dims//nrows + 1 if nrows==2 else n_dims//nrows, figsize=figsize, sharey=True, sharex=True)
     axes = axes.flatten()
 
     for i in range(n_dims):
@@ -388,10 +423,11 @@ def plot_qq(outputs, labels, elements_to_keep, xlabel='Theoretical quantiles', y
         ax.tick_params(axis='both', labelsize=8)
         ax.set_title(title, size=15)
 
-    axes[-1].set_axis_off()
+    if nrows==2:
+        axes[-1].set_axis_off()
 
-    fig.text(0.52, 0.0, xlabel, ha='center', size=34)
-    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=34)
+    fig.text(0.52, 0.0, xlabel, ha='center', size=25)
+    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=25)
 
     #plt.tight_layout()
     if path_to_save:
@@ -399,26 +435,44 @@ def plot_qq(outputs, labels, elements_to_keep, xlabel='Theoretical quantiles', y
     plt.show()
     plt.close(fig)
 
-def plot_error_boxplot(outputs, labels, elements_to_keep, xlabel='', ylabel='Residual', path_to_save=None):
+def plot_error_boxplot(outputs, labels, elements_to_keep, dims_to_keep='all', figsize=(16,8), xlabel='', ylabel='Residual', path_to_save=None):
+
+    if dims_to_keep == 'all':
+        dims_to_keep = list(range(len(elements_to_keep)))
+
+    n_dims = len(dims_to_keep)
+    in_dims_to_keep = [i in dims_to_keep for i in np.array(range(outputs.shape[1]))]
+    labels = labels[:, in_dims_to_keep]
+    outputs = outputs[:, in_dims_to_keep]
+    elements_to_keep = [elements_to_keep[i] for i in dims_to_keep]
 
     residuals_all = outputs - labels
 
-    fig = plt.figure(figsize=(10, 5))
+    fig = plt.figure(figsize=figsize)
     ax = sns.boxplot(data=residuals_all)
     fig.text(0.52, 0.03, xlabel, ha='center', size=18)
-    fig.text(0.07, 0.5, ylabel, va='center', rotation='vertical', size=18)
-    ax.set_xticklabels(elements_to_keep, size=15)
+    fig.text(0.07, 0.5, ylabel, va='center', rotation='vertical', size=32)
+    ax.set_xticklabels(elements_to_keep, size=25)
 
     if path_to_save:
         plt.savefig(path_to_save+'error_boxplot.png', dpi=300, bbox_inches="tight")
     plt.show()
     plt.close(fig)
 
-def plot_error_violinplot(outputs, labels, elements_to_keep, xlabel='', ylabel='Residual', path_to_save=None):
+def plot_error_violinplot(outputs, labels, elements_to_keep, dims_to_keep='all', figsize=(16,8), xlabel='', ylabel='Residual', path_to_save=None):
+
+    if dims_to_keep == 'all':
+        dims_to_keep = list(range(len(elements_to_keep)))
+
+    n_dims = len(dims_to_keep)
+    in_dims_to_keep = [i in dims_to_keep for i in np.array(range(outputs.shape[1]))]
+    labels = labels[:, in_dims_to_keep]
+    outputs = outputs[:, in_dims_to_keep]
+    elements_to_keep = [elements_to_keep[i] for i in dims_to_keep]
 
     residuals_all = outputs - labels
 
-    fig = plt.figure(figsize=(16, 8))
+    fig = plt.figure(figsize=figsize)
     ax = sns.violinplot(data=residuals_all)
     fig.text(0.52, 0.03, xlabel, ha='center', size=18)
     fig.text(0.07, 0.5, ylabel, va='center', rotation='vertical', size=32)
@@ -429,7 +483,7 @@ def plot_error_violinplot(outputs, labels, elements_to_keep, xlabel='', ylabel='
     plt.show()
     plt.close(fig)
 
-def plot_correlation_heatmaps(outputs, labels, elements_to_keep, xlabel='', ylabel='Residual', cluster=False, path_to_save=None):
+def plot_correlation_heatmaps(outputs, labels, elements_to_keep, figsize=(12,5), xlabel='', ylabel='Residual', cluster=False, path_to_save=None):
 
     def clustered_corr(data, method='average'):
         corr = np.corrcoef(data, rowvar=False)
@@ -437,7 +491,7 @@ def plot_correlation_heatmaps(outputs, labels, elements_to_keep, xlabel='', ylab
         order = leaves_list(Z)
         return corr[order][:, order]
 
-    fig = plt.figure(figsize=(12, 5))
+    fig = plt.figure(figsize=figsize)
 
     plt.subplot(1, 2, 1)
     if cluster:
@@ -470,13 +524,13 @@ def plot_correlation_heatmaps(outputs, labels, elements_to_keep, xlabel='', ylab
     plt.close(fig)
 
 
-def plot_l2_error(outputs, labels, path_to_save=None):
+def plot_l2_error(outputs, labels, figsize=(10,6), path_to_save=None):
 
     l2_error = np.linalg.norm(outputs - labels, axis=1)
 
     true_norm = np.linalg.norm(labels, axis=1)
 
-    fig = plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=figsize)
     plt.scatter(true_norm, l2_error, alpha=0.5)
     plt.xlabel("Sum of true magnitudes", size=34)
     plt.ylabel("L2 error of prediction", size=33)
@@ -486,7 +540,7 @@ def plot_l2_error(outputs, labels, path_to_save=None):
     plt.show()
     plt.close(fig)
 
-def plot_pca_projection(outputs, labels, path_to_save=None, max_arrows=200):
+def plot_pca_projection(outputs, labels, figsize=(8,6), path_to_save=None, max_arrows=200):
 
     # Fit PCA on ground truth only (important for fair comparison)
     pca = PCA(n_components=2)
@@ -495,7 +549,7 @@ def plot_pca_projection(outputs, labels, path_to_save=None, max_arrows=200):
     labels_2d = pca.transform(labels)
     outputs_2d = pca.transform(outputs)
 
-    fig = plt.figure(figsize=(8, 6))
+    fig = plt.figure(figsize=figsize)
 
     plt.scatter(labels_2d[:, 0], labels_2d[:, 1], alpha=0.5, label="Ground Truth")
     plt.scatter(outputs_2d[:, 0], outputs_2d[:, 1], alpha=0.5, label="Prediction")
@@ -525,7 +579,7 @@ def plot_pca_projection(outputs, labels, path_to_save=None, max_arrows=200):
 
 # CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 1
 
-def plot_topk_confusion(y_true, y_pred, top_k=20, path_to_save=None):
+def plot_topk_confusion(y_true, y_pred, top_k=20, figsize=(8,6), path_to_save=None):
 
     # get most frequent classes
     counts = Counter(y_true)
@@ -538,7 +592,7 @@ def plot_topk_confusion(y_true, y_pred, top_k=20, path_to_save=None):
 
     cm = confusion_matrix(y_true_k, y_pred_k, labels=top_classes)
 
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=figsize)
     plt.imshow(cm, cmap=sns.cm.rocket_r)
 
     plt.title(f"Top-{top_k} confusion matrix", size=25)
@@ -554,13 +608,13 @@ def plot_topk_confusion(y_true, y_pred, top_k=20, path_to_save=None):
     plt.close()
 
 
-def plot_prf_distribution_subplots(y_true, y_pred, xlabel='Score distribution', ylabel='Count', path_to_save=None):
+def plot_prf_distribution_subplots(y_true, y_pred, figsize=(16,6), xlabel='Score distribution', ylabel='Count', path_to_save=None):
 
     precision, recall, f1, _ = precision_recall_fscore_support(
         y_true, y_pred, average=None
     )
 
-    fig, axes = plt.subplots(1, 3, sharey=True, figsize=(16,6))
+    fig, axes = plt.subplots(1, 3, sharey=True, figsize=figsize)
 
     axes[0].hist(precision, bins=30)
     axes[0].set_xlabel("Precision", size=25)
@@ -596,7 +650,7 @@ def plot_error_distribution(y_true, y_pred, path_to_save=None):
     plt.show()
     plt.close()
 
-def plot_freq_vs_f1(y_true, y_pred, xlabel='Class frequency', path_to_save=None):
+def plot_freq_vs_f1(y_true, y_pred, figsize=(16,6), xlabel='Class frequency', path_to_save=None):
 
 
     counts = Counter(y_true)
@@ -608,7 +662,7 @@ def plot_freq_vs_f1(y_true, y_pred, xlabel='Class frequency', path_to_save=None)
 
     freqs = np.array([counts[l] for l in labels])
 
-    fig, axes = plt.subplots(1, 3, sharey=True, figsize=(16,6))
+    fig, axes = plt.subplots(1, 3, sharey=True, figsize=figsize)
 
     #axes[0].hist2d(freqs, precision, bins=30)
     axes[0].scatter(freqs, precision, alpha = 0.2, s=[0.7*len(freqs)])
@@ -821,8 +875,8 @@ def visualise_min_max_intervals(outputs, test_order, elements_to_keep, min_max_d
         plt.plot(new_index, outputs_df.iloc[row, element_nr+1], 'ro', markersize=3)
             
     plt.xticks([], [])
-    plt.xlabel('Groups IDs',size=15)
-    plt.ylabel('Value',size=15)
+    plt.xlabel('Groups IDs',size=25)
+    plt.ylabel('Value',size=25)
     plt.title(str(outputs_df.columns[element_nr+1]) + ': '+str(percentage_correct) +'% inside min-max interval', size=25)
     plt.tight_layout()
 
@@ -865,8 +919,8 @@ def visualise_mean_plus_minus_sd_intervals(outputs,
         plt.plot(new_index, outputs_df.iloc[row, element_nr+1], 'ro', markersize=3)
             
     plt.xticks([], [])
-    plt.xlabel('Groups IDs',size=15)
-    plt.ylabel('Value',size=15)
+    plt.xlabel('Groups IDs',size=25)
+    plt.ylabel('Value',size=25)
     plt.title(str(outputs_df.columns[element_nr+1]) + ': '+str(percentage_correct) +'% inside +-' + str(how_many_sd) + ' sd confidence interval', size=25)
     
     if path_to_save is not None:
