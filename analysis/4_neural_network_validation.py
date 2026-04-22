@@ -9,7 +9,7 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-mode = "training"
+mode = "training_subset"
 
 PREPROCESSING_METHOD = config["preprocessing_method"]
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
@@ -27,7 +27,7 @@ if mode == "training":
     dims_to_keep = "all"
 else:
     nrows = 1
-    dims_to_keep = [1, 3, 4, 7, 9, 10]
+    dims_to_keep = [7]
 
 ## Loading data and trained model
 
@@ -183,17 +183,17 @@ if mode == "training":
 
 if mode == "training_subset":
 
-    plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(14, 5), xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
+    plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=[1, 3, 4, 7, 9, 10], nrows=nrows, figsize=(14, 5), xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
 
-    plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(14, 4), xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
+    plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
 
-    plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(14,4.5), xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
+    plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
 
-    plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(13,4.5), xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
+    plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
 
-    plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+    plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
 
-    plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+    plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
 
     plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH)
 
@@ -309,25 +309,25 @@ np.array(sd_res_list).mean(0)
 
 element_nr = 1 #S
 
-visualise_min_max_intervals(outputs, 
-                            test_order, 
-                            ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
-                            min_max_df, 
-                            min_max_res_list, 
-                            element_nr=element_nr, 
-                            path_to_save=None)
+# visualise_min_max_intervals(outputs, 
+#                             test_order, 
+#                             ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
+#                             min_max_df, 
+#                             min_max_res_list, 
+#                             element_nr=element_nr, 
+#                             path_to_save=None)
 
 
 # Visualisations of mean +- 2 * standard deviation intervals
 
 
-visualise_mean_plus_minus_sd_intervals(outputs, 
-                                       test_order, 
-                                        ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
-                                       lower_bound_df, 
-                                       upper_bound_df, 
-                                       how_many_sd=2,
-                                       sd_res_list=sd_res_list, 
-                                       element_nr=element_nr, 
-                                       path_to_save=None)
+# visualise_mean_plus_minus_sd_intervals(outputs, 
+#                                        test_order, 
+#                                         ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
+#                                        lower_bound_df, 
+#                                        upper_bound_df, 
+#                                        how_many_sd=2,
+#                                        sd_res_list=sd_res_list, 
+#                                        element_nr=element_nr, 
+#                                        path_to_save=None)
 
