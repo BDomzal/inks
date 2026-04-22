@@ -524,6 +524,26 @@ def plot_correlation_heatmaps(outputs, labels, elements_to_keep, figsize=(12,5),
     plt.close(fig)
 
 
+def plot_correlation_heatmaps_for_target_data(prediction, elements_to_keep, dataset_name='', path_to_save=None):
+
+    def clustered_corr(data, method='average'):
+        corr = np.corrcoef(data, rowvar=False)
+        Z = linkage(corr, method=method)
+        order = leaves_list(Z)
+        return corr[order][:, order], order
+
+    corr_mat, order = clustered_corr(prediction)
+    order = [elements_to_keep[i] for i in order]
+    corr_mat = pd.DataFrame(corr_mat, columns=order, index=order)
+    sns.heatmap(corr_mat, annot=False, cmap='rocket_r', vmin=-1, vmax=1)
+
+    plt.tick_params(axis='both', which='major', labelbottom = False, bottom=False, top = True, labeltop=True)
+    if path_to_save:
+        plt.savefig(path_to_save + dataset_name + '_correlation_heatmap.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
+
+
 def plot_l2_error(outputs, labels, figsize=(10,6), path_to_save=None):
 
     l2_error = np.linalg.norm(outputs - labels, axis=1)
