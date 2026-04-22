@@ -46,6 +46,8 @@ The network was trained to minimize L1 loss function by AdamW optimizer with lea
 
 ### *Merkuriusz polski* encyclopedia
 
+<img width="456" height="720" alt="image" src="https://github.com/user-attachments/assets/b8896a6f-eb5d-4325-bc6c-e2bc7743a9df" />
+
 ### Artificial inks
 
 ### Training dataset
