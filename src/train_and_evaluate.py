@@ -10,7 +10,6 @@ import time
 import datetime
 from sklearn.metrics import confusion_matrix, r2_score, mean_absolute_error, mean_squared_error, accuracy_score, f1_score, precision_recall_fscore_support
 import seaborn as sns
-from seaborn import heatmap
 import json
 from matplotlib.pyplot import cm
 from matplotlib.lines import Line2D
@@ -479,7 +478,7 @@ def plot_error_boxplot(outputs, labels, elements_to_keep, dims_to_keep='all', fi
     ax = sns.boxplot(data=residuals_all)
     fig.text(0.52, 0.03, xlabel, ha='center', size=25)
     fig.text(0.05, 0.5, ylabel, va='center', rotation='vertical', size=25)
-    ax.set_xticklabels(elements_to_keep, size=25)
+    ax.set_xticklabels(elements_to_keep, size=10)
     ax.tick_params(axis='y', labelsize=5)
 
     if path_to_save:
@@ -504,7 +503,7 @@ def plot_error_violinplot(outputs, labels, elements_to_keep, dims_to_keep='all',
     ax = sns.violinplot(data=residuals_all)
     fig.text(0.52, 0.03, xlabel, ha='center', size=25)
     fig.text(0.05, 0.5, ylabel, va='center', rotation='vertical', size=25)
-    ax.set_xticklabels(elements_to_keep, size=25)
+    ax.set_xticklabels(elements_to_keep, size=10)
     ax.tick_params(axis='y', labelsize=5)
 
     if path_to_save:
@@ -528,6 +527,7 @@ def plot_correlation_heatmaps(outputs, labels, elements_to_keep, figsize=(12, 5)
     else:
         ax = sns.heatmap(np.corrcoef(labels, rowvar=False), annot=False, cmap='rocket_r')
 
+    ax.figure.axes[-1].yaxis.label.set_size(10)
     plt.tick_params(axis='both', which='major', labelbottom = False, bottom=False, top = True, labeltop=True)
 
     ax.set_xticklabels(elements_to_keep, size=10)
@@ -539,6 +539,7 @@ def plot_correlation_heatmaps(outputs, labels, elements_to_keep, figsize=(12, 5)
     else:
         ax = sns.heatmap(np.corrcoef(outputs, rowvar=False), annot=False, cmap='rocket_r')
 
+    ax.figure.axes[-1].yaxis.label.set_size(10)
     ax.set_xticklabels(elements_to_keep, size=10)
     ax.set_yticklabels(elements_to_keep, size=10)
 
@@ -575,14 +576,15 @@ def plot_correlation_heatmaps_for_target_data(prediction, elements_to_keep, data
 
 def plot_l2_error(outputs, labels, figsize=(10, 5), path_to_save=None):
 
-    l2_error = np.linalg.norm(outputs - labels, axis=1)
+    l2_error = np.sum(np.abs(outputs - labels), axis=1)
 
-    true_norm = np.linalg.norm(labels, axis=1)
+    true_norm = np.sum(np.abs(labels), axis=1)
 
     fig = plt.figure(figsize=figsize)
     plt.scatter(true_norm, l2_error, alpha=0.5)
     plt.xlabel("Sum of true magnitudes", size=25)
-    plt.ylabel("L2 error of prediction", size=25)
+    plt.ylabel("L1 error of prediction", size=25)
+    plt.tick_params(axis='both', labelsize=5)
 
     if path_to_save:
         plt.savefig(path_to_save+'global_error_vs_magnitude.png', dpi=300, bbox_inches="tight")
@@ -674,6 +676,9 @@ def plot_prf_distribution_subplots(y_true, y_pred, figsize=(16, 5), xlabel='Scor
     axes[2].hist(f1, bins=30)
     axes[2].set_xlabel("F1", size=25)
 
+    for ax in axes:
+        ax.tick_params(axis='both', labelsize=5)
+
     fig.text(0.5, 0.9, xlabel, ha='center', size=25)
     fig.text(0.05, 0.5, ylabel, va='center', rotation='vertical', size=25)
 
@@ -724,6 +729,9 @@ def plot_freq_vs_f1(y_true, y_pred, figsize=(16, 5), xlabel='Class frequency', p
     #axes[2].hist2d(freqs, f1, bins=30)
     axes[2].scatter(freqs, f1, alpha = 0.2, s=[0.7*len(freqs)])
     axes[2].set_ylabel("F1", size=25)
+
+    for ax in axes:
+        ax.tick_params(axis='both', labelsize=5)
 
     fig.text(0.5, 0.0, xlabel, ha='center', size=25)
     #fig.colorbar(label="Number of classes")
@@ -807,7 +815,8 @@ def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat
     conf_mat = confusion_matrix(true_labels, closest_labels, 
                                 normalize=normalization_in_conf_mat)
 
-    heatmap(conf_mat, cmap=sns.cm.rocket_r, xticklabels=False, yticklabels=False)
+    ax=sns.heatmap(conf_mat, cmap=sns.cm.rocket_r, xticklabels=False, yticklabels=False)
+    ax.figure.axes[-1].yaxis.label.set_size(10)
     plt.ylabel('True class', size=25)
     plt.xlabel("Prediction's closest class", size=25)
     plt.rcParams['figure.figsize'] = figsize
