@@ -17,6 +17,7 @@ from scipy.stats import probplot
 from scipy.cluster.hierarchy import linkage, leaves_list
 from sklearn.decomposition import PCA
 from collections import Counter
+from astropy.convolution import Gaussian2DKernel, convolve
 
 import torch.optim as optim
 import optuna
@@ -287,7 +288,7 @@ def plot_pred_vs_gt(outputs, labels, elements_to_keep, dims_to_keep='all', nrows
 
         text = f"R$^2$={metrics['r2'][i]:.2f} \nMAE={metrics['mae'][i]:.2f} \nRMSE={metrics['rmse'][i]:.2f}"
 
-        ax.text(min_val, max_val-(0.13*nrows)*(max_val-min_val), text)
+        ax.text(min_val, max_val-(0.10+0.16*(nrows-1))*(max_val-min_val), text)
         #ax.text(min_val, y_max_max-0.45*nrows, text)
 
         ax.set_title(title, size=10)
@@ -297,7 +298,7 @@ def plot_pred_vs_gt(outputs, labels, elements_to_keep, dims_to_keep='all', nrows
         axes[-1].set_axis_off()
 
     fig.text(0.52, 0.0, xlabel, ha='center', size=25)
-    fig.text(0.06, 0.55, ylabel, va='center', rotation='vertical', size=25)
+    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=25)
 
     #plt.tight_layout()
     if path_to_save:
@@ -345,7 +346,7 @@ def plot_residuals(outputs, labels, elements_to_keep, dims_to_keep='all', nrows=
         y_max = (y_pred-y_true).max()
         y_min = (y_pred-y_true).min()
         text = 'Mean residual: \n' + str(np.round(mean_res, 3))
-        ax.text(min_val, y_max_max-0.45*nrows, text)
+        ax.text(min_val, y_max_max-0.25-0.65*(nrows-1), text)
 
         ax.tick_params(axis='both', labelsize=5)
         ax.set_title(title, size=10)
@@ -353,8 +354,8 @@ def plot_residuals(outputs, labels, elements_to_keep, dims_to_keep='all', nrows=
     if nrows==2:
         axes[-1].set_axis_off()
 
-    fig.text(0.52, 0.0, xlabel, ha='center', size=25)
-    fig.text(0.06, 0.55, ylabel, va='center', rotation='vertical', size=25)
+    fig.text(0.5, 0.0, xlabel, ha='center', size=25)
+    fig.text(0.04, 0.5, ylabel, va='center', rotation='vertical', size=25)
 
     #plt.tight_layout()
     if path_to_save:
@@ -453,7 +454,7 @@ def plot_qq(outputs, labels, elements_to_keep, dims_to_keep='all', nrows=2, figs
         axes[-1].set_axis_off()
 
     fig.text(0.52, 0.0, xlabel, ha='center', size=25)
-    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=25)
+    fig.text(0.06, 0.5, ylabel, va='center', rotation='vertical', size=25)
 
     #plt.tight_layout()
     if path_to_save:
@@ -478,7 +479,7 @@ def plot_error_boxplot(outputs, labels, elements_to_keep, dims_to_keep='all', fi
     ax = sns.boxplot(data=residuals_all)
     fig.text(0.52, 0.03, xlabel, ha='center', size=25)
     fig.text(0.05, 0.5, ylabel, va='center', rotation='vertical', size=25)
-    ax.set_xticklabels(elements_to_keep, size=10)
+    ax.set_xticklabels(elements_to_keep, size=25)
     ax.tick_params(axis='y', labelsize=5)
 
     if path_to_save:
@@ -503,7 +504,7 @@ def plot_error_violinplot(outputs, labels, elements_to_keep, dims_to_keep='all',
     ax = sns.violinplot(data=residuals_all)
     fig.text(0.52, 0.03, xlabel, ha='center', size=25)
     fig.text(0.05, 0.5, ylabel, va='center', rotation='vertical', size=25)
-    ax.set_xticklabels(elements_to_keep, size=10)
+    ax.set_xticklabels(elements_to_keep, size=25)
     ax.tick_params(axis='y', labelsize=5)
 
     if path_to_save:
@@ -574,7 +575,7 @@ def plot_correlation_heatmaps_for_target_data(prediction, elements_to_keep, data
     plt.close(fig)
 
 
-def plot_l2_error(outputs, labels, figsize=(10, 5), path_to_save=None):
+def plot_l1_error(outputs, labels, figsize=(10, 5), path_to_save=None):
 
     l2_error = np.sum(np.abs(outputs - labels), axis=1)
 
@@ -588,6 +589,44 @@ def plot_l2_error(outputs, labels, figsize=(10, 5), path_to_save=None):
 
     if path_to_save:
         plt.savefig(path_to_save+'global_error_vs_magnitude.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
+
+def plot_l1_error_with_density(outputs, labels, figsize=(10, 5), path_to_save=None):
+
+    l2_error = np.sum(np.abs(outputs - labels), axis=1)
+
+    true_norm = np.sum(np.abs(labels), axis=1)
+
+    fig, ax = plt.subplots(1, figsize=(8, 5)) 
+
+    #ax.plot(true_norm[~inside], l2_error[~inside], 'bo', mfc='none')
+    ax.plot(true_norm, l2_error, 'bo', mfc='none')
+
+    H, xedges, yedges = np.histogram2d(true_norm, l2_error, bins=(50,40))
+    xmesh, ymesh = np.meshgrid(xedges[:-1], yedges[:-1])
+
+    kernel = Gaussian2DKernel(1.)
+    H = convolve(H, kernel)
+
+    levels = np.linspace(H.min(), H.max(), 10)
+    levels = levels[1:]  # skip the outermost (lowest) level
+
+    clevels = ax.contour(xmesh, ymesh, H.T, levels=levels, lw=.9, cmap='jet')
+
+    p = clevels.get_paths()
+    inside = np.full_like(true_norm, False, dtype=bool)
+    for level in p:
+    #     inside |= level.contains_points(zip(*(true_norm, l2_error)))
+        points = np.column_stack((true_norm, l2_error))
+        inside |= level.contains_points(points)
+
+    plt.xlabel("Sum of true magnitudes", size=25)
+    plt.ylabel("L1 error of prediction", size=25)
+    plt.tick_params(axis='both', labelsize=5)
+
+    if path_to_save:
+        plt.savefig(path_to_save+'global_error_vs_magnitude_with_density.png', dpi=300, bbox_inches="tight")
     plt.show()
     plt.close(fig)
 
@@ -810,7 +849,7 @@ def compute_precision_and_recall(outputs_df):
 def get_sample_number_in_group(original_labels):
     return np.array(original_labels.apply(lambda x: int(x.split('_')[-1])).values)
 
-def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, figsize=(7.5,5), path_to_save = None):
+def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, figsize=(7.5, 5), path_to_save = None):
 
     conf_mat = confusion_matrix(true_labels, closest_labels, 
                                 normalize=normalization_in_conf_mat)
