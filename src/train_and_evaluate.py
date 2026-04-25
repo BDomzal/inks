@@ -413,7 +413,7 @@ def plot_error_distributions(outputs, labels, elements_to_keep, dims_to_keep='al
     plt.show()
     plt.close(fig)
 
-def plot_qq(outputs, labels, elements_to_keep, dims_to_keep='all', nrows=2, figsize=(14, 5), xlabel='Theoretical quantiles', ylabel='Prediction \n quantiles', path_to_save=None):
+def plot_qq(outputs, labels, elements_to_keep, dims_to_keep='all', nrows=2, figsize=(16, 5), xlabel='Theoretical quantiles', ylabel='Prediction \n quantiles', path_to_save=None):
 
     if dims_to_keep == 'all':
         dims_to_keep = list(range(len(elements_to_keep)))
@@ -462,7 +462,7 @@ def plot_qq(outputs, labels, elements_to_keep, dims_to_keep='all', nrows=2, figs
     plt.show()
     plt.close(fig)
 
-def plot_error_boxplot(outputs, labels, elements_to_keep, dims_to_keep='all', figsize=(10, 5), xlabel='', ylabel='Residual', path_to_save=None):
+def plot_error_boxplot(outputs, labels, elements_to_keep, dims_to_keep='all', figsize=(12, 5), xlabel='', ylabel='Residual', path_to_save=None):
 
     if dims_to_keep == 'all':
         dims_to_keep = list(range(len(elements_to_keep)))
@@ -475,10 +475,10 @@ def plot_error_boxplot(outputs, labels, elements_to_keep, dims_to_keep='all', fi
 
     residuals_all = outputs - labels
 
-    fig = plt.figure(figsize=figsize)
-    ax = sns.boxplot(data=residuals_all)
+    fig, ax = plt.subplots(figsize=figsize)
+    sns.boxplot(data=residuals_all, ax=ax)
     fig.text(0.52, 0.03, xlabel, ha='center', size=25)
-    fig.text(0.05, 0.5, ylabel, va='center', rotation='vertical', size=25)
+    fig.text(0.07, 0.5, ylabel, va='center', rotation='vertical', size=25)
     ax.set_xticklabels(elements_to_keep, size=25)
     ax.tick_params(axis='y', labelsize=5)
 
@@ -487,7 +487,7 @@ def plot_error_boxplot(outputs, labels, elements_to_keep, dims_to_keep='all', fi
     plt.show()
     plt.close(fig)
 
-def plot_error_violinplot(outputs, labels, elements_to_keep, dims_to_keep='all', figsize=(10, 5), xlabel='', ylabel='Residual', path_to_save=None):
+def plot_error_violinplot(outputs, labels, elements_to_keep, dims_to_keep='all', figsize=(12, 5), xlabel='', ylabel='Residual', path_to_save=None):
 
     if dims_to_keep == 'all':
         dims_to_keep = list(range(len(elements_to_keep)))
@@ -500,10 +500,10 @@ def plot_error_violinplot(outputs, labels, elements_to_keep, dims_to_keep='all',
 
     residuals_all = outputs - labels
 
-    fig = plt.figure(figsize=figsize)
-    ax = sns.violinplot(data=residuals_all)
+    fig, ax = plt.subplots(figsize=figsize)
+    sns.violinplot(data=residuals_all, ax=ax)
     fig.text(0.52, 0.03, xlabel, ha='center', size=25)
-    fig.text(0.05, 0.5, ylabel, va='center', rotation='vertical', size=25)
+    fig.text(0.07, 0.5, ylabel, va='center', rotation='vertical', size=25)
     ax.set_xticklabels(elements_to_keep, size=25)
     ax.tick_params(axis='y', labelsize=5)
 
@@ -575,7 +575,7 @@ def plot_correlation_heatmaps_for_target_data(prediction, elements_to_keep, data
     plt.close(fig)
 
 
-def plot_l1_error(outputs, labels, figsize=(10, 5), path_to_save=None):
+def plot_l1_error(outputs, labels, figsize=(12, 5), path_to_save=None):
 
     l2_error = np.sum(np.abs(outputs - labels), axis=1)
 
@@ -592,13 +592,13 @@ def plot_l1_error(outputs, labels, figsize=(10, 5), path_to_save=None):
     plt.show()
     plt.close(fig)
 
-def plot_l1_error_with_density(outputs, labels, figsize=(10, 5), path_to_save=None):
+def plot_l1_error_with_density(outputs, labels, figsize=(12, 5), path_to_save=None):
 
     l2_error = np.sum(np.abs(outputs - labels), axis=1)
 
     true_norm = np.sum(np.abs(labels), axis=1)
 
-    fig, ax = plt.subplots(1, figsize=(8, 5)) 
+    fig, ax = plt.subplots(figsize=figsize)
 
     #ax.plot(true_norm[~inside], l2_error[~inside], 'bo', mfc='none')
     ax.plot(true_norm, l2_error, 'bo', mfc='none')
@@ -621,8 +621,8 @@ def plot_l1_error_with_density(outputs, labels, figsize=(10, 5), path_to_save=No
         points = np.column_stack((true_norm, l2_error))
         inside |= level.contains_points(points)
 
-    plt.xlabel("Sum of true magnitudes", size=25)
-    plt.ylabel("L1 error of prediction", size=25)
+    fig.text(0.52, 0.03, "Sum of true magnitudes", ha='center', size=25)
+    fig.text(0.07, 0.5, "L1 error of prediction", va='center', rotation='vertical', size=25)
     plt.tick_params(axis='both', labelsize=5)
 
     if path_to_save:
@@ -680,13 +680,15 @@ def plot_topk_confusion(y_true, y_pred, top_k=20, figsize=(7, 5), path_to_save=N
     y_true_k = y_true[mask]
     y_pred_k = y_pred[mask]
 
-    cm = confusion_matrix(y_true_k, y_pred_k, labels=top_classes)
-
     plt.figure(figsize=figsize)
-    plt.imshow(cm, cmap=sns.cm.rocket_r)
 
-    plt.title(f"Top-{top_k} confusion matrix", size=25)
-    plt.xlabel("Predicted class", size=25)
+    cm = confusion_matrix(y_true_k, y_pred_k, labels=top_classes)
+    ax=sns.heatmap(cm, cmap=sns.cm.rocket_r, xticklabels=False, yticklabels=False, cbar=True)
+
+    #plt.imshow(cm, cmap=sns.cm.rocket_r)
+
+    #plt.title(f"Top-{top_k} confusion matrix", size=25)
+    plt.xlabel("Prediction's closest class", size=25)
     plt.ylabel("True class", size=25)
     plt.xticks([])
     plt.yticks([])
@@ -719,32 +721,15 @@ def plot_prf_distribution_subplots(y_true, y_pred, figsize=(16, 5), xlabel='Scor
         ax.tick_params(axis='both', labelsize=5)
 
     fig.text(0.5, 0.9, xlabel, ha='center', size=25)
-    fig.text(0.05, 0.5, ylabel, va='center', rotation='vertical', size=25)
+    fig.text(0.09, 0.5, ylabel, va='center', rotation='vertical', size=25)
 
     if path_to_save:
         plt.savefig(path_to_save+'prec_rec_f1_distributions.png', dpi=300, bbox_inches="tight")
     plt.show()
     plt.close()
 
-def plot_error_distribution(y_true, y_pred, figsize=(16, 5), path_to_save=None):
-    errors = y_true[y_true != y_pred]
-    error_counts = Counter(errors)
 
-    sorted_counts = sorted(error_counts.values(), reverse=True)
-
-    plt.figure(figsize=figsize)
-    plt.plot(sorted_counts)
-    plt.title("Error distribution (long tail)")
-    plt.xlabel("Class rank")
-    plt.ylabel("Number of errors")
-
-    if path_to_save:
-        plt.savefig(path_to_save+'error_distribution_classification.png', dpi=300, bbox_inches="tight")
-    plt.show()
-    plt.close()
-
-def plot_freq_vs_f1(y_true, y_pred, figsize=(16, 5), xlabel='Class frequency', path_to_save=None):
-
+def plot_freq_vs_f1(y_true, y_pred, figsize=(15, 5), xlabel='Class frequency', path_to_save=None):
 
     counts = Counter(y_true)
     labels = np.unique(y_true)
@@ -849,16 +834,17 @@ def compute_precision_and_recall(outputs_df):
 def get_sample_number_in_group(original_labels):
     return np.array(original_labels.apply(lambda x: int(x.split('_')[-1])).values)
 
-def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, figsize=(7.5, 5), path_to_save = None):
+def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, figsize=(5.5, 5), path_to_save = None):
 
     conf_mat = confusion_matrix(true_labels, closest_labels, 
                                 normalize=normalization_in_conf_mat)
 
-    ax=sns.heatmap(conf_mat, cmap=sns.cm.rocket_r, xticklabels=False, yticklabels=False)
+    plt.figure(figsize=figsize)
+    ax=sns.heatmap(conf_mat, cmap=sns.cm.rocket_r, xticklabels=False, yticklabels=False, cbar=False)
     ax.figure.axes[-1].yaxis.label.set_size(10)
     plt.ylabel('True class', size=25)
     plt.xlabel("Prediction's closest class", size=25)
-    plt.rcParams['figure.figsize'] = figsize
+    #plt.rcParams['figure.figsize'] = figsize
     plt.title('', 
               size=20, 
               wrap=True)
