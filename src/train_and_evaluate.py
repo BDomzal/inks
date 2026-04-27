@@ -225,7 +225,7 @@ def compute_metrics(outputs, labels):
     assert outputs.shape == labels.shape
     n_dims = outputs.shape[1]
 
-    mae, rmse, r2, bias = [], [], [], []
+    mae, rmse, r2, bias, max_error = [], [], [], [], []
 
     for i in range(n_dims):
         y_true = labels[:, i]
@@ -235,6 +235,7 @@ def compute_metrics(outputs, labels):
         rmse.append(np.sqrt(mean_squared_error(y_true, y_pred)))
         r2.append(r2_score(y_true, y_pred))
         bias.append(np.mean(y_pred - y_true))
+        max_error.append(np.max(np.abs(y_pred - y_true)))
 
     l2_error = np.linalg.norm(outputs - labels, axis=1)
 
@@ -247,6 +248,7 @@ def compute_metrics(outputs, labels):
         "mean_rmse": float(np.mean(rmse)),
         "mean_r2": float(np.mean(r2)),
         "mean_l2": float(np.mean(l2_error)),
+        "max_error": np.array(max_error)
     }
 
     return summary

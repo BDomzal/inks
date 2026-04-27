@@ -1,6 +1,7 @@
 import sys
 sys.path.insert(1, '../src/')
 from data_utils import *
+from robustness_analysis import *
 from train_and_evaluate import *
 from model import *
 
@@ -66,238 +67,59 @@ loss_fn = CustomLoss(weights=weights)
 labels, outputs, difference, mean_loss = evaluate_on_test_set(model=model, 
                                                               test_loader=test_loader, 
                                                               loss_fn=loss_fn)
+labels = to_numpy(labels)
+outputs = to_numpy(outputs)
 
-# First five in group only
-# labels = labels[original_labels<=5]
-# outputs = outputs[original_labels<=5]
-# test_order = test_order[original_labels<=5]
+# ICE (Individual Conditional Expectation) profiles
 
-## Validation on test set (never seen by InksNet)
+out_idx = 0
+for element_nr in range(len(ELEMENTS_TO_KEEP)):
 
-# Consecutive inks from test set are in labels tensor:
-print('y_true:')
-print(labels)
+    grid, lek_profiles, ice_profiles = lek_profile_multi_output(model, X_test, element_nr)
 
-
-# Predictions are in outputs tensor:
-print('y_pred:')
-print(outputs)
-
-
-# Absolute value of difference between true values (labels) and prediction (outputs) are stored in difference tensor:
-print('Difference:')
-print(difference)
-
-difficult_cases_above = []
-diff_elements_above = dict()
-difficult_cases_below = []
-diff_elements_below = dict()
+    plot_ice_profiles(
+                        grid, 
+                        lek_profiles, 
+                        ice_profiles, 
+                        ELEMENTS_TO_KEEP, 
+                        xlabel = 'Input value for ' + ELEMENTS_TO_KEEP[element_nr], 
+                        ylabel='Predicted values', 
+                        path_to_save=FIGURES_PATH + 'ice_profiles_' + ELEMENTS_TO_KEEP[element_nr]
+                        )
 
 
-print('Mean of |y_pred/y_true|:')
-for i, element in enumerate(ELEMENTS_TO_KEEP):
-    #plt.plot(np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))
-    #plt.title(element)
-    #plt.axhline(0.8)
-    #plt.axhline(1.2)
-    #plt.show()
+# OOD (Out Of Distribution) Samples Analysis
 
-    print(element)
-    print('Fraction above 120%:')
-    print(((np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))>1.2).sum() / outputs.shape[0])
-    print('Fraction below 80%:')
-    print(((np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))<0.8).sum() / outputs.shape[0])
-    print('Mean deviation from 1:')
-    print(np.abs(1-(np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))).mean())
-    print('--------------------')
+results = get_ood_results(model, X_test, labels, ELEMENTS_TO_KEEP)
 
-    diff_i_above = np.array(test_order)[((np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))>1.2)]
-    diff_i_below = np.array(test_order)[((np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))<0.8)]
-    difficult_cases_above.append(diff_i_above)
-    difficult_cases_below.append(diff_i_below)
+#error degradation
+perturbation_names = [r["label"] for r in results]
+mae_means = [r["mae_mean"] for r in results]
+mae_stds = [r["mae_std"] for r in results]
+mae_all = np.array([r["mae_all"] for r in results]).T
 
+plot_ood_results(mae_means, mae_stds, perturbation_names, path_to_save=FIGURES_PATH)
+plot_ood_results_violin(mae_all, perturbation_names, path_to_save=FIGURES_PATH)
 
-print('Mean deviation from 1:')
-print(np.abs(1-(np.exp(to_numpy(outputs))/np.exp(to_numpy(labels)))).mean())
-
-above = (np.exp(to_numpy(outputs))/np.exp(to_numpy(labels)))>1.2
-below = (np.exp(to_numpy(outputs))/np.exp(to_numpy(labels)))<0.8
-
-# print('Mean number of protruding elements:')
-# print(np.logical_or(above, below).mean()*len(ELEMENTS_TO_KEEP))
-# print('Fraction of samples for which more than 50% of elements protrude:')
-# print(np.sum(np.logical_or(above, below).mean(axis=1)>0.5)/above.shape[0])
-# print('Which labels are difficult:')
-# difficult_indices = np.logical_or(above, below).mean(axis=1)>0.3
-# print(np.array(test_order)[difficult_indices])
-# print(np.array(test_order)[difficult_indices] + '_' + np.array(original_labels).astype('str')[difficult_indices])
-
-
-# plt.plot(np.exp(to_numpy(outputs)[1,:])/np.exp(to_numpy(labels)[1,:]))
-# plt.axhline(0.8)
-# plt.axhline(1.2)
+# plt.figure(figsize=(10, 5))
+# plt.errorbar(perturbation_names, means, yerr=stds, fmt='o')
+# plt.xticks(rotation=45)
+# plt.ylabel("MAE")
+# plt.title("Robustness under distribution shifts")
+# plt.grid(True)
+# plt.tight_layout()
 # plt.show()
 
-# difficult_cases = difficult_cases_above + difficult_cases_below
-# print(difficult_cases)
 
-# Mean loss:
-print('Mean loss:')
-print(mean_loss)
-
-# Loss on consecutive coordinates:
-print('Loss on consecutive coordinates:')
-print(torch.mean(difference, axis=0))
-# Consecutive coordinates correspond to: Al, S, Cr, Mn, Co, Cu, Zn, Pb, Fe, Mg.
-# Significance of elements: Cu >> Mn > Al > Zn > Pb > S > Cr > Co >> all the others.
-
-# BASIC DIAGNOSTIC PLOTS
-
-plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
-
-plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
-
-plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
-
-plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
-
-plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
-
-plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
-
-plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH)
-
-plot_l2_error(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
-
-plot_pca_projection(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
-
-
-# for element_nr, element in enumerate(ELEMENTS_TO_KEEP):
-#     visualise_prediction_against_true(outputs, labels, dimension=element_nr, xlabel='Logarithm of true value', ylabel='Logarithm of predicted value', title=element)
-
-
-# Quality of prediction: closest points
-
-# Creating df with means of classes
-
-ELEMENTS_TO_KEEP_NO_FE = [el for el in ELEMENTS_TO_KEEP if el != 'Fe']
-mean_df = create_means_df(ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, y_train.cpu(), train_order, y_val.cpu(), val_order)
-
-# Checking if there is any chance for it to work: if classes in y_test are close to means of classes in train_val set
-
-y_test_df, consistency = find_and_compare_closest_class(y_test.cpu(), test_order, ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, mean_df)
-print('For y_true, the fraction of samples for which the closest class center is the center of true class (a.k.a. accuracy) is equal to:')
-print(consistency)
-
-
-# Checking how it works for the neural network's output.
-
-model.eval()
-outputs = model(X_test)
-outputs_df, accuracy = find_and_compare_closest_class(outputs.cpu().detach().numpy(), test_order, ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, mean_df)
-
-print('Whereas for y_pred:')
-accuracy = compute_accuracy(outputs_df)
-
-# Checking precision and recall
-
-print('How about precision and recall?')
-precision, recall = compute_precision_and_recall(outputs_df)
-
-# CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 1
-
-y_true = outputs_df['Real sample_id']
-y_pred = outputs_df['Closest sample id']
-
-plot_topk_confusion(y_true, y_pred, top_k=20, path_to_save=FIGURES_PATH)
-
-plot_prf_distribution_subplots(y_true, y_pred, path_to_save=FIGURES_PATH)
-
-plot_freq_vs_f1(y_true, y_pred, path_to_save=FIGURES_PATH)
-
-
-# CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 2
-
-
-plot_confusion_matrix(true_labels = outputs_df['Real sample_id'], 
-                      closest_labels = outputs_df['Closest sample id'], 
-                      normalization_in_conf_mat = None, 
-                      path_to_save = FIGURES_PATH)
-
-
-# Quality of prediction: confidence intervals
-
-how_many_sd = 2
-
-model.eval()
-outputs = model(X_test)
-
-min_df, max_df, min_max_df = create_min_max_df(y_train.cpu(), 
-                                               train_order, 
-                                               y_val.cpu(), 
-                                               val_order, 
-                                               ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP)
-
-
-lower_bound_df, upper_bound_df = create_mean_plus_sd_df(y_train.cpu(), 
-                                                        train_order, 
-                                                        y_val.cpu(), 
-                                                        val_order, 
-                                                        ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
-                                                        how_many_sd=how_many_sd)
-
-
-min_max_res_list, fraction_1 = is_inside_interval(outputs, test_order, min_df, max_df)
-
-
-sd_res_list, fraction_2 = is_inside_interval(outputs, test_order, lower_bound_df, upper_bound_df)
-
-
-# Fraction of points inside min-max interval:
-
-print('Fraction of points inside min-max interval:')
-print(fraction_1)
-
-
-# On consecutive coordinates:
-
-np.array(min_max_res_list).mean(0)
-
-
-# Fraction of points inside mean +- how_many_sd standard deviations interval:
-
-print('Fraction of points inside mean +-' + str(how_many_sd) + 'standard deviations interval:')
-print(fraction_2)
-
-
-# On consecutive coordinates:
-
-np.array(sd_res_list).mean(0)
-
-
-# Visualisations of min-max intervals
-
-element_nr = 0 #Al
-
-# visualise_min_max_intervals(outputs, 
-#                             test_order, 
-#                             ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
-#                             min_max_df, 
-#                             min_max_res_list, 
-#                             element_nr=element_nr, 
-#                             path_to_save=None)
-
-
-# Visualisations of mean +- 2 * standard deviation intervals
-
-
-# visualise_mean_plus_minus_sd_intervals(outputs, 
-#                                        test_order, 
-#                                         ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
-#                                        lower_bound_df, 
-#                                        upper_bound_df, 
-#                                        how_many_sd=2,
-#                                        sd_res_list=sd_res_list, 
-#                                        element_nr=element_nr, 
-#                                        path_to_save=None)
-
+# fig, ax = plt.subplots(figsize=(12,5))
+# sns.violinplot(data=pd.DataFrame(mae_all, columns=perturbation_names))
+# #fig.text(0.52, 0.03, 'Input perturbation', ha='center', size=25)
+# fig.text(0.07, 0.5, 'MAE', va='center', rotation='vertical', size=25)
+# ax.set_xticklabels(perturbation_names, rotation=45)
+# ax.tick_params(axis='y', labelsize=5)
+# plt.show()
+
+# if path_to_save:
+#     plt.savefig(path_to_save+'error_violinplot.png', dpi=300, bbox_inches="tight")
+# plt.show()
+# plt.close(fig)

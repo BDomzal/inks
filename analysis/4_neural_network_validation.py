@@ -161,38 +161,42 @@ print(torch.mean(difference, axis=0))
 # Significance of elements: Cu >> Mn > Al > Zn > Pb > S > Cr > Co >> all the others.
 
 # BASIC DIAGNOSTIC PLOTS
-if mode == "training":
 
-    plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
+summary = compute_metrics(to_numpy(outputs), to_numpy(labels))
+print(summary)
 
-    plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
+# if mode == "training":
 
-    plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
+#     plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
 
-    plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
+#     plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
+
+#     plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
+
+#     plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
 
 
-if mode == "training_subset":
+# if mode == "training_subset":
 
-    plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=[1, 3, 4, 7, 9, 10], nrows=nrows, figsize=(14, 5), xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
+#     plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=[1, 3, 4, 7, 9, 10], nrows=nrows, figsize=(14, 5), xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
 
-    plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
+#     plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
 
-    plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
+#     plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
 
-    plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
+#     plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
 
-plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+# plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
 
-plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+# plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
 
-plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH)
+# plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH)
 
-plot_l1_error(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
+# plot_l1_error(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
 
-plot_l1_error_with_density(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
+# plot_l1_error_with_density(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
 
-plot_pca_projection(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
+# plot_pca_projection(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
 
 
 
@@ -234,20 +238,20 @@ precision, recall = compute_precision_and_recall(outputs_df)
 y_true = outputs_df['Real sample_id']
 y_pred = outputs_df['Closest sample id']
 
-plot_topk_confusion(y_true, y_pred, top_k=20, path_to_save=FIGURES_PATH)
+# plot_topk_confusion(y_true, y_pred, top_k=20, path_to_save=FIGURES_PATH)
 
-plot_prf_distribution_subplots(y_true, y_pred, path_to_save=FIGURES_PATH)
+# plot_prf_distribution_subplots(y_true, y_pred, path_to_save=FIGURES_PATH)
 
-plot_freq_vs_f1(y_true, y_pred, path_to_save=FIGURES_PATH)
+# plot_freq_vs_f1(y_true, y_pred, path_to_save=FIGURES_PATH)
 
 
 # CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 2
 
 
-plot_confusion_matrix(true_labels = outputs_df['Real sample_id'], 
-                      closest_labels = outputs_df['Closest sample id'], 
-                      normalization_in_conf_mat = None, 
-                      path_to_save = FIGURES_PATH)
+# plot_confusion_matrix(true_labels = outputs_df['Real sample_id'], 
+#                       closest_labels = outputs_df['Closest sample id'], 
+#                       normalization_in_conf_mat = None, 
+#                       path_to_save = FIGURES_PATH)
 
 
 # Quality of prediction: confidence intervals
