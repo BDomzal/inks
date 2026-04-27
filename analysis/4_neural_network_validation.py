@@ -9,7 +9,7 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-mode = "training_subset"
+mode = "training"
 
 PREPROCESSING_METHOD = config["preprocessing_method"]
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]

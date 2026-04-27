@@ -355,7 +355,7 @@ def plot_residuals(outputs, labels, elements_to_keep, dims_to_keep='all', nrows=
         axes[-1].set_axis_off()
 
     fig.text(0.5, 0.0, xlabel, ha='center', size=25)
-    fig.text(0.04, 0.5, ylabel, va='center', rotation='vertical', size=25)
+    fig.text(0.06, 0.5, ylabel, va='center', rotation='vertical', size=25)
 
     #plt.tight_layout()
     if path_to_save:
@@ -454,7 +454,7 @@ def plot_qq(outputs, labels, elements_to_keep, dims_to_keep='all', nrows=2, figs
         axes[-1].set_axis_off()
 
     fig.text(0.52, 0.0, xlabel, ha='center', size=25)
-    fig.text(0.06, 0.5, ylabel, va='center', rotation='vertical', size=25)
+    fig.text(0.08, 0.5, ylabel, va='center', rotation='vertical', size=25)
 
     #plt.tight_layout()
     if path_to_save:
@@ -700,7 +700,7 @@ def plot_topk_confusion(y_true, y_pred, top_k=20, figsize=(7, 5), path_to_save=N
     plt.close()
 
 
-def plot_prf_distribution_subplots(y_true, y_pred, figsize=(16, 5), xlabel='Score distribution', ylabel='Count', path_to_save=None):
+def plot_prf_distribution_subplots(y_true, y_pred, figsize=(16, 5), xlabel='', ylabel='Count', path_to_save=None):
 
     precision, recall, f1, _ = precision_recall_fscore_support(
         y_true, y_pred, average=None
@@ -834,13 +834,13 @@ def compute_precision_and_recall(outputs_df):
 def get_sample_number_in_group(original_labels):
     return np.array(original_labels.apply(lambda x: int(x.split('_')[-1])).values)
 
-def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, figsize=(5.5, 5), path_to_save = None):
+def plot_confusion_matrix(true_labels, closest_labels, normalization_in_conf_mat = None, figsize=(7, 5), path_to_save = None):
 
     conf_mat = confusion_matrix(true_labels, closest_labels, 
                                 normalize=normalization_in_conf_mat)
 
     plt.figure(figsize=figsize)
-    ax=sns.heatmap(conf_mat, cmap=sns.cm.rocket_r, xticklabels=False, yticklabels=False, cbar=False)
+    ax=sns.heatmap(conf_mat, cmap=sns.cm.rocket_r, xticklabels=False, yticklabels=False, cbar=True)
     ax.figure.axes[-1].yaxis.label.set_size(10)
     plt.ylabel('True class', size=25)
     plt.xlabel("Prediction's closest class", size=25)
