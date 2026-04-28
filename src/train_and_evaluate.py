@@ -112,10 +112,22 @@ def train_model_optuna(model, train_loader, val_loader, epochs, optimizer, loss_
     return model, train_losses, val_losses
 
 
-def visualise_losses(train_losses, val_losses):
-    plt.plot(train_losses);
-    plt.plot(val_losses);
+def visualise_losses(train_losses, val_losses, figsize=(12,5), path_to_save=None):
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    ax.plot(train_losses, label='training', alpha=0.5)
+    ax.plot(val_losses, label='validation', alpha=0.5)
+
+    fig.text(0.52, 0.03, "Epoch", ha='center', size=25)
+    fig.text(0.07, 0.5, "L1 error of prediction", va='center', rotation='vertical', size=25)
+    plt.tick_params(axis='both', labelsize=5)
+    plt.legend()
+
+    if path_to_save:
+        plt.savefig(path_to_save+'losses.png', dpi=300)
     plt.show()
+    plt.close(fig)
 
 
 def evaluate_on_test_set(model, test_loader, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):

@@ -69,6 +69,12 @@ labels, outputs, difference, mean_loss = evaluate_on_test_set(model=model,
                                                               loss_fn=loss_fn)
 labels = to_numpy(labels)
 outputs = to_numpy(outputs)
+inputs = to_numpy(X_test)
+
+# Error vs input feature
+
+plot_error_vs_input(inputs, outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep='all', nrows=2, figsize=(12,5), xlabel='Input value', ylabel='Error', path_to_save=FIGURES_PATH)
+
 
 # ICE (Individual Conditional Expectation) profiles
 

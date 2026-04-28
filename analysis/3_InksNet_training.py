@@ -3,6 +3,7 @@ sys.path.insert(1, '../src/')
 from data_utils import *
 from train_and_evaluate import *
 from model import *
+import time
 
 import json
 
@@ -47,12 +48,15 @@ loss_fn = CustomLoss(weights=weights)
 
 # Training the neural network 
 
+
+start = time.time()
 model, train_losses, val_losses = train_model(model=model,
                                               train_loader=train_loader,
                                               val_loader=val_loader,
                                               epochs=3000,
                                               loss_fn=loss_fn)
-
+stop=time.time()
+print('Training took: ' + str(stop-start) + ' seconds.')
 # Loss visualisation
 
 visualise_losses(train_losses, val_losses)
