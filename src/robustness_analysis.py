@@ -241,3 +241,4 @@ def plot_error_vs_input(inputs, outputs, labels, elements_to_keep, dims_to_keep=
         plt.savefig(path_to_save+'error_vs_input.png', dpi=300, bbox_inches="tight")
     plt.show()
     plt.close(fig)
+    

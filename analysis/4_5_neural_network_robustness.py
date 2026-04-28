@@ -78,7 +78,6 @@ plot_error_vs_input(inputs, outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep='all
 
 # ICE (Individual Conditional Expectation) profiles
 
-out_idx = 0
 for element_nr in range(len(ELEMENTS_TO_KEEP)):
 
     grid, lek_profiles, ice_profiles = lek_profile_multi_output(model, X_test, element_nr)
@@ -107,25 +106,48 @@ mae_all = np.array([r["mae_all"] for r in results]).T
 plot_ood_results(mae_means, mae_stds, perturbation_names, path_to_save=FIGURES_PATH)
 plot_ood_results_violin(mae_all, perturbation_names, path_to_save=FIGURES_PATH)
 
-# plt.figure(figsize=(10, 5))
-# plt.errorbar(perturbation_names, means, yerr=stds, fmt='o')
-# plt.xticks(rotation=45)
-# plt.ylabel("MAE")
-# plt.title("Robustness under distribution shifts")
-# plt.grid(True)
-# plt.tight_layout()
-# plt.show()
+# ARTIFICIAL INKS RESULTS
+
+# DATASET = "artificial_inks"
+
+# PREDICTION_PATH = config["prediction_path"][DATASET]
+# PREDICTION_INPUT_PATH = config["prediction_input_path"][DATASET]
+# INKS_ONLY_PATH = config["inks_only_path"][DATASET]
+
+# CMAP = plt.get_cmap('tab20')
+
+# # ## Loading the data
+
+# y_pred = load_prediction(PREDICTION_PATH, ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP)
+# y_pred = y_pred.values
+# print('Prediction')
+# print(y_pred.shape)
+
+# X = load_target_data(PREDICTION_INPUT_PATH)
+# X = X.values
+# print('Input')
+# print(X.shape)
+
+# y_true = load_prediction(INKS_ONLY_PATH, ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP)
+# y_true = y_true.values
+# print('True')
+# print(y_true.shape)
 
 
-# fig, ax = plt.subplots(figsize=(12,5))
-# sns.violinplot(data=pd.DataFrame(mae_all, columns=perturbation_names))
-# #fig.text(0.52, 0.03, 'Input perturbation', ha='center', size=25)
-# fig.text(0.07, 0.5, 'MAE', va='center', rotation='vertical', size=25)
-# ax.set_xticklabels(perturbation_names, rotation=45)
-# ax.tick_params(axis='y', labelsize=5)
-# plt.show()
+# plot_pred_vs_gt(y_pred, y_true, ELEMENTS_TO_KEEP, dims_to_keep='all', nrows=2, xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH+'artificial_inks/')
 
-# if path_to_save:
-#     plt.savefig(path_to_save+'error_violinplot.png', dpi=300, bbox_inches="tight")
-# plt.show()
-# plt.close(fig)
+# plot_residuals(y_pred, y_true, ELEMENTS_TO_KEEP, dims_to_keep='all', nrows=2, xlabel='Logarithmed true value', path_to_save=FIGURES_PATH+'artificial_inks/')
+
+# plot_error_distributions(y_pred, y_true, ELEMENTS_TO_KEEP, dims_to_keep='all', nrows=2, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH+'artificial_inks/')
+
+# plot_qq(y_pred, y_true, ELEMENTS_TO_KEEP, dims_to_keep='all', nrows=2, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH+'artificial_inks/')
+
+# plot_error_boxplot(y_pred, y_true, ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH+'artificial_inks/')
+
+# plot_error_violinplot(y_pred, y_true, ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH+'artificial_inks/')
+
+# plot_correlation_heatmaps(y_pred, y_true, ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH+'artificial_inks/')
+
+# plot_l1_error(y_pred, y_true, path_to_save=FIGURES_PATH+'artificial_inks/')
+
+# plot_l1_error_with_density(y_pred, y_true, path_to_save=FIGURES_PATH+'artificial_inks/')
