@@ -8,7 +8,7 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-DATASET = "artificial_inks"
+DATASET = "Merkuriusz"
 
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
 NORMALISATION_TO_FE = config["normalisation_to_Fe"]
@@ -37,33 +37,32 @@ X = np.array(df.values)
 
 # ### Heatmap - datasets separately
 
-# visualise_clustering_on_heatmap(X, y_true.values, ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, figures_path=FIGURES_PATH)
+visualise_clustering_on_heatmap(X, y_true.values, ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, figures_path=FIGURES_PATH)
 
 
 # # ### PCA - datasets separately
 
-# from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA
 
-# n_components = 2
-# pca = PCA(n_components=n_components)
-# X_pca = pca.fit_transform(X)
-
-
-# visualise_pca(X_pca, y_true, cmap=CMAP, figures_path=FIGURES_PATH + DATASET)
-
-# visualise_means_pca(X_pca, y_true, cmap=CMAP, figures_path=FIGURES_PATH + DATASET)
+n_components = 2
+pca = PCA(n_components=n_components)
+X_pca = pca.fit_transform(X)
 
 
-# # ### tSNE - datasets separately
+visualise_pca(X_pca, y_true, cmap=CMAP, figures_path=FIGURES_PATH + DATASET)
 
-# from sklearn.manifold import TSNE
+visualise_means_pca(X_pca, y_true, cmap=CMAP, figures_path=FIGURES_PATH + DATASET)
 
-# n_components = 2
-# tsne = TSNE(n_components=n_components, random_state=42)
-# X_tsne = tsne.fit_transform(X)
 
-# visualise_pca(X_tsne, y_true, cmap=CMAP, figures_path=FIGURES_PATH + DATASET, figures_name='tsne')
+# ### tSNE - datasets separately
 
+from sklearn.manifold import TSNE
+
+n_components = 2
+tsne = TSNE(n_components=n_components, random_state=42)
+X_tsne = tsne.fit_transform(X)
+
+visualise_pca(X_tsne, y_true, cmap=CMAP, figures_path=FIGURES_PATH + DATASET, figures_name='tsne')
 
 
 # ### PCA - all points
@@ -83,51 +82,51 @@ DATASETS = ['Konstytucja', 'corroded', 'Merkuriusz', 'Kopernik']
 
 CMAP = plt.get_cmap('tab20')
 
-# df, y_true = join_datasets_into_one(
-#                             DATASETS,
-#                             PREDICTION_PATH_DICT,
-#                             PREDICTION_INPUT_PATH_DICT,
-#                             ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP
-#                             )
+df, y_true = join_datasets_into_one(
+                            DATASETS,
+                            PREDICTION_PATH_DICT,
+                            PREDICTION_INPUT_PATH_DICT,
+                            ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP
+                            )
 
-# X = np.array(df.values)
-
-
-# from sklearn.decomposition import PCA
-
-# n_components = 4
-# pca = PCA(n_components=n_components)
-# X_pca = pca.fit_transform(X)
+X = np.array(df.values)
 
 
+from sklearn.decomposition import PCA
 
-# print(pca.explained_variance_ratio_)
-
-# print(pca.components_)
-
-
-# print(ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP)
-# # Most correlated
-# # Zn Cu Co > Mn / Al
-
-# print(y_true)
-
-# visualise_pca(X_pca, y_true, dimensions=[0,1], whether_sort=False, figures_path=FIGURES_PATH)
-
-# #visualise_means_pca(X_pca, y_true, cmap=CMAP, figures_path=FIGURES_PATH + 'pca_means')
+n_components = 4
+pca = PCA(n_components=n_components)
+X_pca = pca.fit_transform(X)
 
 
-# visualise_pca(X_pca, y_true, dimensions=[1, 2], whether_sort=False, figures_path=FIGURES_PATH)
+
+print(pca.explained_variance_ratio_)
+
+print(pca.components_)
 
 
-# from sklearn.manifold import TSNE
+print(ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP)
+# Most correlated
+# Zn Cu Co > Mn / Al
 
-# n_components = 2
-# tsne = TSNE(n_components=n_components, random_state=42)
-# X_tsne = tsne.fit_transform(X)
+print(y_true)
+
+visualise_pca(X_pca, y_true, dimensions=[0,1], whether_sort=False, figures_path=FIGURES_PATH)
+
+#visualise_means_pca(X_pca, y_true, cmap=CMAP, figures_path=FIGURES_PATH + 'pca_means')
 
 
-# visualise_pca(X_tsne, y_true, dimensions=[0, 1], whether_sort=False, figures_path=FIGURES_PATH, figures_name='tsne')
+visualise_pca(X_pca, y_true, dimensions=[1, 2], whether_sort=False, figures_path=FIGURES_PATH)
+
+
+from sklearn.manifold import TSNE
+
+n_components = 2
+tsne = TSNE(n_components=n_components, random_state=42)
+X_tsne = tsne.fit_transform(X)
+
+
+visualise_pca(X_tsne, y_true, dimensions=[0, 1], whether_sort=False, figures_path=FIGURES_PATH, figures_name='tsne')
 
 
 # dfs = load_prediction_list(DATASETS,

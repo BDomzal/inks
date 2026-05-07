@@ -95,60 +95,6 @@ print(outputs)
 print('Difference:')
 print(difference)
 
-difficult_cases_above = []
-diff_elements_above = dict()
-difficult_cases_below = []
-diff_elements_below = dict()
-
-
-print('Mean of |y_pred/y_true|:')
-for i, element in enumerate(ELEMENTS_TO_KEEP):
-    #plt.plot(np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))
-    #plt.title(element)
-    #plt.axhline(0.8)
-    #plt.axhline(1.2)
-    #plt.show()
-
-    print(element)
-    print('Fraction above 120%:')
-    print(((np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))>1.2).sum() / outputs.shape[0])
-    print('Fraction below 80%:')
-    print(((np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))<0.8).sum() / outputs.shape[0])
-    print('Mean deviation from 1:')
-    print(np.abs(1-(np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))).mean())
-    print('--------------------')
-
-    diff_i_above = np.array(test_order)[((np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))>1.2)]
-    diff_i_below = np.array(test_order)[((np.exp(to_numpy(outputs)[:,i])/np.exp(to_numpy(labels)[:,i]))<0.8)]
-    difficult_cases_above.append(diff_i_above)
-    difficult_cases_below.append(diff_i_below)
-
-
-print('Mean deviation from 1:')
-print(np.abs(1-(np.exp(to_numpy(outputs))/np.exp(to_numpy(labels)))).mean())
-
-above = (np.exp(to_numpy(outputs))/np.exp(to_numpy(labels)))>1.2
-below = (np.exp(to_numpy(outputs))/np.exp(to_numpy(labels)))<0.8
-
-print('Mean number of protruding elements:')
-print(np.logical_or(above, below).mean()*len(ELEMENTS_TO_KEEP))
-print('Fraction of samples for which more than 50% of elements protrude:')
-print(np.sum(np.logical_or(above, below).mean(axis=1)>0.5)/above.shape[0])
-print('Which labels are difficult:')
-difficult_indices = np.logical_or(above, below).mean(axis=1)>0.3
-print(np.array(test_order)[difficult_indices])
-print(np.array(test_order)[difficult_indices] + '_' + np.array(original_labels).astype('str')[difficult_indices])
-
-
-# plt.plot(np.exp(to_numpy(outputs)[1,:])/np.exp(to_numpy(labels)[1,:]))
-# plt.axhline(0.8)
-# plt.axhline(1.2)
-# plt.show()
-
-
-
-difficult_cases = difficult_cases_above + difficult_cases_below
-print(difficult_cases)
 
 # Mean loss:
 print('Mean loss:')
@@ -165,44 +111,36 @@ print(torch.mean(difference, axis=0))
 summary = compute_metrics(to_numpy(outputs), to_numpy(labels))
 print(summary)
 
-# if mode == "training":
+if mode == "training":
 
-#     plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
+    plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
 
-#     plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
+    plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
 
-#     plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
+    plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
 
-#     plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
-
-
-# if mode == "training_subset":
-
-#     plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=[1, 3, 4, 7, 9, 10], nrows=nrows, figsize=(14, 5), xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
-
-#     plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
-
-#     plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
-
-#     plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
-
-# plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
-
-# plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
-
-# plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH)
-
-# plot_l1_error(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
-
-# plot_l1_error_with_density(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
-
-# plot_pca_projection(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
+    plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
 
 
+if mode == "training_subset":
 
+    plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=[1, 3, 4, 7, 9, 10], nrows=nrows, figsize=(14, 5), xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
 
-# for element_nr, element in enumerate(ELEMENTS_TO_KEEP):
-#     visualise_prediction_against_true(outputs, labels, dimension=element_nr, xlabel='Logarithm of true value', ylabel='Logarithm of predicted value', title=element)
+    plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
+
+    plot_error_distributions(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
+
+    plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
+
+plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+
+plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+
+plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH)
+
+plot_l1_error(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
+
+plot_l1_error_with_density(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
 
 
 # Quality of prediction: closest points
@@ -238,20 +176,20 @@ precision, recall = compute_precision_and_recall(outputs_df)
 y_true = outputs_df['Real sample_id']
 y_pred = outputs_df['Closest sample id']
 
-# plot_topk_confusion(y_true, y_pred, top_k=20, path_to_save=FIGURES_PATH)
+plot_topk_confusion(y_true, y_pred, top_k=20, path_to_save=FIGURES_PATH)
 
-# plot_prf_distribution_subplots(y_true, y_pred, path_to_save=FIGURES_PATH)
+plot_prf_distribution_subplots(y_true, y_pred, path_to_save=FIGURES_PATH)
 
-# plot_freq_vs_f1(y_true, y_pred, path_to_save=FIGURES_PATH)
+plot_freq_vs_f1(y_true, y_pred, path_to_save=FIGURES_PATH)
 
 
 # CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 2
 
 
-# plot_confusion_matrix(true_labels = outputs_df['Real sample_id'], 
-#                       closest_labels = outputs_df['Closest sample id'], 
-#                       normalization_in_conf_mat = None, 
-#                       path_to_save = FIGURES_PATH)
+plot_confusion_matrix(true_labels = outputs_df['Real sample_id'], 
+                      closest_labels = outputs_df['Closest sample id'], 
+                      normalization_in_conf_mat = None, 
+                      path_to_save = FIGURES_PATH)
 
 
 # Quality of prediction: confidence intervals
@@ -302,31 +240,3 @@ print(fraction_2)
 # On consecutive coordinates:
 
 np.array(sd_res_list).mean(0)
-
-
-# Visualisations of min-max intervals
-
-element_nr = 1 #S
-
-# visualise_min_max_intervals(outputs, 
-#                             test_order, 
-#                             ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
-#                             min_max_df, 
-#                             min_max_res_list, 
-#                             element_nr=element_nr, 
-#                             path_to_save=None)
-
-
-# Visualisations of mean +- 2 * standard deviation intervals
-
-
-# visualise_mean_plus_minus_sd_intervals(outputs, 
-#                                        test_order, 
-#                                         ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
-#                                        lower_bound_df, 
-#                                        upper_bound_df, 
-#                                        how_many_sd=2,
-#                                        sd_res_list=sd_res_list, 
-#                                        element_nr=element_nr, 
-#                                        path_to_save=None)
-
