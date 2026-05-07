@@ -6,6 +6,7 @@ from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
 from matplotlib.lines import Line2D
+from matplotlib.colors import LogNorm, Normalize
 import seaborn as sns
 import math
 from collections import Counter
@@ -162,6 +163,14 @@ def normalise_to_Fe(any_df, elements_to_keep, remove_Fe=False, suffixes=['', '_i
         any_df = any_df.drop(columns=['Fe' + suffix for suffix in suffixes])
 
     return any_df
+
+def normalise_to_total(df):
+    df = np.exp(df)/(np.exp(df).sum(1)).values.reshape(-1,1)
+    return df
+
+def truncate_names(y_true):
+    y_true = y_true.apply(lambda x: re.split(r'(\d+|\.|UR)', x)[0] if x.startswith('Konstytucja') else x.split('_')[0])
+    return y_true
 
 
 def create_partition(inDKs_df, random_state=3):
@@ -755,7 +764,7 @@ def join_datasets_into_one(
 
     return df, y_true
 
-def visualise_clustering_on_heatmap(X, y, elements_to_keep, colormap=cm.tab20, figsize=(6,5), show_classes_names=False, show_legend=False, figures_path=None):
+def visualise_clustering_on_heatmap(X, y, elements_to_keep, colormap=cm.tab20, figsize=(6,5), show_classes_names=False, show_legend=False, row_cluster=True, col_cluster=True, figures_path=None):
 
     y_true = pd.Series(y)
     y_true = y_true.rename('          ')
@@ -777,12 +786,13 @@ def visualise_clustering_on_heatmap(X, y, elements_to_keep, colormap=cm.tab20, f
 
     cg = sns.clustermap(
         heatmap_df,
-        row_cluster=True,
-        col_cluster=True,
+        row_cluster=row_cluster,
+        col_cluster=col_cluster,
         row_colors=row_colors,
         dendrogram_ratio=0.1,
         colors_ratio=0.05,
         figsize=figsize,
+        norm=LogNorm(),
         cbar_pos=None
     )
 

@@ -150,9 +150,10 @@ df, y_true = join_datasets_into_one(
                             short_name=False
                             )
 
-df, y_true = groupby_and_get_mean_of_first_n(df, y_true)
+df = normalise_to_total(df)
+df, y_true = groupby_and_get_mean_of_first_n(df, y_true, n=10)
 
-y_true = y_true.apply(lambda x: re.split(r'(\d+|\.|UR)', x)[0] if x.startswith('Konstytucja') else x.split('_')[0])
+y_true = truncate_names(y_true)
 y_true = translate_names(y_true, OFFICIAL_NAMES_DICT)
 X = np.array(df.values)
 
@@ -161,6 +162,8 @@ visualise_selected_axis(
                         y_true,
                         ELEMENTS_TO_KEEP,
                         cmap=plt.get_cmap('Paired'),
+                        dimensions_horizontal = [1, 4, 7],
+                        dimensions_vertical = [8, 9, 10],
                         path_to_save=FIGURES_PATH
                         )
 
@@ -171,8 +174,12 @@ df, y_true = join_datasets_into_one(
                             ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP,
                             short_name=False
                             )
-y_true = y_true.apply(lambda x: re.split(r'(\d+|\.|UR)', x)[0] if x.startswith('Konstytucja') else x.split('_')[0])
+
+df = normalise_to_total(df)
+df, y_true = groupby_and_get_mean_of_first_n(df, y_true, n=10)
+
+y_true = truncate_names(y_true)
 y_true = translate_names(y_true, OFFICIAL_NAMES_DICT)
 X = np.array(df.values)
 
-visualise_clustering_on_heatmap(X, y_true.values, ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, colormap=cm.Paired, show_legend=True, figures_path=FIGURES_PATH)
+visualise_clustering_on_heatmap(X, y_true.values, ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, colormap=cm.Paired, col_cluster=False, show_legend=True, figures_path=FIGURES_PATH)
