@@ -143,6 +143,16 @@
 			"artificial_inks" : "../results/artificial_inks/artificial_inks.csv",
 			"training" : "../results/training/training_inks.csv"
 		  },
+		  
+"official_names" : {
+		"corroded" : "corroded",
+		"Konstytucja": "Constitution",
+		"Konstytucja_APP": "Constitution (APP book)",
+		"Konstytucja_ASC": "Constitution (ASC book)",
+		"Konstytucja_ML": "Constitution (ML book)",
+		"Merkuriusz" : "Merkuriusz polski",
+		"Kopernik" : "Copernicus' notes"
+		  },
 
 "n_std" : 0, 
 

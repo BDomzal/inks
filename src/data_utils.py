@@ -9,6 +9,7 @@ from matplotlib.lines import Line2D
 import seaborn as sns
 import math
 from collections import Counter
+import re
 
 class InksDataset(Dataset):
     def __init__(self, X, y):
@@ -595,6 +596,68 @@ def visualise_pca(X_low_dim, y,
         plt.savefig(figures_path + '_' + figures_name + '_' + 'PC' + str(dimensions[0]+1) + '_' + 'PC' + str(dimensions[1]+1) + '.png')
     plt.show()
 
+def groupby_and_get_mean_of_first_n(df, y_true, n=5):
+
+    df['Label'] = y_true
+    #df = df.groupby('Label').agg('mean')
+    df = df.groupby('Label').agg(lambda x: x[:n].mean())
+
+    y_true = pd.Series(df.index)
+    df.reset_index(inplace=True, drop=True)
+
+    return df, y_true
+
+def translate_names(current_names, official_names_dict):
+    return current_names.apply(lambda x: official_names_dict[x])
+
+def visualise_selected_axis(
+                            X, y,
+                            elements_to_keep,
+                            dimensions_horizontal = [1, 4, 7],
+                            dimensions_vertical = [8, 9, 10],
+                            figsize=(7, 5),
+                            cmap=plt.get_cmap('tab20'),
+                            annotate = False,
+                            whether_sort = True,
+                            path_to_save=None):
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    colors = cmap(np.linspace(0, 0.99, y.nunique()))
+
+    if whether_sort:
+        sorted_labels = sorted(y.unique())
+    else:
+        sorted_labels = y.unique()
+
+    color_dict = dict((key, value) for key, value in zip(sorted_labels, colors))
+    color_dict['corroded'] = [1., 0., 0., 1.]
+    legend_elements = [Line2D([0], [0], color='w', marker='o', markerfacecolor=color_dict[label],
+                                                  label=label, markersize=15) for label in sorted_labels]
+    
+    x_h = [sum([X[i, j] for j in dimensions_horizontal]) for i in range(X.shape[0])]
+    x_v = [sum([X[i, j] for j in dimensions_vertical]) for i in range(X.shape[0])]
+    y_colors = np.array([color_dict[el] for el in y])
+
+    xlabel_text = ' + '.join([elements_to_keep[j] for j in dimensions_horizontal])
+    ylabel_text = ' + '.join([elements_to_keep[j] for j in dimensions_vertical])
+
+    plt.scatter(x_h, x_v, marker='o', s=100, color=y_colors)
+    plt.legend(handles=legend_elements, prop={'size': 8})
+            
+    fig.text(0.52, 0.03, xlabel_text, ha='center', size=25)
+    fig.text(0.07, 0.5, ylabel_text, va='center', rotation='vertical', size=25)
+    plt.tick_params(axis='both', labelsize=5)
+
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+
+    if path_to_save:
+        plt.savefig(path_to_save+'low_dimensional.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
+
+
 # def visualise_pca_with_split_labels(X_low_dim, y,
 #                                     dimensions = [0, 1],
 #                                     method_name = 'pca',
@@ -692,10 +755,10 @@ def join_datasets_into_one(
 
     return df, y_true
 
-def visualise_clustering_on_heatmap(X, y, elements_to_keep, figures_path=None, show_classes_names=False):
+def visualise_clustering_on_heatmap(X, y, elements_to_keep, colormap=cm.tab20, figsize=(6,5), show_classes_names=False, show_legend=False, figures_path=None):
 
     y_true = pd.Series(y)
-    y_true = y_true.rename('ID')
+    y_true = y_true.rename('          ')
 
     heatmap_df = pd.DataFrame(
         data=X,
@@ -703,9 +766,11 @@ def visualise_clustering_on_heatmap(X, y, elements_to_keep, figures_path=None, s
         index=np.arange(len(y_true))
     )
 
-    colors = cm.tab20(np.linspace(0, 0.99, y_true.nunique()))
+    colors = colormap(np.linspace(0, 0.99, y_true.nunique()))
     sorted_labels = sorted(y_true.unique())
     color_dict = dict((key, value) for key, value in zip(sorted_labels, colors))
+    if 'corroded' in sorted_labels:
+        color_dict['corroded'] = [1., 0., 0., 1.]
 
     row_colors = y_true.map(color_dict)
     row_colors.index = heatmap_df.index
@@ -717,7 +782,7 @@ def visualise_clustering_on_heatmap(X, y, elements_to_keep, figures_path=None, s
         row_colors=row_colors,
         dendrogram_ratio=0.1,
         colors_ratio=0.05,
-        figsize=(7, 7),
+        figsize=figsize,
         cbar_pos=None
     )
 
@@ -726,6 +791,7 @@ def visualise_clustering_on_heatmap(X, y, elements_to_keep, figures_path=None, s
 
     ax = cg.ax_heatmap
     ax.yaxis.set_ticks([])
+    ax.tick_params(axis='both', labelsize=25, rotation=90)
 
     # Row order after clustering
     row_order = cg.dendrogram_row.reordered_ind
@@ -742,8 +808,11 @@ def visualise_clustering_on_heatmap(X, y, elements_to_keep, figures_path=None, s
     tick_pos = (block_starts + block_ends) / 2
     tick_labels = labels[block_starts]
 
-
     ax = cg.ax_row_colors
+
+    if show_legend:
+        markers = [plt.Line2D([0,0],[0,0],color=color, marker='o', markersize=12, linestyle='') for color in color_dict.values()]
+        plt.legend(markers, color_dict.keys(), numpoints=1)
 
     if show_classes_names:
         ax.set_yticks(tick_pos)
