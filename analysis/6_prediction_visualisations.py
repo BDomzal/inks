@@ -65,7 +65,7 @@ X_tsne = tsne.fit_transform(X)
 visualise_pca(X_tsne, y_true, cmap=CMAP, figures_path=FIGURES_PATH + DATASET, figures_name='tsne')
 
 
-# ### PCA - all points
+# ### PCA - all points (no proportions!)
 
 ELEMENTS_TO_KEEP = config["elements_to_keep"]
 ELEMENTS_TO_KEEP_NO_FE = [el for el in ELEMENTS_TO_KEEP if el != 'Fe']
@@ -115,7 +115,6 @@ visualise_pca(X_pca, y_true, dimensions=[0,1], whether_sort=False, figures_path=
 
 #visualise_means_pca(X_pca, y_true, cmap=CMAP, figures_path=FIGURES_PATH + 'pca_means')
 
-
 visualise_pca(X_pca, y_true, dimensions=[1, 2], whether_sort=False, figures_path=FIGURES_PATH)
 
 
@@ -140,6 +139,8 @@ visualise_pca(X_tsne, y_true, dimensions=[0, 1], whether_sort=False, figures_pat
 
 
 # Figure 3 in paper
+
+# PCA-like plot: selected elements
 
 df, y_true = join_datasets_into_one(
                             DATASETS,
@@ -166,6 +167,8 @@ visualise_selected_axis(
                         path_to_save=FIGURES_PATH
                         )
 
+# Heatmap with clustering
+
 df, y_true = join_datasets_into_one(
                             DATASETS,
                             PREDICTION_PATH_DICT,
@@ -182,3 +185,49 @@ y_true = translate_names(y_true, OFFICIAL_NAMES_DICT)
 X = np.array(df.values)
 
 visualise_clustering_on_heatmap(X, y_true.values, ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, colormap=cm.Paired, col_cluster=False, show_legend=True, figures_path=FIGURES_PATH)
+
+# PCA plot
+
+df, y_true = join_datasets_into_one(
+                            DATASETS,
+                            PREDICTION_PATH_DICT,
+                            PREDICTION_INPUT_PATH_DICT,
+                            ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP,
+                            short_name=False
+                            )
+
+df = normalise_to_total(df)
+df, y_true = groupby_and_get_mean_of_first_n(df, y_true, n=10)
+
+y_true = truncate_names(y_true)
+y_true = translate_names(y_true, OFFICIAL_NAMES_DICT)
+X = np.array(df.values)
+
+X = np.array(df.values)
+
+
+n_components = 4
+pca = PCA(n_components=n_components)
+X_pca = pca.fit_transform(X)
+
+
+print(pca.explained_variance_ratio_)
+
+print(pca.components_)
+
+
+print(ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP)
+# Most correlated
+# Zn Cu Co > Mn / Al
+
+print(y_true)
+
+visualise_selected_axis(
+                        X_pca, 
+                        y_true,
+                        ['PC1', 'PC2', 'PC3', 'PC4'],
+                        cmap=plt.get_cmap('Paired'),
+                        dimensions_horizontal = [0],
+                        dimensions_vertical = [1],
+                        path_to_save=FIGURES_PATH + 'pca_'
+                        )
