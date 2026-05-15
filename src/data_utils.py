@@ -769,7 +769,7 @@ def join_datasets_into_one(
 
     return df, y_true
 
-def visualise_clustering_on_heatmap(X, y, elements_to_keep, colormap=cm.tab20, figsize=(6,5), dendrogram_ratio=0.1, show_classes_names=False, show_legend=False, row_cluster=True, col_cluster=True, figures_path=None):
+def visualise_clustering_on_heatmap(X, y, elements_to_keep, colormap=cm.tab20, figsize=(6,5), cbar_pos=None, dendrogram_ratio=0.1, show_classes_names=False, show_legend=False, row_cluster=True, col_cluster=True, figures_path=None):
 
     y_true = pd.Series(y)
     y_true = y_true.rename('          ')
@@ -798,7 +798,7 @@ def visualise_clustering_on_heatmap(X, y, elements_to_keep, colormap=cm.tab20, f
         colors_ratio=0.05,
         figsize=figsize,
         norm=LogNorm(),
-        cbar_pos=None
+        cbar_pos=cbar_pos
     )
 
     #cg.ax_row_dendrogram.set_visible(False)

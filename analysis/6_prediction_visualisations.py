@@ -184,7 +184,15 @@ y_true = truncate_names(y_true)
 y_true = translate_names(y_true, OFFICIAL_NAMES_DICT)
 X = np.array(df.values)
 
-visualise_clustering_on_heatmap(X, y_true.values, ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, colormap=cm.Paired, dendrogram_ratio=0.2, col_cluster=False, show_legend=False, figures_path=FIGURES_PATH)
+visualise_clustering_on_heatmap(X, 
+                                y_true.values, 
+                                ELEMENTS_TO_KEEP_NO_FE if NORMALISATION_TO_FE else ELEMENTS_TO_KEEP, 
+                                colormap=cm.Paired, 
+                                cbar_pos=(0.02, 0.15, 0.05, 0.18), 
+                                dendrogram_ratio=0.2, 
+                                col_cluster=False, 
+                                show_legend=False, 
+                                figures_path=FIGURES_PATH)
 
 # PCA plot
 

@@ -147,9 +147,9 @@
 "official_names" : {
 		"corroded" : "corroded",
 		"Konstytucja": "Constitution",
-		"Konstytucja_APP": "Constitution (APP book)",
-		"Konstytucja_ASC": "Constitution (ASC book)",
-		"Konstytucja_ML": "Constitution (ML book)",
+		"Konstytucja_APP": "Constitution (APP volume)",
+		"Konstytucja_ASC": "Constitution (ASC volume)",
+		"Konstytucja_ML": "Constitution (ML volume)",
 		"Merkuriusz" : "Merkuriusz polski",
 		"Kopernik" : "Copernicus' notes"
 		  },
