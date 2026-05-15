@@ -8,7 +8,7 @@ This repository contains code and datasets used in the study of iron-gall inks i
 
 <img align="right" alt="księga_rachunkowa_z_tłem" src="https://github.com/user-attachments/assets/6b3cccf2-a400-4cfb-8bf8-e4ee8a0e28e0" style="width:27%; height:auto;" />
 
-Iron-gall ink is the most common and widespread agent used in handwrting in Europe for almost ten centuries. 
+Iron-gall ink is the most common and widespread agent used in handwriting in Europe for almost ten centuries. 
 
 Due to the lack of universal preparation procedure, the ink composition varies greatly across manuscripts, regions and ages.
 
@@ -71,7 +71,11 @@ The aforementioned datasets are located in `data/` folder. To fully reproduce ou
 
 ## Web application
 
-LA-ICP-MS data from indicator papers require specialised, multi-step preprocessing that extracts valuable information. To facilitate this process, we created a web application called tINKer. To use it, go HERE. tINKer enables uploading your own data, performing LA-ICP-MS-specific preprocessing, running InksNet on the obtained input, and downloading the prediction.
+LA-ICP-MS data from indicator papers require specialised, multi-step preprocessing that extracts valuable information. To facilitate this process, we created a web application called tINKer. To use it, go [HERE](https://bioputer.mimuw.edu.pl/tinker/main). tINKer enables uploading your own data, performing LA-ICP-MS-specific preprocessing, running InksNet on the obtained input, and downloading the prediction.
+
+## Acknowledgements
+
+This work was supported by the Polish National Science Centre grants: Spectral Analysis of Legacy Inks using machiNe leArning: ALiNA (2021/41/B/ST4/02860) and Optimal-transport based algorithms for Mass Spectrometry and NMR (2021/41/B/ST6/03526). Funding for access to the Reference Material Collections of the Heritage Science Laboratory at the University of Ljubljana was provided through I0-E012 (Slovenian Research and Innovation Agency).
 
 ## Citing
 
