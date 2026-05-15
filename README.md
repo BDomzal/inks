@@ -1,18 +1,18 @@
 # InksNet: studying historical manuscripts with AI
 
-This repository contains code and datasets used in the study of iron-gall inks in historical manuscripts by InksNet neural network, laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) and bathophenanthroline-soaked indicator papers.
+This repository contains code and datasets used in the study of iron gall inks in historical manuscripts by InksNet neural network, laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) and bathophenanthroline-soaked indicator papers.
 
 ## Background
 
-### Iron-gall ink
+### Iron gall ink
 
 <img align="right" alt="księga_rachunkowa_z_tłem" src="https://github.com/user-attachments/assets/6b3cccf2-a400-4cfb-8bf8-e4ee8a0e28e0" style="width:27%; height:auto;" />
 
-Iron-gall ink is the most common and widespread agent used in handwriting in Europe for almost ten centuries. 
+Iron gall ink is the most common and widespread agent used in handwriting in Europe for almost ten centuries. 
 
 Due to the lack of universal preparation procedure, the ink composition varies greatly across manuscripts, regions and ages.
 
-In favourable cases, the insight into the elemental composition of iron-gall inks can support formulation of new hypotheses about time, autorship and circumstances of manuscript creation process.
+In favourable cases, the insight into the elemental composition of iron gall inks can support formulation of new hypotheses about time, autorship and circumstances of manuscript creation process.
 
 ### LA-ICP-MS and indicator papers
 
@@ -31,7 +31,7 @@ With this method, one can transfer small amounts of ink onto the paper without d
 
 InksNet is a feed-forward neural network predicting the elemental composition of an ink based on the LA-ICP-MS measurements of bathophenanthroline-soaked papers. 
 
-The input and output are vectors of length 11, corresponding to 11 crucial elements present in iron-gall inks (Al, S, Mn, Co, Cu, Zn, Pb, Fe, Mg, Na, K).
+The input and output are vectors of length 11, corresponding to 11 crucial elements present in iron gall inks (Al, S, Mn, Co, Cu, Zn, Pb, Fe, Mg, Na, K).
 
 InksNet has 6 hidden linear layers with sizes : 93, 586, 660, 743, 105, 893, each followed by activation function GeLU and dropout with probability of approx. 0.08. 
 
@@ -63,7 +63,7 @@ This additional dataset contains contemporary, hand-made inks with atypical comp
 
 ### Training dataset
 
-The original fragments of archival manuscripts written with iron-gall inks were investigated for the purpose of constructing dataset used for training the neural network. Manuscript fragments were obtained from the Central Archives of Historical Records in Warsaw, Reference Material Collection of the Heritage Science Laboratory in Ljubljana, and private collections. They belonged to archives with various origins and dating, therefore allowing to reflect the potential diversity of ink composition and preservation state.
+The original fragments of archival manuscripts written with iron gall inks were investigated for the purpose of constructing dataset used for training the neural network. Manuscript fragments were obtained from the Central Archives of Historical Records in Warsaw, Reference Material Collection of the Heritage Science Laboratory in Ljubljana, and private collections. They belonged to archives with various origins and dating, therefore allowing to reflect the potential diversity of ink composition and preservation state.
 
 ## Repository
 
