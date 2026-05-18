@@ -654,10 +654,11 @@ def visualise_selected_axis(
     plt.scatter(x_h, x_v, marker='o', s=100, color=y_colors)
     plt.legend(handles=legend_elements, prop={'size': 8})
     #OPTIONAL ANNOTATION
-    # for i, txt in enumerate(y):
-    #     x_h = sum([X[i, j] for j in dimensions_horizontal])
-    #     x_v = sum([X[i, j] for j in dimensions_vertical])
-        # ax.annotate(txt, (x_h, x_v))
+    if annotate:
+        for i, txt in enumerate(y):
+            x_h = sum([X[i, j] for j in dimensions_horizontal])
+            x_v = sum([X[i, j] for j in dimensions_vertical])
+            ax.annotate(txt, (x_h, x_v))
             
     fig.text(0.52, 0.03, xlabel_text, ha='center', size=25)
     fig.text(0.07, 0.5, ylabel_text, va='center', rotation='vertical', size=25)
