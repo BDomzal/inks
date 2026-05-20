@@ -190,7 +190,7 @@ visualise_clustering_on_heatmap(X,
                                 colormap=cm.Paired, 
                                 cbar_pos=(0.02, 0.15, 0.05, 0.18), 
                                 dendrogram_ratio=0.2, 
-                                col_cluster=False, 
+                                col_cluster=True, 
                                 show_legend=False, 
                                 figures_path=FIGURES_PATH)
 
