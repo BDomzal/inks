@@ -48,7 +48,9 @@
 		"artificial_inks" : "../figures/artificial_inks/",
 		"training" : "../figures/training/",
 		"training_subset" : "../figures/training_subset/",
-		"robustness" : "../figures/robustness/"
+		"robustness" : "../figures/robustness/",
+		"benchmark_rf" : "../figures/benchmark_rf/",
+		"benchmark_sur" : "../figures/benchmark_sur/"
 		},
 
 "models_path" : "../models/optuna_l1_71_3000",
