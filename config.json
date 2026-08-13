@@ -4,7 +4,7 @@
 
 "how_many_outer_to_remove" : 0,
 
-"dropout_prob" : 0.08145514656707054,
+"dropout_prob" : 0.1,
 
 "normalisation_to_Fe" : false,
 
@@ -50,18 +50,19 @@
 		"training_subset" : "../figures/training_subset/",
 		"robustness" : "../figures/robustness/",
 		"benchmark_rf" : "../figures/benchmark_rf/",
+		"benchmark_xgboost" : "../figures/benchmark_xgboost/",
 		"benchmark_sur" : "../figures/benchmark_sur/"
 		},
 
-"models_path" : "../models/optuna_l1_71_3000",
+"models_path" : "../models/current_best",
 		
 "prediction_path" : {
-			"corroded" : "../results/corroded/prediction_for_new_dataset_from_optuna_l1_71_3000",
-			"Konstytucja" : "../results/Konstytucja/prediction_for_new_dataset_from_optuna_l1_71_3000",
-			"Merkuriusz" : "../results/Merkuriusz/prediction_for_new_dataset_from_optuna_l1_71_3000",
-			"Kopernik" : "../results/Kopernik/prediction_for_new_dataset_from_optuna_l1_71_3000",
-			"artificial_inks" : "../results/artificial_inks/prediction_for_new_dataset_from_optuna_l1_71_3000",
-			"training" : "../results/training/prediction_for_new_dataset_from_optuna_l1_71_3000"
+			"corroded" : "../results/corroded/prediction_for_new_dataset_from_current_best",
+			"Konstytucja" : "../results/Konstytucja/prediction_for_new_dataset_from_current_best",
+			"Merkuriusz" : "../results/Merkuriusz/prediction_for_new_dataset_from_current_best",
+			"Kopernik" : "../results/Kopernik/prediction_for_new_dataset_from_current_best",
+			"artificial_inks" : "../results/artificial_inks/prediction_for_new_dataset_from_current_best",
+			"training" : "../results/training/prediction_for_new_dataset_from_current_best"
 			},
 
 		

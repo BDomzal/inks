@@ -9,7 +9,7 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-mode = "benchmark_sur"
+mode = "benchmark_xgboost"
 
 PREPROCESSING_METHOD = config["preprocessing_method"]
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
@@ -41,7 +41,8 @@ train_loader, val_loader, test_loader, data_list, original_labels = prepare_trai
                                                                         preprocessing_method = PREPROCESSING_METHOD, 
                                                                         return_data=True,
                                                                         normalisation_to_Fe=NORMALISATION_TO_FE,
-                                                                        return_original_labels=True
+                                                                        return_original_labels=True,
+                                                                        random_state=3
                                                                         )
 
 original_labels = get_sample_number_in_group(original_labels)
@@ -56,6 +57,7 @@ if mode == "benchmark_rf":
     # Random Forest Regressor
     RF_regressor = RandomForestRegressor(
                                         n_estimators=100,
+                                        criterion='absolute_error',
                                         random_state=3,
                                         oob_score=True
                                         )
@@ -65,10 +67,21 @@ if mode == "benchmark_rf":
     # Prediction on test set
     outputs = RF_regressor.predict(X_test)
 
+
+elif mode == "benchmark_xgboost":
+    
+    xgboost_model = XGBRegressor(
+        multi_strategy="multi_output_tree"
+    )
+
+    xgboost_model.fit(X_train, y_train) 
+    outputs = xgboost_model.predict(X_test)
+
 elif mode == "benchmark_sur":
 
-    outputs = np.mean(X_test, axis=0)
-    outputs = np.tile(outputs, (y_test.shape[0], 1))
+    outputs = X_test
+    # outputs = np.mean(X_test, axis=0)
+    # outputs = np.tile(outputs, (y_test.shape[0], 1))
 
 labels = y_test
 difference = abs(outputs-labels)

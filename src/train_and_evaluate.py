@@ -55,8 +55,9 @@ def train_one_epoch(model, loader, loss_fn, optimizer):
 
 def train_model(model, train_loader, val_loader, epochs, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
 
-    #optimizer = torch.optim.AdamW(model.parameters(), lr=0.001)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=0.000917009720506624, weight_decay=3.0268226950713e-08)
+    #optimizer = torch.optim.AdamW(model.parameters(), lr=0.000917009720506624, weight_decay=3.0268226950713e-08) #optuna_l1_71_3000
+    optimizer = torch.optim.AdamW(model.parameters(), lr=8.184633313770491e-05, weight_decay=6.411548994103367e-05)
+
 
     model, train_losses, val_losses = train_model_optuna(model=model,
                                                         train_loader=train_loader,
@@ -73,6 +74,7 @@ def train_model_optuna(model, train_loader, val_loader, epochs, optimizer, loss_
     epoch_number = 0
 
     train_losses = []
+    corrected_train_losses = []
     val_losses = []
 
     for epoch in range(epochs):
@@ -101,15 +103,29 @@ def train_model_optuna(model, train_loader, val_loader, epochs, optimizer, loss_
         
         avg_vloss = float(running_vloss / len(val_loader))
 
+        ########
+        corrected_running_loss = 0.0
+        with torch.no_grad():
+            for i, tdata in enumerate(train_loader):
+                inputs, labels = tdata
+                outputs = model(inputs)
+                loss = loss_fn(outputs, labels)
+                corrected_running_loss += loss.item()
+        corrected_avg_running_loss = float(corrected_running_loss / len(train_loader))
+        #########
+
         if epoch % 50 == 0:
-            print('LOSS train {} test {}'.format(avg_loss, avg_vloss))
+            #print('LOSS train {} test {}'.format(avg_loss, avg_vloss))
+            print('LOSS train {} test {}'.format(corrected_avg_running_loss, avg_vloss))
         
         train_losses.append(avg_loss)
+        corrected_train_losses.append(corrected_avg_running_loss)
         val_losses.append(avg_vloss)
 
         epoch_number += 1
 
-    return model, train_losses, val_losses
+    #return model, train_losses, val_losses
+    return model, corrected_train_losses, val_losses
 
 
 def visualise_losses(train_losses, val_losses, figsize=(12,5), path_to_save=None):
@@ -178,7 +194,7 @@ def save_model(model, models_path, how_many_outer_to_remove,
 # -----------------------------
 def build_model(trial, input_size=INPUT_SIZE):
 
-    n_layers = trial.suggest_int("n_layers", 5, 7)
+    n_layers = trial.suggest_int("n_layers", 2, 4)
 
     activation_name = trial.suggest_categorical(
         "activation", ["relu", "tanh", "gelu"]

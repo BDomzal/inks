@@ -18,54 +18,42 @@ class InksNet(nn.Module):
         Dropout probability used after each Linear layer.
     """
 
+    # optuna_l1_71_3000
     # def __init__(self, input_size: int, dropout_prob: float) -> None:
     #     super().__init__()
     #     self.seq = nn.Sequential(
-    #         nn.Linear(input_size, 64),
+    #         nn.Linear(input_size, 93),
+    #         nn.GELU(),
     #         nn.Dropout(dropout_prob),
-    #         nn.BatchNorm1d(64),
-    #         nn.ReLU(),
-    #         nn.Linear(64, 256),
+    #         nn.Linear(93, 586),
+    #         nn.GELU(),
     #         nn.Dropout(dropout_prob),
-    #         nn.BatchNorm1d(256),
-    #         nn.ReLU(),
-    #         nn.Linear(256, 1024),
+    #         nn.Linear(586, 660),
+    #         nn.GELU(),
     #         nn.Dropout(dropout_prob),
-    #         nn.BatchNorm1d(1024),
-    #         nn.ReLU(),
-    #         nn.Linear(1024, 256),
+    #         nn.Linear(660, 743),
+    #         nn.GELU(),
     #         nn.Dropout(dropout_prob),
-    #         nn.BatchNorm1d(256),
-    #         nn.ReLU(),
-    #         nn.Linear(256, 64),
+    #         nn.Linear(743, 105),
+    #         nn.GELU(),
     #         nn.Dropout(dropout_prob),
-    #         nn.BatchNorm1d(64),
-    #         nn.ReLU(),
-    #         nn.Linear(64, input_size),
+    #         nn.Linear(105, 893),
+    #         nn.GELU(),
+    #         nn.Dropout(dropout_prob),
+    #         nn.Linear(893, input_size),
     #     )
+
 
     def __init__(self, input_size: int, dropout_prob: float) -> None:
         super().__init__()
         self.seq = nn.Sequential(
-            nn.Linear(input_size, 93),
+            nn.Linear(input_size, 23),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(93, 586),
+            nn.Linear(23, 92),
             nn.GELU(),
             nn.Dropout(dropout_prob),
-            nn.Linear(586, 660),
-            nn.GELU(),
-            nn.Dropout(dropout_prob),
-            nn.Linear(660, 743),
-            nn.GELU(),
-            nn.Dropout(dropout_prob),
-            nn.Linear(743, 105),
-            nn.GELU(),
-            nn.Dropout(dropout_prob),
-            nn.Linear(105, 893),
-            nn.GELU(),
-            nn.Dropout(dropout_prob),
-            nn.Linear(893, input_size),
+            nn.Linear(92, input_size),
         )
 
 
