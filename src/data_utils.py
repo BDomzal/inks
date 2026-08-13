@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from xgboost import XGBRegressor
 import torch
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
@@ -173,7 +175,7 @@ def truncate_names(y_true):
     return y_true
 
 
-def create_partition(inDKs_df, random_state=3):
+def create_partition_old_version(inDKs_df, random_state=3):
     indices = list(range(int(inDKs_df.shape[0])))
     ind_train_all, ind_test_all = train_test_split(indices, test_size=0.2, random_state=random_state)
     ind_train_all, ind_val_all = train_test_split(ind_train_all, test_size=0.25, random_state=random_state)
@@ -191,6 +193,44 @@ def create_partition(inDKs_df, random_state=3):
     X_y_test.reset_index(drop=True, inplace=True)
     return X_y_train, X_y_val, X_y_test
 
+def create_partition(inDKs_df, random_state=3, how_many_in_sample=10):
+
+    # note that inDKs_df must be sorted, i.e. same ids should be in consecutive rows!
+    indices_mod_10 = list(range(inDKs_df['Sample_id'].nunique()))
+
+    ind_train_all, ind_test_all = train_test_split(indices_mod_10, test_size=0.2, random_state=random_state)
+    ind_train_all, ind_val_all = train_test_split(ind_train_all, test_size=0.25, random_state=random_state)
+
+    ind_train_all = [list(range(ind*how_many_in_sample, ind*how_many_in_sample+how_many_in_sample)) for ind in ind_train_all]
+    ind_train_all = [ind for ind_list in ind_train_all for ind in ind_list]
+
+    ind_test_all = [list(range(ind*how_many_in_sample, ind*how_many_in_sample+how_many_in_sample)) for ind in ind_test_all]
+    ind_test_all = [ind for ind_list in ind_test_all for ind in ind_list]
+
+    ind_val_all = [list(range(ind*how_many_in_sample, ind*how_many_in_sample+how_many_in_sample)) for ind in ind_val_all]
+    ind_val_all = [ind for ind_list in ind_val_all for ind in ind_list]
+
+    partition = {'train': ind_train_all,
+            'val': ind_val_all,
+            'test': ind_test_all}
+
+    X_y_train = inDKs_df.iloc[partition['train'],:]
+    X_y_val = inDKs_df.iloc[partition['val'],:]
+    X_y_test = inDKs_df.iloc[partition['test'],:]
+
+    X_y_train.reset_index(drop=True, inplace=True)
+    X_y_val.reset_index(drop=True, inplace=True)
+    X_y_test.reset_index(drop=True, inplace=True)
+
+    # making sure that the same id cannot be both in train and in test
+    for sample_id in inDKs_df['Sample_id'].unique():
+        assert not ((sample_id in list(X_y_train['Sample_id'])) and (sample_id in list(X_y_val['Sample_id']))), "The same id found in train and validation set!"
+        assert not ((sample_id in list(X_y_train['Sample_id'])) and (sample_id in list(X_y_test['Sample_id']))), "The same id found in train and test set!"
+        assert not ((sample_id in list(X_y_val['Sample_id'])) and (sample_id in list(X_y_test['Sample_id']))), "The same id found in validation and test set!"
+
+
+    return X_y_train, X_y_val, X_y_test
+
 def split_to_X_and_y(X_y_train, X_y_val, X_y_test, elements_to_keep, indicators_suffix='_i', inks_suffix='_a'):
     columns_to_keep_inds = [el + indicators_suffix for el in elements_to_keep]
     columns_to_keep_inks = [el + inks_suffix for el in elements_to_keep]
@@ -206,15 +246,16 @@ def split_to_X_and_y(X_y_train, X_y_val, X_y_test, elements_to_keep, indicators_
     y_test = np.array(X_y_test[columns_to_keep_inks].values)
     return X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order
 
-def transform_data(X, preprocessing_method):
-    
-    def adjusted_log_transform(input_array):
-        res = np.where(input_array>0, np.log(input_array), 0.)
-        return res
+
+def adjusted_log_transform(input_array):
+    res = np.where(input_array>0, np.log(input_array), 0.)
+    return res
+
+def transform_data_old_version(X, preprocessing_method):
     
     if preprocessing_method == 'normalisation':
 
-        X = (X - np.min(X, axis=0))/np.std(X, axis=0)
+        X = (X - np.mean(X, axis=0))/np.std(X, axis=0)
     
     elif preprocessing_method == 'logarithm':
         
@@ -226,8 +267,31 @@ def transform_data(X, preprocessing_method):
         X = adjusted_log_transform(X)
         
         #normalisation
-        X = (X - np.min(X, axis=0))/np.std(X, axis=0)
+        X = (X - np.mean(X, axis=0))/np.std(X, axis=0)
 
+    return X
+
+def transform_data(X, preprocessing_method, mu=None, sigma=None):
+    
+    def adjusted_log_transform(input_array):
+        res = np.where(input_array>0, np.log(input_array), 0.)
+        return res
+    
+    if preprocessing_method == 'normalisation':
+
+        X = (X - mu)/sigma
+    
+    elif preprocessing_method == 'logarithm':
+        
+        X = adjusted_log_transform(X)
+
+    elif preprocessing_method == 'logarithm_and_normalisation':
+        
+        #logarithm
+        X = adjusted_log_transform(X)
+        
+        #normalisation
+        X = (X - mu)/sigma
     return X
 
 def get_device():
@@ -348,15 +412,18 @@ def prepare_training_data(
 
 
     # 10. Normalisation / taking logarithm.
-    # (It is done after splitting because normalisation takes into account info from every sample in the input dataset.
-    # Therefore, normalisation of val and test data must be done separately, in order not to use information from train data.)
 
-    X_train = transform_data(X_train, preprocessing_method)
-    y_train = transform_data(y_train, preprocessing_method)
-    X_val = transform_data(X_val, preprocessing_method)
-    y_val = transform_data(y_val, preprocessing_method)
-    X_test = transform_data(X_test, preprocessing_method)
-    y_test = transform_data(y_test, preprocessing_method)
+    mu_X_train = np.mean(adjusted_log_transform(X_train), axis=0)
+    sigma_X_train = np.std(adjusted_log_transform(X_train), axis=0)
+    mu_y_train = np.mean(adjusted_log_transform(y_train), axis=0)
+    sigma_y_train = np.std(adjusted_log_transform(y_train), axis=0)
+
+    X_train = transform_data(X_train, preprocessing_method, mu=mu_X_train, sigma=sigma_X_train)
+    y_train = transform_data(y_train, preprocessing_method, mu=mu_y_train, sigma=sigma_y_train)
+    X_val = transform_data(X_val, preprocessing_method, mu=mu_X_train, sigma=sigma_X_train)
+    y_val = transform_data(y_val, preprocessing_method, mu=mu_y_train, sigma=sigma_y_train)
+    X_test = transform_data(X_test, preprocessing_method, mu=mu_X_train, sigma=sigma_X_train)
+    y_test = transform_data(y_test, preprocessing_method, mu=mu_y_train, sigma=sigma_y_train)
 
 
     # 10 1/2. Optional perturbation of X in test_data.
