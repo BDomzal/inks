@@ -18,6 +18,8 @@ from scipy.cluster.hierarchy import linkage, leaves_list
 from sklearn.decomposition import PCA
 from collections import Counter
 from astropy.convolution import Gaussian2DKernel, convolve
+import joblib
+from pathlib import Path
 
 import torch.optim as optim
 import optuna
@@ -185,6 +187,23 @@ def save_model(model, models_path, how_many_outer_to_remove,
     now = datetime.datetime.fromtimestamp(ts).strftime('%Y_%m_%d_%H_%M_%S')
 
     torch.save(model.state_dict(), '/'.join(models_path.split('/')[:-1]) + '/model_regression' + settings_str + now)
+
+
+def load_or_train_model(model_path, model, X_train, y_train):
+    model_path = Path(model_path)
+
+    if model_path.exists():
+        print(f"Loading model from {model_path}")
+        return joblib.load(model_path)
+
+    print("Model not found. Training...")
+    model.fit(X_train, y_train)
+
+    model_path.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(model, model_path)
+
+    print(f"Model saved to {model_path}")
+    return model
 
 
 # ARCHITECTURE OPTIMISATION

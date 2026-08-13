@@ -9,7 +9,7 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-mode = "benchmark_xgboost"
+mode = "benchmark_rf"
 
 PREPROCESSING_METHOD = config["preprocessing_method"]
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
@@ -55,17 +55,17 @@ X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_ord
 if mode == "benchmark_rf":
 
     # Random Forest Regressor
-    RF_regressor = RandomForestRegressor(
+    rf_regressor = RandomForestRegressor(
                                         n_estimators=100,
                                         criterion='absolute_error',
                                         random_state=3,
                                         oob_score=True
                                         )
-    # Training
-    RF_regressor.fit(X_train, y_train)
+    # Training or loading
+    rf_regressor = load_or_train_model('/'.join(MODELS_PATH.split('/')[:-1]) + '/' + 'rf', rf_regressor, X_train, y_train)
 
     # Prediction on test set
-    outputs = RF_regressor.predict(X_test)
+    outputs = rf_regressor.predict(X_test)
 
 
 elif mode == "benchmark_xgboost":
@@ -74,7 +74,8 @@ elif mode == "benchmark_xgboost":
         multi_strategy="multi_output_tree"
     )
 
-    xgboost_model.fit(X_train, y_train) 
+    xgboost_model = load_or_train_model('/'.join(MODELS_PATH.split('/')[:-1]) + '/' + 'xgboost', xgboost_model, X_train, y_train)
+
     outputs = xgboost_model.predict(X_test)
 
 elif mode == "benchmark_sur":
@@ -143,3 +144,34 @@ plot_correlation_heatmaps(outputs, labels, ELEMENTS_TO_KEEP, xlabel='', ylabel='
 plot_l1_error(outputs, labels, path_to_save=FIGURES_PATH)
 
 plot_l1_error_with_density(outputs, labels, path_to_save=FIGURES_PATH)
+
+########################################################################
+# ALL MODELS
+
+# Surrogate model
+outputs_sur = X_test
+
+# Random Forest Regressor
+rf_regressor = RandomForestRegressor(
+                                    n_estimators=100,
+                                    criterion='absolute_error',
+                                    random_state=3,
+                                    oob_score=True
+                                    )
+rf_regressor = load_or_train_model('/'.join(MODELS_PATH.split('/')[:-1]) + '/' + 'rf', rf_regressor, X_train, y_train)
+outputs_rf = rf_regressor.predict(X_test)
+
+# XGBoost
+xgboost_model = XGBRegressor(
+    multi_strategy="multi_output_tree"
+)
+xgboost_model = load_or_train_model('/'.join(MODELS_PATH.split('/')[:-1]) + '/' + 'xgboost', xgboost_model, X_train, y_train)
+outputs_xgboost = xgboost_model.predict(X_test)
+
+# InksNet
+device = get_device()
+model = InksNet(input_size=INPUT_SIZE, dropout_prob=DROPOUT_PROB).to(device)
+model.load_state_dict(torch.load(MODELS_PATH, weights_only=False))
+model.eval()
+outputs_nn = to_numpy(model(data_to_device(X_test, device)))
+
