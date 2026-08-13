@@ -19,6 +19,7 @@ DROPOUT_PROB = config["dropout_prob"]
 
 DATA_PATH = config["training_data_path"]
 MODELS_PATH = config["models_path"]
+FIGURES_PATH = config["figures_path"]["training"]
 
 # Preparing training, validation, test data
 
@@ -33,6 +34,11 @@ train_loader, val_loader, test_loader, data_list = prepare_training_data(
                                                                         )
 
 X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order = data_list
+
+print("Train target std (per coord):", np.std(y_train, axis=0))
+print("Val target std (per coord):", np.std(y_val, axis=0))
+print("Train target std (overall):", np.std(y_train))
+print("Val target std (overall):", np.std(y_val))
 
 # Building neural network
 
@@ -53,13 +59,13 @@ start = time.time()
 model, train_losses, val_losses = train_model(model=model,
                                               train_loader=train_loader,
                                               val_loader=val_loader,
-                                              epochs=3000,
+                                              epochs=2000,
                                               loss_fn=loss_fn)
 stop=time.time()
 print('Training took: ' + str(stop-start) + ' seconds.')
 # Loss visualisation
 
-visualise_losses(train_losses, val_losses)
+visualise_losses(train_losses, val_losses, path_to_save=FIGURES_PATH)
 
 # Saving the model
 
