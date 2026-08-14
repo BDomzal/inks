@@ -483,3 +483,65 @@ def preprocess_all_from_directory(
         res_all.to_csv(preprocessed_data_path, index=False)
 
     return res_all
+
+def alternative_preprocessing(
+                            path, 
+                            elements_dict,
+                            chemical_elements_translator,
+                            elements_to_keep
+                            ):
+
+    res_dict = {}
+
+    # reading all files (only interesting columns)
+    for raw_data_file in os.listdir(path):
+    
+        filename = '.'.join(raw_data_file.split('.')[:-1])
+        
+        raw_df = read_raw_file(path + raw_data_file)
+    
+        selected = select_expected_columns(raw_df, elements_dict)
+        selected = selected.rename(columns=chemical_elements_translator)
+        selected = selected[elements_to_keep]
+        res_dict[filename] = selected
+
+    # removing blank file
+    res_dict = {key: value for key, value in res_dict.items() if key!='blank'}
+    
+    def reduce_name(key):
+        return '.'.join(key.split('.')[:-1])
+
+    # keeping only these files that occur in pairs and have the same number of rows
+    res_dict = {key: value for key, value in res_dict.items() if (reduce_name(key)+'.i' in res_dict.keys() and reduce_name(key)+'.a' in res_dict.keys())}
+    res_dict = {key: value for key, value in res_dict.items() if res_dict[reduce_name(key)+'.i'].shape == res_dict[reduce_name(key)+'.a'].shape} 
+
+    # creating sample id: filename + .i or .a + row number
+    for key, value in res_dict.items():
+        value.reset_index(drop=True, inplace=True)
+        value['Sample_id'] = key + '_' + value.index.astype(str)
+
+    # splitting to inds and inks
+    res_dict_i = {key: value for key, value in res_dict.items() if key.endswith('.i')}
+    res_dict_a = {key: value for key, value in res_dict.items() if key.endswith('.a')}
+
+    # filenames in fixed order
+    all_names = all_names = list(set([reduce_name(key) for key in res_dict.keys()]))
+
+    # adding rows file by file in fixed order
+    inds_df = pd.concat([res_dict_i[name + '.i'] for name in all_names])
+    inks_df = pd.concat([res_dict_a[name + '.a'] for name in all_names])
+
+    # resetting index
+    inds_df.reset_index(drop=True, inplace=True)
+    inks_df.reset_index(drop=True, inplace=True)
+
+    # relacing 0 with 1 (for the logarithm applied later)
+    inds_df.replace(0., 1., inplace=True)
+    inks_df.replace(0., 1., inplace=True)
+
+    inds_df.rename(columns={el: el + '_i' for el in elements_to_keep}, inplace=True)
+    inds_df.rename(columns={'Sample_id' : 'name_i'}, inplace=True)
+    inks_df.rename(columns={el: el + '_a' for el in elements_to_keep}, inplace=True)
+    inks_df.rename(columns={'Sample_id' : 'name_a'}, inplace=True)
+    
+    return inds_df, inks_df

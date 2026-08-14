@@ -231,6 +231,31 @@ def create_partition(inDKs_df, random_state=3, how_many_in_sample=10):
 
     return X_y_train, X_y_val, X_y_test
 
+def create_partition_raw_xl(inDKs_df, random_state=3, how_many_in_sample=10):
+
+    # note that inDKs_df must be sorted, i.e. same ids should be in consecutive rows!
+    all_ids = list(inDKs_df['Sample_id'].unique())
+
+    id_train, id_test = train_test_split(all_ids, test_size=0.2, random_state=random_state)
+    id_train, id_val = train_test_split(id_train, test_size=0.25, random_state=random_state)
+
+    X_y_train = inDKs_df[inDKs_df['Sample_id'].apply(lambda x: x in id_train)]
+    X_y_val = inDKs_df[inDKs_df['Sample_id'].apply(lambda x: x in id_val)]
+    X_y_test = inDKs_df[inDKs_df['Sample_id'].apply(lambda x: x in id_test)]
+
+    X_y_train.reset_index(drop=True, inplace=True)
+    X_y_val.reset_index(drop=True, inplace=True)
+    X_y_test.reset_index(drop=True, inplace=True)
+
+    # making sure that the same id cannot be both in train and in test
+    for sample_id in inDKs_df['Sample_id'].unique():
+        assert not ((sample_id in list(X_y_train['Sample_id'])) and (sample_id in list(X_y_val['Sample_id']))), "The same id found in train and validation set!"
+        assert not ((sample_id in list(X_y_train['Sample_id'])) and (sample_id in list(X_y_test['Sample_id']))), "The same id found in train and test set!"
+        assert not ((sample_id in list(X_y_val['Sample_id'])) and (sample_id in list(X_y_test['Sample_id']))), "The same id found in validation and test set!"
+
+
+    return X_y_train, X_y_val, X_y_test
+
 def split_to_X_and_y(X_y_train, X_y_val, X_y_test, elements_to_keep, indicators_suffix='_i', inks_suffix='_a'):
     columns_to_keep_inds = [el + indicators_suffix for el in elements_to_keep]
     columns_to_keep_inks = [el + inks_suffix for el in elements_to_keep]

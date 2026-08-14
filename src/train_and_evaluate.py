@@ -573,9 +573,9 @@ def plot_correlation_heatmaps(outputs, labels, elements_to_keep, figsize=(12, 5)
 
     plt.subplot(1, 2, 1)
     if cluster:
-        ax = sns.heatmap(clustered_corr(labels), annot=False, cmap='rocket_r')
+        ax = sns.heatmap(clustered_corr(labels), annot=False, cmap='rocket_r', vmin=-0.6, vmax=1)
     else:
-        ax = sns.heatmap(np.corrcoef(labels, rowvar=False), annot=False, cmap='rocket_r')
+        ax = sns.heatmap(np.corrcoef(labels, rowvar=False), annot=False, cmap='rocket_r', vmin=-0.6, vmax=1)
 
     ax.figure.axes[-1].yaxis.label.set_size(10)
     plt.tick_params(axis='both', which='major', labelbottom = False, bottom=False, top = True, labeltop=True)
@@ -585,9 +585,9 @@ def plot_correlation_heatmaps(outputs, labels, elements_to_keep, figsize=(12, 5)
 
     plt.subplot(1, 2, 2)
     if cluster:
-        ax = sns.heatmap(clustered_corr(outputs), annot=False, cmap='rocket_r')
+        ax = sns.heatmap(clustered_corr(outputs), annot=False, cmap='rocket_r', vmin=-0.6, vmax=1)
     else:
-        ax = sns.heatmap(np.corrcoef(outputs, rowvar=False), annot=False, cmap='rocket_r')
+        ax = sns.heatmap(np.corrcoef(outputs, rowvar=False), annot=False, cmap='rocket_r', vmin=-0.6, vmax=1)
 
     ax.figure.axes[-1].yaxis.label.set_size(10)
     ax.set_xticklabels(elements_to_keep, size=10)
