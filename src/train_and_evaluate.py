@@ -530,6 +530,7 @@ def plot_error_boxplot(outputs, labels, elements_to_keep, dims_to_keep='all', fi
     fig.text(0.07, 0.5, ylabel, va='center', rotation='vertical', size=25)
     ax.set_xticklabels(elements_to_keep, size=25)
     ax.tick_params(axis='y', labelsize=5)
+    plt.ylim(-6, 6)
 
     if path_to_save:
         plt.savefig(path_to_save+'error_boxplot.png', dpi=300, bbox_inches="tight")
@@ -555,6 +556,7 @@ def plot_error_violinplot(outputs, labels, elements_to_keep, dims_to_keep='all',
     fig.text(0.07, 0.5, ylabel, va='center', rotation='vertical', size=25)
     ax.set_xticklabels(elements_to_keep, size=25)
     ax.tick_params(axis='y', labelsize=5)
+    plt.ylim(-6, 6)
 
     if path_to_save:
         plt.savefig(path_to_save+'error_violinplot.png', dpi=300, bbox_inches="tight")
