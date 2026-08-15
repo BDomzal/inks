@@ -718,6 +718,80 @@ def plot_pca_projection(outputs, labels, figsize=(8, 5), path_to_save=None, max_
     plt.show()
     plt.close(fig)
 
+
+def plot_model_element(errors, model_names, elements_to_keep, figsize=(12, 5), ylabel='MAE', y_upper_lim=None, y_lower_lim=None, path_to_save=None):
+
+    plt.figure(figsize=figsize)
+
+    for i in range(len(errors)):
+
+        plt.plot(range(len(errors[i])), errors[i], "o-", linewidth=0.8, markersize=5, label=model_names[i])
+
+
+    # Eleven labels on the horizontal axis
+    plt.xticks(range(len(errors[i])), elements_to_keep, size=25)
+
+    plt.ylabel(ylabel, size=25)
+    plt.ylim(y_lower_lim, y_upper_lim)
+    plt.legend(fontsize=15)
+    plt.tight_layout()
+
+    if path_to_save:
+        plt.savefig(path_to_save, dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+
+def heatmap_model_element(errors, model_names, elements_to_keep, figsize=(12, 5), path_to_save=None):
+
+    df = pd.DataFrame(index=model_names, columns=elements_to_keep, dtype=float)
+
+    for i, el in enumerate(elements_to_keep):
+
+        for j, model in enumerate(model_names):
+
+            df.loc[model, el] = errors[j][i]
+
+    plt.figure(figsize=figsize)
+
+    sns.heatmap(df, annot=False, cmap='rocket_r')
+
+    plt.xticks(np.array(range(len(elements_to_keep)))+0.5, elements_to_keep, size=25)
+    plt.yticks(np.array(range(len(model_names)))+0.5, model_names, size=25, rotation=0)
+
+    plt.tight_layout()
+
+    if path_to_save:
+        plt.savefig(path_to_save, dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+
+def heatmap_model_metric(summaries, model_names, errors_names, official_errors_names, figsize=(12, 5), path_to_save=None):
+
+    mean_errors = pd.DataFrame(index=model_names, columns=errors_names, dtype=float)
+
+    for err in errors_names:
+
+        for j, model in enumerate(model_names):
+
+            mean_errors.loc[model, err] = summaries[j][err]
+
+    plt.figure(figsize=figsize)
+
+    sns.heatmap(mean_errors, annot=False, cmap='rocket_r')
+
+    # Eleven labels on the horizontal axis
+    plt.xticks(np.array(range(len(errors_names)))+0.5, official_errors_names, size=25)
+    plt.yticks(np.array(range(len(model_names)))+0.5, model_names, size=25, rotation=0)
+
+    plt.tight_layout()
+
+    if path_to_save:
+        plt.savefig(path_to_save, dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
 # CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 1
 
 def plot_topk_confusion(y_true, y_pred, top_k=20, figsize=(7, 5), path_to_save=None):
