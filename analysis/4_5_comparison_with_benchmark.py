@@ -370,3 +370,14 @@ if mode == 'training_subset':
                                                     nrows=nrows, 
                                                     path_to_save=config["figures_path"]['training_subset']
                                                     )
+
+plot_correlation_heatmaps_for_different_models(
+                                                    [outputs_nn, outputs_rf, outputs_xgboost],
+                                                    labels,
+                                                    ['InksNet', 'Random Forest', 'XGBoost'],
+                                                    ELEMENTS_TO_KEEP,
+                                                    xlabel='',
+                                                    ylabel='Residual',
+                                                    cluster=True,
+                                                    path_to_save=config["figures_path"]["all"]
+                                                )

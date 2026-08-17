@@ -893,6 +893,51 @@ def plot_error_distributions_for_different_models(
     plt.show()
     plt.close(fig)
 
+def plot_correlation_heatmaps_for_different_models(outputs, labels, model_names, elements_to_keep, figsize=(24, 5), xlabel='', ylabel='Residual', cluster=False, path_to_save=None):
+
+    def clustered_corr(data, method='average'):
+        corr = np.corrcoef(data, rowvar=False)
+        Z = linkage(corr, method=method)
+        order = leaves_list(Z)
+        return corr[order][:, order]
+
+    fig = plt.figure(figsize=figsize)
+
+    plt.subplot(1, len(model_names)+1, 1)
+    if cluster:
+        ax = sns.heatmap(clustered_corr(labels), annot=False, cmap='rocket_r', vmin=-0.6, vmax=1)
+    else:
+        ax = sns.heatmap(np.corrcoef(labels, rowvar=False), annot=False, cmap='rocket_r', vmin=-0.6, vmax=1)
+
+    ax.figure.axes[-1].yaxis.label.set_size(10)
+    plt.tick_params(axis='both', which='major', labelbottom = False, bottom=False, top = True, labeltop=True)
+
+    ax.set_xticklabels(elements_to_keep, size=10)
+    ax.set_yticklabels(elements_to_keep, size=10)
+    ax.set_title('Ground truth', fontsize=25)
+
+    for j, model in enumerate(model_names):
+
+        plt.subplot(1, len(model_names)+1, j+2)
+        if cluster:
+            ax = sns.heatmap(clustered_corr(outputs[j]), annot=False, cmap='rocket_r', vmin=-0.6, vmax=1)
+        else:
+            ax = sns.heatmap(np.corrcoef(outputs[j], rowvar=False), annot=False, cmap='rocket_r', vmin=-0.6, vmax=1)
+
+        ax.figure.axes[-1].yaxis.label.set_size(10)
+        ax.set_xticklabels(elements_to_keep, size=10)
+        ax.set_yticklabels(elements_to_keep, size=10)
+        ax.set_title(model_names[j], fontsize=25)
+
+        plt.tick_params(axis='both', which='major', labelbottom = False, bottom=False, top = True, labeltop=True)
+
+    #fig.text(0.49, 0.05, "Ground truth                 InksNet                 Random Forest               XGBoost", ha='center', size=25)
+
+    if path_to_save:
+        plt.savefig(path_to_save+'correlation_heatmap.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
+
 # CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 1
 
 def plot_topk_confusion(y_true, y_pred, top_k=20, figsize=(7, 5), path_to_save=None):
