@@ -203,6 +203,21 @@ r2_rf = summary_rf['r2']
 r2_xgboost = summary_xgboost['r2']
 r2_nn = summary_nn['r2']
 
+l2_sur = summary_sur['l2']
+l2_rf = summary_rf['l2']
+l2_xgboost = summary_xgboost['l2']
+l2_nn = summary_nn['l2']
+
+max_sur = summary_sur['max_error']
+max_rf = summary_rf['max_error']
+max_xgboost = summary_xgboost['max_error']
+max_nn = summary_nn['max_error']
+
+bias_sur = summary_sur['bias']
+bias_rf = summary_rf['bias']
+bias_xgboost = summary_xgboost['bias']
+bias_nn = summary_nn['bias']
+
 
 # Plots model element
 
@@ -229,14 +244,47 @@ plot_model_element(
                     )
 
 plot_model_element(
-                    errors = [r2_sur, r2_rf, r2_xgboost, r2_nn], 
-                    model_names = model_names, 
-                    elements_to_keep = ELEMENTS_TO_KEEP, 
-                    figsize=(12, 5), 
-                    ylabel='R$^2$', 
+                    errors = [r2_sur, r2_rf, r2_xgboost, r2_nn],
+                    model_names = model_names,
+                    elements_to_keep = ELEMENTS_TO_KEEP,
+                    figsize=(12, 5),
+                    ylabel='R$^2$',
                     # y_lower_lim=-1,
                     # y_upper_lim=1,
                     path_to_save=config["figures_path"]['all'] + 'r2.png'
+                    )
+
+plot_model_element(
+                    errors = [l2_sur, l2_rf, l2_xgboost, l2_nn],
+                    model_names = model_names,
+                    elements_to_keep = ELEMENTS_TO_KEEP,
+                    figsize=(12, 5),
+                    ylabel='L2',
+                    # y_lower_lim=-1,
+                    # y_upper_lim=1,
+                    path_to_save=config["figures_path"]['all'] + 'l2.png'
+                    )
+
+plot_model_element(
+                    errors = [max_sur, max_rf, max_xgboost, max_nn],
+                    model_names = model_names,
+                    elements_to_keep = ELEMENTS_TO_KEEP,
+                    figsize=(12, 5),
+                    ylabel='Max error',
+                    # y_lower_lim=-1,
+                    # y_upper_lim=1,
+                    path_to_save=config["figures_path"]['all'] + 'max.png'
+                    )
+
+plot_model_element(
+                    errors = [bias_sur, bias_rf, bias_xgboost, bias_nn], 
+                    model_names = model_names, 
+                    elements_to_keep = ELEMENTS_TO_KEEP, 
+                    figsize=(12, 5), 
+                    ylabel='Bias', 
+                    # y_lower_lim=-1,
+                    # y_upper_lim=1,
+                    path_to_save=config["figures_path"]['all'] + 'bias.png'
                     )
 
 # Heatmaps model element
@@ -262,7 +310,29 @@ heatmap_model_element(
                         path_to_save = config["figures_path"]['all'] + 'r2_heatmap.png'
                     )
 
-# Plots model metric
+heatmap_model_element(
+                        errors = [l2_sur, l2_rf, l2_xgboost, l2_nn],
+                        model_names = model_names,
+                        elements_to_keep = ELEMENTS_TO_KEEP,
+                        path_to_save = config["figures_path"]['all'] + 'l2_heatmap.png'
+                    )
+
+heatmap_model_element(
+                        errors = [max_sur, max_rf, max_xgboost, max_nn],
+                        model_names = model_names,
+                        elements_to_keep = ELEMENTS_TO_KEEP,
+                        path_to_save = config["figures_path"]['all'] + 'max_heatmap.png'
+                    )
+
+# # Plots model metric
+
+plot_model_metric(
+                        summaries = [summary_sur, summary_rf, summary_xgboost, summary_nn], 
+                        model_names = model_names, 
+                        errors_names = ['mean_mae', 'mean_rmse', 'mean_max_error'],
+                        official_errors_names = ['MAE', 'RMSE', 'Max error'], 
+                        path_to_save=config["figures_path"]['all'] + 'error_plot.png'
+                        )
 
 
 # Heatmaps model metric
@@ -271,7 +341,18 @@ heatmap_model_element(
 heatmap_model_metric(
                         summaries = [summary_sur, summary_rf, summary_xgboost, summary_nn], 
                         model_names = model_names, 
-                        errors_names = ['mean_mae', 'mean_rmse', 'mean_l2'],
-                        official_errors_names = ['MAE', 'RMSE', 'L2'], 
+                        errors_names = ['mean_mae', 'mean_rmse', 'mean_max_error'],
+                        official_errors_names = ['MAE', 'RMSE', 'Max error'], 
                         path_to_save=config["figures_path"]['all'] + 'error_heatmap.png'
                         )
+
+
+# Residual distributions
+
+plot_error_distributions_for_different_models(
+                                                [outputs_rf, outputs_nn], 
+                                                labels, 
+                                                ['Random Forest', 'InksNet'], 
+                                                ELEMENTS_TO_KEEP,  
+                                                path_to_save=config["figures_path"]['all']
+                                                )

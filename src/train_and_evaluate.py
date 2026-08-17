@@ -284,18 +284,20 @@ def compute_metrics(outputs, labels):
         bias.append(np.mean(y_pred - y_true))
         max_error.append(np.max(np.abs(y_pred - y_true)))
 
-    l2_error = np.linalg.norm(outputs - labels, axis=1)
+    l2 = np.linalg.norm(outputs - labels, axis=0)
 
     summary = {
         "mae": np.array(mae),
         "rmse": np.array(rmse),
         "r2": np.array(r2),
+        "l2": np.array(l2),
         "bias": np.array(bias),
-        "mean_mae": float(np.mean(mae)),
-        "mean_rmse": float(np.mean(rmse)),
-        "mean_r2": float(np.mean(r2)),
-        "mean_l2": float(np.mean(l2_error)),
-        "max_error": np.array(max_error)
+        "max_error": np.array(max_error),
+        "mean_mae": mean_absolute_error(outputs, labels),
+        "mean_rmse": np.sqrt(mean_squared_error(outputs, labels)),
+        "mean_r2": r2_score(outputs, labels),
+        "mean_l2": np.linalg.norm(outputs - labels),
+        "mean_max_error": np.mean(np.max(np.abs(outputs - labels)))
     }
 
     return summary
@@ -719,13 +721,13 @@ def plot_pca_projection(outputs, labels, figsize=(8, 5), path_to_save=None, max_
     plt.close(fig)
 
 
-def plot_model_element(errors, model_names, elements_to_keep, figsize=(12, 5), ylabel='MAE', y_upper_lim=None, y_lower_lim=None, path_to_save=None):
+def plot_model_element(errors, model_names, elements_to_keep, figsize=(12, 5), ylabel='MAE', colors = ['blue', 'gold', 'green', 'darkviolet'], y_upper_lim=None, y_lower_lim=None, path_to_save=None):
 
     plt.figure(figsize=figsize)
 
     for i in range(len(errors)):
 
-        plt.plot(range(len(errors[i])), errors[i], "o-", linewidth=0.8, markersize=5, label=model_names[i])
+        plt.plot(range(len(errors[i])), errors[i], "o-", linewidth=0.8, markersize=5, label=model_names[i], color=colors[i])
 
 
     # Eleven labels on the horizontal axis
@@ -752,12 +754,42 @@ def heatmap_model_element(errors, model_names, elements_to_keep, figsize=(12, 5)
 
             df.loc[model, el] = errors[j][i]
 
+    df.sort_values(by='Surrogate model', axis=1, inplace=True)
+
     plt.figure(figsize=figsize)
 
     sns.heatmap(df, annot=False, cmap='rocket_r')
 
-    plt.xticks(np.array(range(len(elements_to_keep)))+0.5, elements_to_keep, size=25)
-    plt.yticks(np.array(range(len(model_names)))+0.5, model_names, size=25, rotation=0)
+    plt.xticks(np.array(range(len(elements_to_keep)))+0.5, df.columns, size=25)
+    plt.yticks(np.array(range(len(model_names)))+0.5, df.index, size=25, rotation=0)
+
+    plt.tight_layout()
+
+    if path_to_save:
+        plt.savefig(path_to_save, dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+
+def plot_model_metric(summaries, model_names, errors_names, official_errors_names, colors = ['blue', 'gold', 'green', 'darkviolet'], figsize=(12, 5), path_to_save=None):
+
+    plt.figure(figsize=figsize)
+
+    mean_errors = pd.DataFrame(index=model_names, columns=errors_names, dtype=float)
+
+    for err in errors_names:
+
+        for j, model in enumerate(model_names):
+
+            mean_errors.loc[model, err] = summaries[j][err]
+
+    for row_nr in range(mean_errors.shape[0]):
+
+        plt.plot(range(len(errors_names)), mean_errors.iloc[row_nr, :], "o-", linewidth=0.8, markersize=5, label=model_names[row_nr], color=colors[row_nr])
+
+    plt.xticks(range(len(official_errors_names)), official_errors_names, size=25)
+
+    plt.legend(fontsize=15)
 
     plt.tight_layout()
 
@@ -791,6 +823,72 @@ def heatmap_model_metric(summaries, model_names, errors_names, official_errors_n
         plt.savefig(path_to_save, dpi=300, bbox_inches="tight")
     plt.show()
     plt.close()
+
+
+def plot_error_distributions_for_different_models(
+                                                    outputs, 
+                                                    labels, 
+                                                    model_names, 
+                                                    elements_to_keep, 
+                                                    colors = ['gold', 'darkviolet'], 
+                                                    dims_to_keep='all', 
+                                                    nrows=2, 
+                                                    figsize=(10, 5), 
+                                                    xlabel='Residual', 
+                                                    ylabel='Count', 
+                                                    path_to_save=None
+                                                    ):
+
+    assert len(outputs) == len(model_names)
+
+    if dims_to_keep == 'all':
+        dims_to_keep = list(range(len(elements_to_keep)))
+
+    n_dims = len(dims_to_keep)
+    in_dims_to_keep = [i in dims_to_keep for i in np.array(range(outputs[0].shape[1]))]
+    labels = labels[:, in_dims_to_keep]
+    outputs = [output[:, in_dims_to_keep] for output in outputs]
+    elements_to_keep = [elements_to_keep[i] for i in dims_to_keep]
+
+    fig, axes = plt.subplots(nrows, n_dims//nrows + 1 if nrows==2 else n_dims//nrows, figsize=figsize, sharey=True, sharex=True)
+    if len(dims_to_keep)>1:
+        axes = axes.flatten()
+
+    y_max_max = (outputs-labels).max().max()
+
+    for i in range(n_dims):
+
+        if len(dims_to_keep)>1:
+            ax = axes[i]
+        else:
+            ax = axes
+            
+        y_true = labels[:, i]
+
+        for j, model in enumerate(model_names):
+
+            y_pred = outputs[j][:, i]
+            residuals = y_pred-y_true
+            sns.histplot(residuals, kde=True, ax=ax, color=colors[j], label=model_names[j], alpha=0.5)
+
+        ax.set(ylabel='')
+
+        title = elements_to_keep[i]
+
+        ax.set_title(title, size=10)
+        ax.tick_params(axis='both', labelsize=5)
+
+    if nrows==2:
+        axes[-1].set_axis_off()
+
+    fig.text(0.52, 0.0, xlabel, ha='center', size=25)
+    fig.text(0.06, 0.5, ylabel, va='center', rotation='vertical', size=25)
+
+    #plt.tight_layout()
+    if path_to_save:
+        plt.savefig(path_to_save+'error_distributions.png', dpi=300, bbox_inches="tight")
+    plt.show()
+    plt.close(fig)
 
 # CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 1
 
