@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import KFold
 from xgboost import XGBRegressor
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -13,6 +14,7 @@ import seaborn as sns
 import math
 from collections import Counter
 import re
+import pickle
 
 class InksDataset(Dataset):
     def __init__(self, X, y):
@@ -546,6 +548,163 @@ def prepare_data_without_splitting(
     inks_df['name'] = inDKs_df['name']
 
     return inds_df, inks_df, sample_order
+
+def prepare_k_fold_crossvalidation(
+                                    k,
+                                    data_path,
+                                    how_many_outer_to_remove,
+                                    elements_to_keep,
+                                    multiplication_weights,
+                                    preprocessing_method, 
+                                    how_many_in_sample=10,
+                                    indicators_suffix='_i', 
+                                    inks_suffix='_a',
+                                    random_state=3,
+                                    normalisation_to_Fe=False,
+                                    return_data=True,
+                                    perturb_data=False,
+                                    mu=0,
+                                    sigma=0.1,
+                                    return_original_labels=False
+                                    ):
+
+    inDKs_df = preprocessing_beginning(
+                                        data_path,
+                                        how_many_outer_to_remove,
+                                        elements_to_keep,
+                                        multiplication_weights,
+                                        indicators_suffix=indicators_suffix, 
+                                        inks_suffix=inks_suffix,
+                                        normalisation_to_Fe=normalisation_to_Fe
+                                        )
+    
+
+    # 8. Train - val - test split.
+
+    kf = KFold(n_splits=k, random_state=random_state, shuffle=True)
+
+    indices_mod_10 = list(range(inDKs_df['Sample_id'].nunique()))
+
+    train_loaders = []
+    val_loaders = [] 
+    test_loaders = []
+    data_to_return_s = []
+    original_labels_s = []
+
+    for i, (ind_train_all, ind_test_all) in enumerate(kf.split(indices_mod_10)):
+
+        ind_train_all, ind_val_all = train_test_split(ind_train_all, test_size=0.25, random_state=random_state)
+
+        ind_train_all = [list(range(ind*how_many_in_sample, ind*how_many_in_sample+how_many_in_sample)) for ind in ind_train_all]
+        ind_train_all = [ind for ind_list in ind_train_all for ind in ind_list]
+
+        ind_test_all = [list(range(ind*how_many_in_sample, ind*how_many_in_sample+how_many_in_sample)) for ind in ind_test_all]
+        ind_test_all = [ind for ind_list in ind_test_all for ind in ind_list]
+
+        ind_val_all = [list(range(ind*how_many_in_sample, ind*how_many_in_sample+how_many_in_sample)) for ind in ind_val_all]
+        ind_val_all = [ind for ind_list in ind_val_all for ind in ind_list]
+
+        partition = {'train': ind_train_all,
+                'val': ind_val_all,
+                'test': ind_test_all}
+
+        X_y_train = inDKs_df.iloc[partition['train'],:]
+        X_y_val = inDKs_df.iloc[partition['val'],:]
+        X_y_test = inDKs_df.iloc[partition['test'],:]
+
+        X_y_train.reset_index(drop=True, inplace=True)
+        X_y_val.reset_index(drop=True, inplace=True)
+        X_y_test.reset_index(drop=True, inplace=True)
+
+        # making sure that the same id cannot be both in train and in test
+        for sample_id in inDKs_df['Sample_id'].unique():
+            assert not ((sample_id in list(X_y_train['Sample_id'])) and (sample_id in list(X_y_val['Sample_id']))), "The same id found in train and validation set!"
+            assert not ((sample_id in list(X_y_train['Sample_id'])) and (sample_id in list(X_y_test['Sample_id']))), "The same id found in train and test set!"
+            assert not ((sample_id in list(X_y_val['Sample_id'])) and (sample_id in list(X_y_test['Sample_id']))), "The same id found in validation and test set!"
+
+        # 9. Creating features and labels matrices.
+
+        elements_to_keep_no_fe = [el for el in elements_to_keep if el != 'Fe']
+
+        if return_original_labels:
+            original_labels = X_y_test['name']
+
+        X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order = split_to_X_and_y(
+                                                                                                                X_y_train, 
+                                                                                                                X_y_val, 
+                                                                                                                X_y_test, 
+                                                                                                                elements_to_keep_no_fe if normalisation_to_Fe else elements_to_keep)
+
+
+        # 10. Normalisation / taking logarithm.
+
+        mu_X_train = np.mean(adjusted_log_transform(X_train), axis=0)
+        sigma_X_train = np.std(adjusted_log_transform(X_train), axis=0)
+        mu_y_train = np.mean(adjusted_log_transform(y_train), axis=0)
+        sigma_y_train = np.std(adjusted_log_transform(y_train), axis=0)
+
+        X_train = transform_data(X_train, preprocessing_method, mu=mu_X_train, sigma=sigma_X_train)
+        y_train = transform_data(y_train, preprocessing_method, mu=mu_y_train, sigma=sigma_y_train)
+        X_val = transform_data(X_val, preprocessing_method, mu=mu_X_train, sigma=sigma_X_train)
+        y_val = transform_data(y_val, preprocessing_method, mu=mu_y_train, sigma=sigma_y_train)
+        X_test = transform_data(X_test, preprocessing_method, mu=mu_X_train, sigma=sigma_X_train)
+        y_test = transform_data(y_test, preprocessing_method, mu=mu_y_train, sigma=sigma_y_train)
+
+
+        # 10 1/2. Optional perturbation of X in test_data.
+        if perturb_data:
+            X_test = X_test + np.random.normal(mu, sigma, X_test.shape[0]).reshape(-1, 1)
+
+
+        # 11. Converting to tensors.
+        if return_data:
+            data_to_return = [X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order]
+
+        device = get_device()
+
+        X_train = data_to_device(X_train, device)
+        y_train = data_to_device(y_train, device)
+        X_val = data_to_device(X_val, device)
+        y_val = data_to_device(y_val, device)
+        X_test = data_to_device(X_test, device)
+        y_test = data_to_device(y_test, device)
+
+
+        # 12. Creating InksDatasets.
+
+        train_dataset = InksDataset(X=X_train, y=y_train)
+        val_dataset = InksDataset(X=X_val, y=y_val)
+        test_dataset = InksDataset(X=X_test, y=y_test)
+
+        # 13. Creating DataLoaders.
+
+        train_loader = DataLoader(train_dataset, shuffle=True, batch_size=100)
+        val_loader = DataLoader(val_dataset, shuffle=True)
+        test_loader = DataLoader(test_dataset, shuffle=False)
+
+        train_loaders.append(train_loader)
+        val_loaders.append(val_loader)
+        test_loaders.append(test_loader)
+
+        if return_data:
+            if return_original_labels:
+                original_labels_s.append(original_labels)
+            data_to_return_s.append(data_to_return)
+        else:
+            if return_original_labels:
+                original_labels_s.append(original_labels)
+
+
+    if return_data:
+        if return_original_labels:
+            return train_loaders, val_loaders, test_loaders, data_to_return_s, original_labels_s
+        else:
+            return train_loaders, val_loaders, test_loaders, data_to_return_s
+    else:
+        if return_original_labels:
+            return train_loaders, val_loaders, test_loaders, original_labels_s
+        else:
+            return train_loaders, val_loaders, test_loaders
 
 def sample_in_list(sample, list_of_names):
     return any([sample.startswith(el) for el in list_of_names])

@@ -35,7 +35,8 @@
 		"Kopernik" : "../results/Kopernik/",
 		"corroded" : "../results/corroded/",
 		"artificial_inks" : "../results/artificial_inks/",
-		"training" : "../results/training/"
+		"training" : "../results/training/",
+		"crossvalidation" : "../results/crossvalidation/"
 		},
 
 "figures_path" : {

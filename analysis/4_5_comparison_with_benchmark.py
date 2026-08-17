@@ -22,6 +22,7 @@ DROPOUT_PROB = config["dropout_prob"]
 DATA_PATH = config["training_data_path"]
 MODELS_PATH = config["models_path"]
 FIGURES_PATH = config["figures_path"][mode]
+RESULTS_PATH = config["results_path"]
 
 if mode == "training" or mode.startswith("benchmark"):
     nrows = 2
@@ -53,102 +54,106 @@ X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_ord
 
 labels = y_test
 
-# # Defining model, training and prediction
+########################################################################
 
-# if mode == "benchmark_rf":
+# SINGLE MODEL
 
-#     # Random Forest Regressor
-#     rf_regressor = RandomForestRegressor(
-#                                         n_estimators=100,
-#                                         criterion='absolute_error',
-#                                         random_state=3,
-#                                         oob_score=True
-#                                         )
-#     # Training or loading
-#     rf_regressor = load_or_train_model('/'.join(MODELS_PATH.split('/')[:-1]) + '/' + 'rf', rf_regressor, X_train, y_train)
+if mode == "benchmark_rf":
 
-#     # Prediction on test set
-#     outputs = rf_regressor.predict(X_test)
+    # Random Forest Regressor
+    rf_regressor = RandomForestRegressor(
+                                        n_estimators=100,
+                                        criterion='absolute_error',
+                                        random_state=3,
+                                        oob_score=True
+                                        )
+    # Training or loading
+    rf_regressor = load_or_train_model('/'.join(MODELS_PATH.split('/')[:-1]) + '/' + 'rf', rf_regressor, X_train, y_train)
+
+    # Prediction on test set
+    outputs = rf_regressor.predict(X_test)
 
 
-# elif mode == "benchmark_xgboost":
+elif mode == "benchmark_xgboost":
     
-#     xgboost_model = XGBRegressor(
-#         multi_strategy="multi_output_tree"
-#     )
+    xgboost_model = XGBRegressor(
+        multi_strategy="multi_output_tree"
+    )
 
-#     xgboost_model = load_or_train_model('/'.join(MODELS_PATH.split('/')[:-1]) + '/' + 'xgboost', xgboost_model, X_train, y_train)
+    xgboost_model = load_or_train_model('/'.join(MODELS_PATH.split('/')[:-1]) + '/' + 'xgboost', xgboost_model, X_train, y_train)
 
-#     outputs = xgboost_model.predict(X_test)
+    outputs = xgboost_model.predict(X_test)
 
-# elif mode == "benchmark_sur":
+elif mode == "benchmark_sur":
 
-#     outputs = X_test
-#     #outputs = np.mean(X_train, axis=0)
-#     #outputs = np.tile(outputs, (y_test.shape[0], 1))
+    outputs = X_test
+    #outputs = np.mean(X_train, axis=0)
+    #outputs = np.tile(outputs, (y_test.shape[0], 1))
 
-# difference = abs(outputs-labels)
-# mean_loss = np.mean(difference)
-# print(difference)
-# print(np.mean(difference))
+difference = abs(outputs-labels)
+mean_loss = np.mean(difference)
+print(difference)
+print(np.mean(difference))
 
-# # # First five in group only
-# # # labels = labels[original_labels<=5]
-# # # outputs = outputs[original_labels<=5]
-# # # test_order = test_order[original_labels<=5]
+# # First five in group only
+# # labels = labels[original_labels<=5]
+# # outputs = outputs[original_labels<=5]
+# # test_order = test_order[original_labels<=5]
 
-# ## Validation on test set (never seen by InksNet)
+## Validation on test set (never seen by InksNet)
 
-# # Consecutive inks from test set are in labels tensor:
-# print('y_true:')
-# print(labels)
-
-
-# # Predictions are in outputs tensor:
-# print('y_pred:')
-# print(outputs)
+# Consecutive inks from test set are in labels tensor:
+print('y_true:')
+print(labels)
 
 
-# # Absolute value of difference between true values (labels) and prediction (outputs) are stored in difference tensor:
-# print('Difference:')
-# print(difference)
+# Predictions are in outputs tensor:
+print('y_pred:')
+print(outputs)
 
 
-# # # Mean loss:
-# print('Mean loss:')
-# print(mean_loss)
+# Absolute value of difference between true values (labels) and prediction (outputs) are stored in difference tensor:
+print('Difference:')
+print(difference)
 
-# # # Loss on consecutive coordinates:
-# print('Loss on consecutive coordinates:')
-# print(np.mean(difference, axis=0))
-# # # Consecutive coordinates correspond to: Al, S, Cr, Mn, Co, Cu, Zn, Pb, Fe, Mg.
-# # # Significance of elements: Cu >> Mn > Al > Zn > Pb > S > Cr > Co >> all the others.
 
-# # # BASIC DIAGNOSTIC PLOTS
+# # Mean loss:
+print('Mean loss:')
+print(mean_loss)
 
-# summary = compute_metrics(outputs, labels)
-# print(summary)
+# # Loss on consecutive coordinates:
+print('Loss on consecutive coordinates:')
+print(np.mean(difference, axis=0))
+# # Consecutive coordinates correspond to: Al, S, Cr, Mn, Co, Cu, Zn, Pb, Fe, Mg.
+# # Significance of elements: Cu >> Mn > Al > Zn > Pb > S > Cr > Co >> all the others.
 
-# plot_pred_vs_gt(outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
+# # BASIC DIAGNOSTIC PLOTS
 
-# plot_residuals(outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
+summary = compute_metrics(outputs, labels)
+print(summary)
 
-# plot_error_distributions(outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
+plot_pred_vs_gt(outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
 
-# plot_qq(outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
+plot_residuals(outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
 
-# plot_error_boxplot(outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+plot_error_distributions(outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Residual', ylabel='Count', path_to_save=FIGURES_PATH)
 
-# plot_error_violinplot(outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+plot_qq(outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
 
-# plot_correlation_heatmaps(outputs, labels, ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH)
+plot_error_boxplot(outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
 
-# plot_l1_error(outputs, labels, path_to_save=FIGURES_PATH)
+plot_error_violinplot(outputs, labels, ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
 
-# plot_l1_error_with_density(outputs, labels, path_to_save=FIGURES_PATH)
+plot_correlation_heatmaps(outputs, labels, ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH)
+
+plot_l1_error(outputs, labels, path_to_save=FIGURES_PATH)
+
+plot_l1_error_with_density(outputs, labels, path_to_save=FIGURES_PATH)
 
 ########################################################################
+
 # ALL MODELS
+
 model_names = ['Surrogate model',  'XGBoost', 'Random Forest','InksNet']
 mean_errors_names = ["mean_mae", "mean_rmse", "mean_l2"]
 
@@ -381,3 +386,107 @@ plot_correlation_heatmaps_for_different_models(
                                                     cluster=True,
                                                     path_to_save=config["figures_path"]["all"]
                                                 )
+
+
+
+########################################################################
+
+# 5-fold cross validation
+
+k = 5
+
+train_loaders, val_loaders, test_loaders, data_lists, original_labels_s = prepare_k_fold_crossvalidation(
+                                                                                                            k,
+                                                                                                            DATA_PATH,
+                                                                                                            how_many_outer_to_remove= HOW_MANY_OUTER_TO_REMOVE,
+                                                                                                            elements_to_keep = ELEMENTS_TO_KEEP,
+                                                                                                            multiplication_weights = MULTIPLICATION_WEIGHTS,
+                                                                                                            preprocessing_method = PREPROCESSING_METHOD, 
+                                                                                                            random_state=3,
+                                                                                                            normalisation_to_Fe=NORMALISATION_TO_FE,
+                                                                                                            return_data=True,
+                                                                                                            perturb_data=False,
+                                                                                                            mu=0,
+                                                                                                            sigma=0.1,
+                                                                                                            return_original_labels=True
+                                                                                                        )
+
+
+outputs_rfs, outputs_xgboosts, outputs_surs, outputs_nns, labels_s = [], [], [], [], []
+
+for fold_nr in range(k):
+
+    train_loader, val_loader, test_loader, data_list, original_labels = train_loaders[fold_nr], val_loaders[fold_nr], test_loaders[fold_nr], data_lists[fold_nr], original_labels_s[fold_nr]
+
+    original_labels = get_sample_number_in_group(original_labels)
+
+    X_train, y_train, X_val, y_val, X_test, y_test, train_order, val_order, test_order = data_list
+
+    labels = y_test
+
+    # Random Forest Regressor
+    rf_regressor = RandomForestRegressor(
+                                        n_estimators=100,
+                                        criterion='absolute_error',
+                                        random_state=3,
+                                        oob_score=True
+                                        )
+    # Training or loading
+    rf_regressor.fit(X_train, y_train)
+
+    # Prediction on test set
+    outputs_rf = rf_regressor.predict(X_test)
+
+
+    # XGBoost regressor    
+
+    xgboost_model = XGBRegressor(
+        multi_strategy="multi_output_tree"
+    )
+
+    xgboost_model.fit(X_train, y_train)
+
+    outputs_xgboost = xgboost_model.predict(X_test)
+
+    # Surrogate model
+
+    outputs_sur = X_test
+    #outputs_sur = np.mean(X_train, axis=0)
+    #outputs_sur = np.tile(outputs_sur, (y_test.shape[0], 1))
+
+    # InksNet
+
+    device = get_device()
+    model = InksNet(input_size=INPUT_SIZE, dropout_prob=DROPOUT_PROB).to(device)
+    weights = torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1).to(device)
+    loss_fn = CustomLoss(weights=weights)
+
+    model, train_losses, val_losses = train_model(model=model,
+                                                  train_loader=train_loader,
+                                                  val_loader=val_loader,
+                                                  epochs=2000,
+                                                  loss_fn=loss_fn)
+
+    model.eval()
+    outputs_nn = model(data_to_device(X_test, device))
+
+    outputs_rfs.append(outputs_rf)
+    outputs_xgboosts.append(outputs_xgboost)
+    outputs_surs.append(outputs_sur)
+    outputs_nns.append(outputs_nn)
+    labels_s.append(labels)
+
+with open(RESULTS_PATH["crossvalidation"] + 'outputs_rf.pkl', 'wb') as f:
+    pickle.dump(outputs_rfs, f)
+
+with open(RESULTS_PATH["crossvalidation"] + 'outputs_xgboost.pkl', 'wb') as f:
+    pickle.dump(outputs_xgboosts, f)
+
+with open(RESULTS_PATH["crossvalidation"] + 'outputs_sur.pkl', 'wb') as f:
+    pickle.dump(outputs_surs, f)
+
+with open(RESULTS_PATH["crossvalidation"] + 'outputs_nn.pkl', 'wb') as f:
+    pickle.dump(outputs_nns, f)
+
+with open(RESULTS_PATH["crossvalidation"] + 'labels.pkl', 'wb') as f:
+    pickle.dump(labels_s, f)
