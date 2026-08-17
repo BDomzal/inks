@@ -121,10 +121,14 @@ if mode == "training":
 
     plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
 
+    plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+
+    plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+
 
 if mode == "training_subset":
 
-    plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=[1, 3, 4, 7, 9, 10], nrows=nrows, figsize=(14, 5), xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
+    plot_pred_vs_gt(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=[1, 4, 7, 10], nrows=nrows, figsize=(8, 5), xlabel='Logarithmed true value', ylabel='Logarithmed prediction', path_to_save=FIGURES_PATH)
 
     plot_residuals(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Logarithmed true value', path_to_save=FIGURES_PATH)
 
@@ -132,9 +136,9 @@ if mode == "training_subset":
 
     plot_qq(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=dims_to_keep, nrows=nrows, figsize=(8, 5), xlabel='Theoretical quantiles', ylabel='Prediction quantiles', path_to_save=FIGURES_PATH)
 
-plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+    plot_error_boxplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=[1, 4, 7, 10], figsize = (10,5), xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
 
-plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep='all', xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
+    plot_error_violinplot(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, dims_to_keep=[1, 4, 7, 10], figsize = (10,5), xlabel='', ylabel='Residual', path_to_save=FIGURES_PATH)
 
 plot_correlation_heatmaps(to_numpy(outputs), to_numpy(labels), ELEMENTS_TO_KEEP, xlabel='', ylabel='Residual', cluster=True, path_to_save=FIGURES_PATH)
 
