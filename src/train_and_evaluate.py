@@ -878,6 +878,9 @@ def plot_error_distributions_for_different_models(
         ax.set_title(title, size=10)
         ax.tick_params(axis='both', labelsize=5)
 
+        if len(dims_to_keep) == 1:
+            ax.legend(fontsize=15)
+
     if nrows==2:
         axes[-1].set_axis_off()
 

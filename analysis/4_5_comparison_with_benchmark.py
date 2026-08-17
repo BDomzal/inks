@@ -10,7 +10,7 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-mode = "benchmark_sur"
+mode = "training_subset"
 
 PREPROCESSING_METHOD = config["preprocessing_method"]
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
@@ -26,9 +26,9 @@ FIGURES_PATH = config["figures_path"][mode]
 if mode == "training" or mode.startswith("benchmark"):
     nrows = 2
     dims_to_keep = "all"
-else:
+elif mode == "training_subset":
     nrows = 1
-    dims_to_keep = [7]
+    dims_to_keep = [4]
 
 ## Loading data and trained model
 
@@ -349,10 +349,24 @@ heatmap_model_metric(
 
 # Residual distributions
 
-plot_error_distributions_for_different_models(
-                                                [outputs_rf, outputs_nn], 
-                                                labels, 
-                                                ['Random Forest', 'InksNet'], 
-                                                ELEMENTS_TO_KEEP,  
-                                                path_to_save=config["figures_path"]['all']
-                                                )
+if mode == "training":
+    plot_error_distributions_for_different_models(
+                                                    [outputs_rf, outputs_nn], 
+                                                    labels, 
+                                                    ['Random Forest', 'InksNet'], 
+                                                    ELEMENTS_TO_KEEP,  
+                                                    dims_to_keep=dims_to_keep, 
+                                                    nrows=nrows, 
+                                                    path_to_save=config["figures_path"]['all']
+                                                    )
+
+if mode == 'training_subset':
+    plot_error_distributions_for_different_models(
+                                                    [outputs_rf, outputs_nn], 
+                                                    labels, 
+                                                    ['Random Forest', 'InksNet'], 
+                                                    ELEMENTS_TO_KEEP,  
+                                                    dims_to_keep=dims_to_keep, 
+                                                    nrows=nrows, 
+                                                    path_to_save=config["figures_path"]['training_subset']
+                                                    )
