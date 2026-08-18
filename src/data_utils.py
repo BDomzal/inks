@@ -706,6 +706,15 @@ def prepare_k_fold_crossvalidation(
         else:
             return train_loaders, val_loaders, test_loaders
 
+
+def apply_across_folds(summaries, key, function=np.mean, k=5):
+    results = []
+    for model_nr in range(len(summaries)):
+        res = function([summaries[model_nr][fold_nr][key] for fold_nr in range(k)], axis=0)
+        results.append(res)
+    return results
+
+
 def sample_in_list(sample, list_of_names):
     return any([sample.startswith(el) for el in list_of_names])
 

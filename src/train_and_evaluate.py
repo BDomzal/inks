@@ -721,13 +721,19 @@ def plot_pca_projection(outputs, labels, figsize=(8, 5), path_to_save=None, max_
     plt.close(fig)
 
 
-def plot_model_element(errors, model_names, elements_to_keep, figsize=(12, 5), ylabel='MAE', colors = ['blue', 'gold', 'green', 'darkviolet'], y_upper_lim=None, y_lower_lim=None, path_to_save=None):
+def plot_model_element(errors, model_names, elements_to_keep, std=None, figsize=(12, 5), ylabel='MAE', colors = ['blue', 'gold', 'green', 'darkviolet'], y_upper_lim=None, y_lower_lim=None, path_to_save=None):
 
     plt.figure(figsize=figsize)
 
     for i in range(len(errors)):
 
-        plt.plot(range(len(errors[i])), errors[i], "o-", linewidth=0.8, markersize=5, label=model_names[i], color=colors[i])
+        plt.plot(range(len(errors[i])), errors[i], "o-", linewidth=0.8, markersize=8, label=model_names[i], color=colors[i])
+
+    if std:
+
+        for i in range(len(errors)):
+
+            plt.errorbar(range(len(errors[i])), errors[i], std[i], elinewidth=3, linewidth=0, capsize=6, capthick=6, alpha=0.5, color=colors[i])
 
 
     # Eleven labels on the horizontal axis

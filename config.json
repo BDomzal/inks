@@ -52,7 +52,8 @@
 		"robustness" : "../figures/robustness/",
 		"benchmark_rf" : "../figures/benchmark_rf/",
 		"benchmark_xgboost" : "../figures/benchmark_xgboost/",
-		"benchmark_sur" : "../figures/benchmark_sur/"
+		"benchmark_sur" : "../figures/benchmark_sur/",
+		"crossvalidation": "../figures/crossvalidation/"
 		},
 
 "models_path" : "../models/current_best",
