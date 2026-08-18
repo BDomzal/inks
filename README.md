@@ -27,17 +27,17 @@ With this method, one can transfer small amounts of ink onto the paper without d
 
 ## InksNet
 
-<img align="right" alt="nn_v5" src="https://github.com/user-attachments/assets/930d5ff0-34ff-437e-9d2c-deb2fdc193f7" style="width:35%; height:auto;" />
+<img align="right" alt="nn_v7" src="https://github.com/user-attachments/assets/4a15eee3-b568-4d05-b25c-a2bbd8250c52" style="width:25%; height:auto;" />
 
 InksNet is a feed-forward neural network predicting the elemental composition of an ink based on the LA-ICP-MS measurements of bathophenanthroline-soaked papers. 
 
 The input and output are vectors of length 11, corresponding to 11 crucial elements present in iron gall inks (Al, S, Mn, Co, Cu, Zn, Pb, Fe, Mg, Na, K).
 
-InksNet has 6 hidden linear layers with sizes : 93, 586, 660, 743, 105, 893, each followed by activation function GeLU and dropout with probability of approx. 0.08. 
+InksNet has 2 hidden linear layers with sizes : 23, 92, each followed by activation function GeLU and dropout with probability 0.1. 
 
 The architecture of InksNet was chosen using Optuna search.
 
-The network was trained to minimize L1 loss function by AdamW optimizer with learinig rate of approx. $9 \cdot 10^{-4}$ and weight decay of approx. $3 \cdot 10^{-8}$ for 3000 epochs.
+The network was trained to minimize L1 loss function by AdamW optimizer with learinig rate of approx. $8 \cdot 10^{-5}$ and weight decay of approx. $6 \cdot 10^{-5}$ for 2000 epochs.
 
 ## Datasets
 ### Nicolaus Copernicus handwritten notes
