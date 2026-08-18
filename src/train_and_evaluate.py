@@ -944,6 +944,34 @@ def plot_correlation_heatmaps_for_different_models(outputs, labels, model_names,
     plt.show()
     plt.close(fig)
 
+def mc_dropout_evaluate_on_test_set(model, test_loader, loss_fn=CustomLoss(torch.tensor([1/INPUT_SIZE]*INPUT_SIZE).unsqueeze(1))):
+    model.eval()
+
+    for module in model.modules():
+        if isinstance(module, torch.nn.Dropout):
+            module.train()
+
+    running_tloss = 0
+
+    for i, tdata in enumerate(test_loader):
+        current_inputs, current_labels = tdata
+        current_outputs = model(current_inputs)
+        loss = loss_fn(current_outputs, current_labels)
+        if i == 0:
+            outputs = current_outputs
+            labels = current_labels
+            difference = abs(current_outputs-current_labels)
+        else:
+            difference = torch.concat((difference, 
+                                       abs(current_outputs-current_labels)), 
+                                       axis=0)
+            labels = torch.concat((labels, current_labels), axis=0)
+            outputs = torch.concat((outputs, current_outputs), axis=0)
+        running_tloss += loss.item()
+        
+    mean_loss = running_tloss/len(test_loader)
+    return labels, outputs, difference, mean_loss
+
 # CLASSIFICATION-BASED STATISTICS AND VISUALISATIONS PART 1
 
 def plot_topk_confusion(y_true, y_pred, top_k=20, figsize=(7, 5), path_to_save=None):

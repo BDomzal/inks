@@ -53,7 +53,9 @@
 		"benchmark_rf" : "../figures/benchmark_rf/",
 		"benchmark_xgboost" : "../figures/benchmark_xgboost/",
 		"benchmark_sur" : "../figures/benchmark_sur/",
-		"crossvalidation": "../figures/crossvalidation/"
+		"crossvalidation": "../figures/crossvalidation/",
+		"training_mc_dropout": "../figures/mc_dropout/",
+		"training_subset_mc_dropout": "../figures/mc_dropout_subset/"
 		},
 
 "models_path" : "../models/current_best",
