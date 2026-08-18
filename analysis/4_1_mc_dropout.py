@@ -20,7 +20,7 @@ DROPOUT_PROB = config["dropout_prob"]
 
 DATA_PATH = config["training_data_path"]
 MODELS_PATH = config["models_path"]
-FIGURES_PATH = config["figures_path"][mode]
+FIGURES_PATH = config["figures_path"]
 
 if mode == "training_mc_dropout":
     nrows = 2
