@@ -95,13 +95,13 @@ for element_nr in range(len(ELEMENTS_TO_KEEP)):
 
 # OOD (Out Of Distribution) Samples Analysis
 
-results = get_ood_results(model, X_test, labels, ELEMENTS_TO_KEEP)
+# results = get_ood_results(model, X_test, labels, ELEMENTS_TO_KEEP)
 
-#error degradation
-perturbation_names = [r["label"] for r in results]
-mae_means = [r["mae_mean"] for r in results]
-mae_stds = [r["mae_std"] for r in results]
-mae_all = np.array([r["mae_all"] for r in results]).T
+# #error degradation
+# perturbation_names = [r["label"] for r in results]
+# mae_means = [r["mae_mean"] for r in results]
+# mae_stds = [r["mae_std"] for r in results]
+# mae_all = np.array([r["mae_all"] for r in results]).T
 
-plot_ood_results(mae_means, mae_stds, perturbation_names, path_to_save=FIGURES_PATH)
-plot_ood_results_violin(mae_all, perturbation_names, path_to_save=FIGURES_PATH)
+# plot_ood_results(mae_means, mae_stds, perturbation_names, path_to_save=FIGURES_PATH)
+# plot_ood_results_violin(mae_all, perturbation_names, path_to_save=FIGURES_PATH)
