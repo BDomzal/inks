@@ -805,7 +805,7 @@ def plot_model_metric(summaries, model_names, errors_names, official_errors_name
     plt.close()
 
 
-def heatmap_model_metric(summaries, model_names, errors_names, official_errors_names, figsize=(12, 5), path_to_save=None):
+def heatmap_model_metric(summaries, model_names, errors_names, official_errors_names, annot=False, fmt='.2g', figsize=(12, 5), path_to_save=None):
 
     mean_errors = pd.DataFrame(index=model_names, columns=errors_names, dtype=float)
 
@@ -817,7 +817,7 @@ def heatmap_model_metric(summaries, model_names, errors_names, official_errors_n
 
     plt.figure(figsize=figsize)
 
-    sns.heatmap(mean_errors, annot=False, cmap='rocket_r')
+    sns.heatmap(mean_errors, cmap='rocket_r', annot=annot, annot_kws={"fontsize":20}, fmt=fmt)
 
     # Eleven labels on the horizontal axis
     plt.xticks(np.array(range(len(errors_names)))+0.5, official_errors_names, size=25)
