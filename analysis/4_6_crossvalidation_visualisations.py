@@ -126,6 +126,137 @@ plot_model_element(
                     path_to_save = FIGURES_PATH + 'mae.png'
                     )
 
+# MEAN MAE ACROSS 5 FOLDS FOR EACH MODEL AND ELEMENT WITH WHISKERS
+
+meann = apply_across_folds(
+                                [summaries_sur, summaries_rf, summaries_xgboost, summaries_nn],
+                                'mae',
+                                np.mean,
+                                k=5
+                                )
+stdd = apply_across_folds(
+                                [summaries_sur, summaries_rf, summaries_xgboost, summaries_nn],
+                                'mae',
+                                np.std,
+                                k=5
+                                )
+
+plot_model_element(
+                    errors = meann, 
+                    model_names = ['Surrogate model', 'Random forest', 'XGBoost', 'InksNet'], 
+                    colors = ['blue', 'gold', 'green', 'darkviolet'],
+                    elements_to_keep = ELEMENTS_TO_KEEP, 
+                    std = stdd,
+                    figsize=(12, 5), 
+                    ylabel='Mean of MAE across folds',
+                    path_to_save = FIGURES_PATH + 'mae_whiskers.png'
+                    )
+
+# MEAN RMSE ACROSS 5 FOLDS FOR EACH MODEL AND ELEMENT WITH WHISKERS
+
+meann = apply_across_folds(
+                                [summaries_sur, summaries_rf, summaries_xgboost, summaries_nn],
+                                'rmse',
+                                np.mean,
+                                k=5
+                                )
+stdd = apply_across_folds(
+                                [summaries_sur, summaries_rf, summaries_xgboost, summaries_nn],
+                                'rmse',
+                                np.std,
+                                k=5
+                                )
+
+plot_model_element(
+                    errors = meann, 
+                    model_names = ['Surrogate model', 'Random forest', 'XGBoost', 'InksNet'], 
+                    colors = ['blue', 'gold', 'green', 'darkviolet'],
+                    elements_to_keep = ELEMENTS_TO_KEEP, 
+                    std = stdd,
+                    figsize=(12, 5), 
+                    ylabel='Mean of RMSE across folds',
+                    path_to_save = FIGURES_PATH + 'rmse_whiskers.png'
+                    )
+
+# MEAN L2 ACROSS 5 FOLDS FOR EACH MODEL AND ELEMENT WITH WHISKERS
+
+meann = apply_across_folds(
+                                [summaries_sur, summaries_rf, summaries_xgboost, summaries_nn],
+                                'l2',
+                                np.mean,
+                                k=5
+                                )
+stdd = apply_across_folds(
+                                [summaries_sur, summaries_rf, summaries_xgboost, summaries_nn],
+                                'l2',
+                                np.std,
+                                k=5
+                                )
+
+plot_model_element(
+                    errors = meann, 
+                    model_names = ['Surrogate model', 'Random forest', 'XGBoost', 'InksNet'], 
+                    colors = ['blue', 'gold', 'green', 'darkviolet'],
+                    elements_to_keep = ELEMENTS_TO_KEEP, 
+                    std = stdd,
+                    figsize=(12, 5), 
+                    ylabel='Mean of L2 across folds',
+                    path_to_save = FIGURES_PATH + 'l2_whiskers.png'
+                    )
+
+# MEAN MAX ABSOLUTE ERROR ACROSS 5 FOLDS FOR EACH MODEL AND ELEMENT WITH WHISKERS
+
+meann = apply_across_folds(
+                                [summaries_sur, summaries_rf, summaries_xgboost, summaries_nn],
+                                'max_error',
+                                np.mean,
+                                k=5
+                                )
+stdd = apply_across_folds(
+                                [summaries_sur, summaries_rf, summaries_xgboost, summaries_nn],
+                                'max_error',
+                                np.std,
+                                k=5
+                                )
+
+plot_model_element(
+                    errors = meann, 
+                    model_names = ['Surrogate model', 'Random forest', 'XGBoost', 'InksNet'], 
+                    colors = ['blue', 'gold', 'green', 'darkviolet'],
+                    elements_to_keep = ELEMENTS_TO_KEEP, 
+                    std = stdd,
+                    figsize=(12, 5), 
+                    ylabel='Mean of max absolute \n error across folds',
+                    path_to_save = FIGURES_PATH + 'max_error_whiskers.png'
+                    )
+
+# MEAN BIAS ACROSS 5 FOLDS FOR EACH MODEL AND ELEMENT WITH WHISKERS
+
+meann = apply_across_folds(
+                                [summaries_sur, summaries_rf, summaries_xgboost, summaries_nn],
+                                'bias',
+                                np.mean,
+                                k=5
+                                )
+stdd = apply_across_folds(
+                                [summaries_sur, summaries_rf, summaries_xgboost, summaries_nn],
+                                'bias',
+                                np.std,
+                                k=5
+                                )
+
+plot_model_element(
+                    errors = meann, 
+                    model_names = ['Surrogate model', 'Random forest', 'XGBoost', 'InksNet'], 
+                    colors = ['blue', 'gold', 'green', 'darkviolet'],
+                    elements_to_keep = ELEMENTS_TO_KEEP, 
+                    std = stdd,
+                    figsize=(12, 5), 
+                    ylabel='Mean of bias across folds',
+                    path_to_save = FIGURES_PATH + 'bias_whiskers.png'
+                    )
+
+
 # ZOOMED MEAN MAE ACROSS 5 FOLDS FOR EACH MODEL AND ELEMENT
 
 meann = apply_across_folds(
@@ -245,20 +376,3 @@ heatmap_model_metric(
                      annot=annot,
                      fmt='',
                     path_to_save = FIGURES_PATH + 'heatmap_mae.png')
-
-
-mean_mae = apply_across_folds(
-                                [summaries_sur, summaries_xgboost, summaries_rf, summaries_nn],
-                                'mean_l2',
-                                np.mean,
-                                k=5
-                                )
-std_mae = apply_across_folds(
-                                [summaries_sur, summaries_xgboost, summaries_rf, summaries_nn],
-                                'mean_l2',
-                                np.std,
-                                k=5
-                                )
-
-print(mean_mae)
-print(std_mae)
