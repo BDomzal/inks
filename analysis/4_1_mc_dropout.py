@@ -9,7 +9,7 @@ import json
 with open('../config.json', 'r') as f:
     config = json.load(f)
 
-mode = "training_subset_mc_dropout"
+mode = "training_mc_dropout"
 
 PREPROCESSING_METHOD = config["preprocessing_method"]
 HOW_MANY_OUTER_TO_REMOVE = config["how_many_outer_to_remove"]
@@ -20,7 +20,7 @@ DROPOUT_PROB = config["dropout_prob"]
 
 DATA_PATH = config["training_data_path"]
 MODELS_PATH = config["models_path"]
-FIGURES_PATH = config["figures_path"]
+FIGURES_PATH = config["figures_path"][mode]
 
 if mode == "training_mc_dropout":
     nrows = 2
@@ -161,7 +161,8 @@ plot_l1_error(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
 
 plot_l1_error_with_density(to_numpy(outputs), to_numpy(labels), path_to_save=FIGURES_PATH)
 
-# Mean across MC runs, across samples in the test set
+# Mean and std across MC runs, across samples in the test set
+
 mean_label = torch.mean(labels, axis=0)
 mean_output = torch.mean(outputs, axis=0)
 mean_difference = torch.mean(difference, axis=0)
@@ -170,6 +171,8 @@ std_label = torch.std(labels, axis=0)
 std_output = torch.std(outputs, axis=0)
 std_difference = torch.std(difference, axis=0)
 
-print('##############################')
-print(mean_difference)
-print(std_difference)
+
+# Standard deviation of InksNet prediction based on 100 runs of Monte Carlo Dropout
+
+std_outputs = torch.std(torch.stack([outputs for outputs in outputss]), axis=0)
+print(torch.mean(std_outputs, axis=0))
