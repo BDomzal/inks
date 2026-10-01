@@ -376,3 +376,65 @@ heatmap_model_metric(
                      annot=annot,
                      fmt='',
                     path_to_save = FIGURES_PATH + 'heatmap_mae.png')
+
+
+
+mae_rf = np.array([sum_rf['mae'] for sum_rf in summaries_rf])
+mae_nn = np.array([sum_nn['mae'] for sum_nn in summaries_nn])
+rmse_rf = np.array([sum_rf['rmse'] for sum_rf in summaries_rf])
+rmse_nn = np.array([sum_nn['rmse'] for sum_nn in summaries_nn])
+l2_rf = np.array([sum_rf['l2'] for sum_rf in summaries_rf])
+l2_nn = np.array([sum_nn['l2'] for sum_nn in summaries_nn])
+
+
+import scipy.stats as stats
+#RF
+for i in range(11):
+    res = stats.ttest_rel(mae_rf[:,i], mae_nn[:,i], alternative='greater')
+    # print('T-test MAE per element')
+    # print(res)
+    res = stats.ttest_rel(rmse_rf[:,i], rmse_nn[:,i], alternative='greater')
+    #print('T-test RMSE per element')
+    #print(res)
+    res = stats.ttest_rel(l2_rf[:,i], l2_nn[:,i], alternative='greater')
+    #print('T-test L2 per element')
+    #print(res)
+
+#XGBOOST
+mae_xgboost = np.array([sum_xgboost['mae'] for sum_xgboost in summaries_xgboost])
+mae_nn = np.array([sum_nn['mae'] for sum_nn in summaries_nn])
+
+for i in range(11):
+    res = stats.ttest_rel(mae_xgboost[:,i], mae_nn[:,i], alternative='greater')
+    print('T-test MAE per element')
+    print(res)
+
+#RF
+mae_rf = np.array([sum_rf['mean_l2'] for sum_rf in summaries_rf])
+mae_nn = np.array([sum_nn['mean_l2'] for sum_nn in summaries_nn])
+rmse_rf = np.array([sum_rf['mean_l2'] for sum_rf in summaries_rf])
+rmse_nn = np.array([sum_nn['mean_l2'] for sum_nn in summaries_nn])
+l2_rf = np.array([sum_rf['mean_l2'] for sum_rf in summaries_rf])
+l2_nn = np.array([sum_nn['mean_l2'] for sum_nn in summaries_nn])
+
+
+res = stats.ttest_rel(mae_rf, mae_nn, alternative='greater')
+# print('T-test MAE')
+# print(res)
+
+res = stats.ttest_rel(rmse_rf, rmse_nn, alternative='greater')
+# print('T-test RMSE')
+# print(res)
+
+res = stats.ttest_rel(l2_rf, l2_nn, alternative='greater')
+# print('T-test L2')
+# print(res)
+
+
+#XGBOOST
+mae_xgboost = np.array([sum_xgboost['mean_l2'] for sum_xgboost in summaries_xgboost])
+mae_nn = np.array([sum_nn['mean_l2'] for sum_nn in summaries_nn])
+res = stats.ttest_rel(mae_xgboost, mae_nn, alternative='greater')
+print('T-test MAE')
+print(res)
+
