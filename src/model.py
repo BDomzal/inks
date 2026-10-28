@@ -18,31 +18,6 @@ class InksNet(nn.Module):
         Dropout probability used after each Linear layer.
     """
 
-    # optuna_l1_71_3000
-    # def __init__(self, input_size: int, dropout_prob: float) -> None:
-    #     super().__init__()
-    #     self.seq = nn.Sequential(
-    #         nn.Linear(input_size, 93),
-    #         nn.GELU(),
-    #         nn.Dropout(dropout_prob),
-    #         nn.Linear(93, 586),
-    #         nn.GELU(),
-    #         nn.Dropout(dropout_prob),
-    #         nn.Linear(586, 660),
-    #         nn.GELU(),
-    #         nn.Dropout(dropout_prob),
-    #         nn.Linear(660, 743),
-    #         nn.GELU(),
-    #         nn.Dropout(dropout_prob),
-    #         nn.Linear(743, 105),
-    #         nn.GELU(),
-    #         nn.Dropout(dropout_prob),
-    #         nn.Linear(105, 893),
-    #         nn.GELU(),
-    #         nn.Dropout(dropout_prob),
-    #         nn.Linear(893, input_size),
-    #     )
-
 
     def __init__(self, input_size: int, dropout_prob: float) -> None:
         super().__init__()
@@ -116,8 +91,6 @@ class CustomLoss(nn.Module):
         """
         
         res = self.inner_loss(outputs, targets)
-        #IMPORTANT CHANGE BELOW!!! UN-LOGARITHMING THE VALUES
-        #res = self.inner_loss(torch.exp(outputs), torch.exp(targets))
 
         res = torch.mm(res, self.weights)
         res = res.mean(axis=0)
