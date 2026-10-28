@@ -1,4 +1,6 @@
-# InksNet: studying historical manuscripts with AI
+# InksNet: studying historical manuscripts with machine learning models
+
+<img width="1328" height="531" alt="graphical_abstract_white_background" src="https://github.com/user-attachments/assets/27059ec2-0c02-441e-9379-5aca328cfc3b" />
 
 This repository contains code and datasets used in the study of iron gall inks in historical manuscripts by InksNet neural network, laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) and bathophenanthroline-soaked indicator papers.
 
@@ -6,7 +8,7 @@ This repository contains code and datasets used in the study of iron gall inks i
 
 ### Iron gall ink
 
-<img align="right" alt="księga_rachunkowa_z_tłem" src="https://github.com/user-attachments/assets/6b3cccf2-a400-4cfb-8bf8-e4ee8a0e28e0" style="width:27%; height:auto;" />
+<img align="right" alt="księga_rachunkowa_z_tłem" src="https://github.com/user-attachments/assets/0adca4a6-381a-4916-8977-c5fb592bfb8a" style="width:17%; height:auto;" />
 
 Iron gall ink is the most common and widespread agent used in handwriting in Europe for almost ten centuries. 
 
@@ -19,10 +21,10 @@ In favourable cases, the insight into the elemental composition of iron gall ink
 Laser ablation inductively coupled plasma mass spectrometry (LA-ICP-MS) is a leading-edge analytical technique used for determination of elemental composition in materials. 
 LA-ICP-MS is extremely sensitive, but unfortunately destructive - it requires sampling from the object examined.
 
-To circumvent this limitation, for the strictly protected historical manuscripts we used bathophenanthroline-soaked indicator papers. 
+To circumvent this limitation, for the strictly protected historical manuscripts we used bathophenanthroline-soaked indicator papers [(Neevel and Reissland, 2005).](https://doi.org/10.1080/15632628.2005.12461825)
 With this method, one can transfer small amounts of ink onto the paper without damaging the object. After that, the indicator can be analysed in spectrometer. But how to retrieve the original information about ink elemental composition from the data on indicator only?
 
-<img alt="la_icp_ms_and_indicators" src="https://github.com/user-attachments/assets/436bb930-8fba-49aa-ac78-dfe679aa2d50" style="width:75%; height:auto;" />
+<img width="1425" height="348" alt="spectrometer_with_text_white_background" src="https://github.com/user-attachments/assets/22ce4f44-b9d6-407a-b871-215957daefe0" />
 
 
 ## InksNet
@@ -79,4 +81,6 @@ This work was supported by the Polish National Science Centre grants: Spectral A
 
 ## Citing
 
-Paper in preparation. Meanwhile, if you are using code or data from this repository, please cite it using url.
+If you are using the data or code from this repository, please cite:
+
+Domżał, B., Towarek, A., Chlebowska, J., Goldstein, A., Żelazko, B., Jutrzenka-Supryn, D., Czuczko, J., Czajka, A., Fabiańska, A., Halicz, L., Gambin, A., Wagner, B. (2026). Non-destructive recovery of historical ink chemistry using machine learning. *Results in Chemistry*. [10.1016/j.rechem.2026.103985.](https://doi.org/10.1016/j.rechem.2026.103985)
